@@ -16,10 +16,13 @@ import styles from './UrlCard.module.css';
 import { useSettings } from '@/providers/settings';
 import UrlCardDebugView from '../UrlCardDebugView/UrlCardDebugView';
 import { CardSaveAnalyticsContext } from '@/features/analytics/types';
+import { sembleRefFromSaveSource } from '@/features/semble/lib/analytics';
+import { EntrySource } from '@/features/analytics/pageVisit';
 import posthog from 'posthog-js';
 import { shouldCaptureAnalytics } from '@/features/analytics/utils';
 import UrlCardContentSkeleton from '../urlCardContent/Skeleton.UrlCardContent';
 import CardAuthorRow from '../cardAuthorRow/CardAuthorRow';
+import { useSembleNavigation } from '@/features/semble/lib/sembleNavigation';
 
 interface Props {
   id: string;
@@ -38,6 +41,8 @@ interface Props {
   showAuthor?: boolean;
   semblePageUrl?: string;
   analyticsContext?: CardSaveAnalyticsContext;
+  /** entry_source for the semble page this card opens; derived from analyticsContext when omitted */
+  sembleRef?: EntrySource;
   isPinnedInCollection?: boolean;
   onTogglePinInCollection?: () => void;
   connectTooltipOpen?: boolean;
@@ -48,6 +53,7 @@ interface Props {
 
 export default function UrlCard(props: Props) {
   const { settings } = useSettings();
+  const sembleNavigation = useSembleNavigation();
 
   const isInternalPage =
     isCollectionPage(props.url) || isProfilePage(props.url);
@@ -55,6 +61,11 @@ export default function UrlCard(props: Props) {
     ? props.url
     : getSembleHref(props.cardContent.url, {
         viaCardId: props.viaCardId ? props.id : undefined,
+        ref:
+          props.sembleRef ??
+          (props.semblePageUrl
+            ? 'semble_page'
+            : sembleRefFromSaveSource(props.analyticsContext?.saveSource)),
       });
 
   const trackClick = () => {
@@ -89,6 +100,14 @@ export default function UrlCard(props: Props) {
         href={href}
         className={styles.link}
         onClick={trackClick}
+        onNavigate={
+          sembleNavigation && !isInternalPage
+            ? (e) => {
+                e.preventDefault();
+                sembleNavigation.navigate(href);
+              }
+            : undefined
+        }
         aria-label={props.cardContent.title ?? props.cardContent.url}
       />
       <Stack

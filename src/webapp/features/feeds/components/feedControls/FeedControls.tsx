@@ -19,6 +19,13 @@ import {
   sourceOptions,
 } from '@/features/feeds/lib/feedOptions';
 import Link from 'next/link';
+import {
+  HomeFeedFilter,
+  homeFeedStateFromSettings,
+  trackHomeFeedAction,
+  trackHomeFeedFilterChanged,
+  trackHomeFeedFiltersCleared,
+} from '@/features/feeds/lib/analytics';
 
 export default function FeedControls() {
   const { settings, updateSetting, updateSettings } = useSettings();
@@ -37,7 +44,17 @@ export default function FeedControls() {
   // Margin serves neither a following feed nor an activity-type filter, so
   // picking it resets both rather than leaving the feed on a combination it
   // cannot answer.
+  const feedState = homeFeedStateFromSettings(settings);
+  const trackFilter = (
+    filter: HomeFeedFilter,
+    from: string | null,
+    to: string | null,
+  ) => {
+    if (from !== to) trackHomeFeedFilterChanged(feedState, filter, to);
+  };
+
   const handleSourceClick = (source: ActivitySource | null) => {
+    trackFilter('source', settings.feedSource, source);
     updateSettings(
       source === ActivitySource.MARGIN
         ? { feedSource: source, feedView: 'global', feedActivityType: null }
@@ -46,15 +63,18 @@ export default function FeedControls() {
   };
 
   const handleFeedClick = (feed: FeedView) => {
+    trackFilter('view', settings.feedView, feed);
     updateSetting('feedView', feed);
   };
 
   const handleTypeClick = (type?: UrlType) => {
+    trackFilter('url_type', settings.feedUrlType, type ?? null);
     updateSetting('feedUrlType', type ?? null);
     setTypePopoverOpened(false);
   };
 
   const handleActivityTypeClick = (activityType: ActivityType | null) => {
+    trackFilter('activity_type', settings.feedActivityType, activityType);
     updateSetting('feedActivityType', activityType);
   };
 
@@ -65,6 +85,7 @@ export default function FeedControls() {
     settings.feedActivityType !== null;
 
   const handleClear = () => {
+    trackHomeFeedFiltersCleared(feedState, 'menu');
     updateSettings({
       feedSource: null,
       feedView: 'global',
@@ -254,6 +275,7 @@ export default function FeedControls() {
               component={Link}
               href="/settings/feed"
               leftSection={<TbSettings />}
+              onClick={() => trackHomeFeedAction(feedState, 'open_settings')}
             >
               Feed settings
             </Menu.Item>
@@ -275,6 +297,7 @@ export default function FeedControls() {
           href={'/explore/open-collections'}
           color="green"
           variant="light"
+          onClick={() => trackHomeFeedAction(feedState, 'open_explore')}
         >
           <FaSeedling />
         </LinkButton>

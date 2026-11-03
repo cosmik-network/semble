@@ -4,6 +4,7 @@ import { Suspense } from 'react';
 import SembleTabs from '../../components/sembleTabs/SembleTabs';
 import SembleHeaderSkeleton from '../../components/SembleHeader/Skeleton.SembleHeader';
 import SembleHeaderBackground from './SembleHeaderBackground';
+import SembleHeaderLinkTracker from './SembleHeaderLinkTracker';
 import BlueskySembleHeader from '@/features/platforms/bluesky/container/blueskySembleHeader/BlueskySembleHeader';
 import { detectUrlPlatform, SupportedPlatform } from '@/lib/utils/link';
 import BlueskySembleHeaderSkeleton from '@/features/platforms/bluesky/container/blueskySembleHeader/Skeleton.BlueskySembleHeader';
@@ -50,13 +51,15 @@ export default function SembleContainer(props: Props) {
       <SembleHeaderBackground />
       <Container px={'xs'} pb={'xs'} size={'xl'}>
         <Stack gap={'xl'}>
-          <Suspense fallback={<SkeletonComponent />} key={props.url}>
-            <HeaderComponent
-              url={props.url}
-              viaCardId={props.viaCardId}
-              hideActions={props.hideActions}
-            />
-          </Suspense>
+          <SembleHeaderLinkTracker url={props.url}>
+            <Suspense fallback={<SkeletonComponent />} key={props.url}>
+              <HeaderComponent
+                url={props.url}
+                viaCardId={props.viaCardId}
+                hideActions={props.hideActions}
+              />
+            </Suspense>
+          </SembleHeaderLinkTracker>
         </Stack>
       </Container>
 

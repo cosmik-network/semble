@@ -136,8 +136,27 @@ export default function EditConnectionForm(props: Props) {
       return;
     }
 
+    const previousNote = props.connection.note?.trim() ?? '';
+    const note = values.note.trim();
+    const previousConnectionType = props.connection.type || 'RELATED';
+
     updateConnection.mutate(
       {
+        analytics: {
+          connection_type: values.connectionType,
+          previous_connection_type: previousConnectionType,
+          connection_type_changed:
+            values.connectionType !== previousConnectionType,
+          swapped: values.swapped,
+          note_change:
+            note === previousNote
+              ? 'unchanged'
+              : !previousNote
+                ? 'added'
+                : !note
+                  ? 'removed'
+                  : 'edited',
+        },
         connectionId: props.connection.id,
         connectionType: values.connectionType
           ? (values.connectionType as any)

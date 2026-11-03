@@ -27,6 +27,8 @@ import { LinkAvatar } from '@/components/link/MantineLink';
 import { isBotAccount } from '@/features/platforms/bluesky/lib/utils/account';
 import BotLabel from '@/features/profile/components/botLabel/BotLabel';
 import classes from './CollectionHeader.module.css';
+import CollectionVisitTracker from './CollectionVisitTracker';
+import { trackCollectionAction } from '../../lib/analytics';
 
 interface Props {
   rkey: string;
@@ -42,9 +44,12 @@ export default function CollectionHeader(props: Props) {
   const collection = data.pages[0];
   const accessType = collection.accessType;
   const marginUrl = getMarginUrl(collection?.uri, collection?.author.handle);
+  const trackViewAuthor = () =>
+    trackCollectionAction(props.rkey, 'view_author');
 
   return (
     <Fragment>
+      <CollectionVisitTracker collection={collection} rkey={props.rkey} />
       {/* Light mode gradient */}
       <Box
         lightHidden
@@ -111,6 +116,7 @@ export default function CollectionHeader(props: Props) {
               <LinkAvatar
                 size={32}
                 href={`/profile/${collection.author.handle}`}
+                onClick={trackViewAuthor}
                 src={collection.author.avatarUrl?.replace(
                   'avatar',
                   'avatar_thumbnail',
@@ -121,6 +127,7 @@ export default function CollectionHeader(props: Props) {
                 <Group gap={'xs'}>
                   <Anchor
                     href={`/profile/${collection.author.handle}`}
+                    onClick={trackViewAuthor}
                     fw={600}
                     fz={'sm'}
                     c="bright"

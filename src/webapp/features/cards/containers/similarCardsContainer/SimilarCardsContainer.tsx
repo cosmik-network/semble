@@ -10,10 +10,29 @@ import { CardFilters } from '@/features/cards/components/cardFilters/CardFilters
 import { useSearchParams, usePathname } from 'next/navigation';
 import { UrlType } from '@semble/types';
 import { CardSaveSource } from '@/features/analytics/types';
+import { useRef } from 'react';
+import useListDepth from '@/features/analytics/useListDepth';
+import { ListDepth } from '@/features/analytics/pageVisit';
+import { trackSembleListDepth } from '@/features/semble/lib/analytics';
+import { trackCollectionListDepth } from '@/features/collections/lib/analytics';
+
+/** The page visit that list depth is reported against */
+type DepthVisit =
+  | { page: 'semble_page'; url: string }
+  | { page: 'collection_page'; rkey: string };
+
+function reportDepth(visit: DepthVisit, depth: ListDepth) {
+  if (visit.page === 'semble_page') {
+    trackSembleListDepth(visit.url, 'similar', depth);
+  } else {
+    trackCollectionListDepth(visit.rkey, 'similar', depth);
+  }
+}
 
 interface Props {
   url: string;
   semblePageUrl?: string;
+  depthVisit?: DepthVisit;
 }
 
 export default function SimilarCardsContainer(props: Props) {
@@ -25,6 +44,17 @@ export default function SimilarCardsContainer(props: Props) {
     useSimilarCards({ url: props.url, urlType: selectedUrlType });
 
   const allSimilarUrls = data?.pages.flatMap((page) => page.urls ?? []) ?? [];
+
+  const { depthVisit } = props;
+  const listRef = useRef<HTMLDivElement>(null);
+  useListDepth({
+    containerRef: listRef,
+    itemsLoaded: allSimilarUrls.length,
+    pagesLoaded: data?.pages.length ?? 0,
+    hasMore: !!hasNextPage,
+    urlType: selectedUrlType ?? undefined,
+    onReport: depthVisit && ((depth) => reportDepth(depthVisit, depth)),
+  });
 
   return (
     <Stack gap={'xs'} align="center">
@@ -47,10 +77,12 @@ export default function SimilarCardsContainer(props: Props) {
             icon={BiLink}
           />
         ) : (
-          <Grid gap="sm" mx={'auto'} maw={600} w={'100%'}>
-            {allSimilarUrls.map((urlView) => (
+          <Grid ref={listRef} gap="sm" mx={'auto'} maw={600} w={'100%'}>
+            {allSimilarUrls.map((urlView, index) => (
               <Grid.Col
                 key={urlView.url}
+                data-analytics-position={index + 1}
+                data-analytics-url-type={selectedUrlType ?? undefined}
                 span={12}
                 style={{
                   contentVisibility: 'auto',
@@ -66,6 +98,7 @@ export default function SimilarCardsContainer(props: Props) {
                       urlType: selectedUrlType,
                     },
                     pagePath: pathname,
+                    listPosition: index + 1,
                   }}
                 />
               </Grid.Col>

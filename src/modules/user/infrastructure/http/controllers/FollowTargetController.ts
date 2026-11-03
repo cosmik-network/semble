@@ -30,11 +30,7 @@ export class FollowTargetController extends Controller {
 
       if (result.isErr()) {
         if (result.error instanceof AuthenticationError) {
-          return this.unauthorized(
-            res,
-            result.error.message,
-            'PDS_SESSION_EXPIRED',
-          );
+          return this.handleError(res, result.error);
         }
         return this.fail(res, result.error);
       }

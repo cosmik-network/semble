@@ -68,6 +68,7 @@ export default function CollectionsContainerContent(props: Props) {
                 key={collection.id}
                 collection={collection}
                 followSource={FollowSource.PROFILE_PAGE}
+                entryRef="profile"
               />
             ))}
           </SimpleGrid>

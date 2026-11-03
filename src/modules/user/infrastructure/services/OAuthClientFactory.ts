@@ -8,6 +8,7 @@ import { JoseKey } from '@atproto/jwk-jose';
 import { configService } from 'src/shared/infrastructure/config';
 import { LockServiceFactory } from 'src/shared/infrastructure/locking';
 import { paths } from '@semble/types';
+import { reportPdsAuthFailure } from 'src/modules/atproto/infrastructure/services/pdsAuthFailure';
 
 export class OAuthClientFactory {
   static getClientMetadata(
@@ -18,8 +19,7 @@ export class OAuthClientFactory {
     const enc = encodeURIComponent;
     const isTunnel = configService.isTunnelMode();
     const isLocal = configService.get().environment === 'local' && !isTunnel;
-    const isProd = configService.get().environment === 'prod';
-    const useConfidential = this.isConfidentialEnabled(isLocal, isProd);
+    const useConfidential = this.isConfidentialEnabled(isLocal);
 
     const collections = configService.getAtProtoCollections();
 
@@ -83,17 +83,14 @@ export class OAuthClientFactory {
   }
 
   /**
-   * Confidential (private_key_jwt) mode is enabled only where a signing key
-   * is configured, and never for:
-   * - local (loopback client_ids can't host a metadata/JWKS document), or
-   * - prod (deliberately still a public client; flipping prod requires the
-   *   auth_session authMethod migration and must be an explicit code change).
+   * Confidential (private_key_jwt) mode is enabled wherever a signing key is
+   * configured, except local (loopback client_ids can't host a metadata/JWKS
+   * document). When first enabling it in an environment, run
+   * `npm run oauth:strip-auth-method` right after the deploy goes live, or
+   * existing sessions pinned to authMethod "none" are deleted on next refresh.
    */
-  private static isConfidentialEnabled(
-    isLocal: boolean,
-    isProd: boolean,
-  ): boolean {
-    if (isLocal || isProd) return false;
+  private static isConfidentialEnabled(isLocal: boolean): boolean {
+    if (isLocal) return false;
     const { privateKeyPkcs8, keyId } = configService.getOAuthClientConfig();
     return Boolean(privateKeyPkcs8 && keyId);
   }
@@ -174,13 +171,14 @@ export class OAuthClientFactory {
       const { sub, cause } = event.detail;
       if (!shouldLogDeletion(sub)) return;
       console.error(
-        `[OAuthClient] Session DELETED for ${sub} (process: ${processGroup}). Cause chain: ${formatCauseChain(cause)} (further deletions for this DID suppressed for ${DELETION_LOG_INTERVAL_MS / 60_000} min)`,
+        `[OAuthClient] Session DELETED for ${sub} (process: ${processGroup}). (further deletions for this DID suppressed for ${DELETION_LOG_INTERVAL_MS / 60_000} min)`,
       );
+      reportPdsAuthFailure('session_deleted', sub, cause);
     });
 
     client.addEventListener('updated', (event) => {
       console.log(
-        `[OAuthClient] Session updated (token refreshed) for ${event.detail.sub} (process: ${processGroup})`,
+        `[OAuthClient] Session stored (OAuth callback or token refresh) for ${event.detail.sub} (process: ${processGroup})`,
       );
     });
   }
@@ -205,21 +203,4 @@ function shouldLogDeletion(sub: string): boolean {
   lastDeletionLogAt.delete(sub);
   lastDeletionLogAt.set(sub, now);
   return true;
-}
-
-function formatCauseChain(error: unknown): string {
-  const parts: string[] = [];
-  let current: unknown = error;
-  let depth = 0;
-  while (current && depth < 5) {
-    if (current instanceof Error) {
-      parts.push(`${current.name}: ${current.message}`);
-      current = current.cause;
-    } else {
-      parts.push(JSON.stringify(current));
-      break;
-    }
-    depth++;
-  }
-  return parts.join(' <- ') || String(error);
 }

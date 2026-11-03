@@ -67,6 +67,7 @@ export class GetUserStatsUseCase implements UseCase<
       return err(
         new Error(
           `Failed to retrieve user stats: ${error instanceof Error ? error.message : 'Unknown error'}`,
+          { cause: error },
         ),
       );
     }
@@ -99,6 +100,7 @@ export class GetUserStatsUseCase implements UseCase<
       return err(
         new Error(
           `Failed to retrieve growth stats: ${error instanceof Error ? error.message : 'Unknown error'}`,
+          { cause: error },
         ),
       );
     }
@@ -133,6 +135,7 @@ export class GetUserStatsUseCase implements UseCase<
       return err(
         new Error(
           `Failed to retrieve engagement stats: ${error instanceof Error ? error.message : 'Unknown error'}`,
+          { cause: error },
         ),
       );
     }
@@ -165,6 +168,7 @@ export class GetUserStatsUseCase implements UseCase<
       return err(
         new Error(
           `Failed to retrieve activity stats: ${error instanceof Error ? error.message : 'Unknown error'}`,
+          { cause: error },
         ),
       );
     }
@@ -197,6 +201,7 @@ export class GetUserStatsUseCase implements UseCase<
       return err(
         new Error(
           `Failed to retrieve breakdown stats: ${error instanceof Error ? error.message : 'Unknown error'}`,
+          { cause: error },
         ),
       );
     }

@@ -75,6 +75,7 @@ export default function CollectionSearchResultsContainer(props: Props) {
                   collection={collection}
                   showAuthor
                   followSource={FollowSource.SEARCH_RESULTS}
+                  entryRef="search"
                 />
               </Grid.Col>
             ))}

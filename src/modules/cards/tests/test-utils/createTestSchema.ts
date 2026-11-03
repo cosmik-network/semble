@@ -396,6 +396,12 @@ export async function createTestSchema(db: PostgresJsDatabase) {
     CREATE INDEX IF NOT EXISTS collection_cards_card_id_idx ON collection_cards(card_id);
   `);
   await db.execute(sql`
+    CREATE INDEX IF NOT EXISTS idx_collection_cards_added_by_added_at ON collection_cards(added_by, added_at DESC);
+  `);
+  await db.execute(sql`
+    CREATE INDEX IF NOT EXISTS idx_collection_cards_added_at ON collection_cards(added_at);
+  `);
+  await db.execute(sql`
     CREATE INDEX IF NOT EXISTS collection_cards_collection_id_idx ON collection_cards(collection_id);
   `);
 

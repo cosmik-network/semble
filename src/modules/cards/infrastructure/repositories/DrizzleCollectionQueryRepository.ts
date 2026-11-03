@@ -740,24 +740,6 @@ export class DrizzleCollectionQueryRepository implements ICollectionQueryReposit
     return Array.from(byId.values());
   }
 
-  async getCollectionCountForUrl(url: string): Promise<number> {
-    try {
-      // Count distinct collections that contain cards with this URL
-      const result = await this.db
-        .select({
-          count: sql<number>`COUNT(DISTINCT ${collectionCards.collectionId})`,
-        })
-        .from(collectionCards)
-        .innerJoin(cards, eq(collectionCards.cardId, cards.id))
-        .where(and(eq(cards.type, CardTypeEnum.URL), eq(cards.url, url)));
-
-      return Number(result[0]?.count || 0);
-    } catch (error) {
-      console.error('Error in getCollectionCountForUrl:', error);
-      throw error;
-    }
-  }
-
   async getProfileCollectionCount(authorId: string): Promise<number> {
     try {
       // Count collections created by this user

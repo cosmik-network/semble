@@ -9,12 +9,16 @@ import {
 import { IoSearch } from 'react-icons/io5';
 import CollectionSelectorItemList from '../collectionSelectorItemList/CollectionSelectorItemList';
 import CollectionSelectorBrowseList from '../collectionSelectorBrowseList/CollectionSelectorBrowseList';
-import { Fragment, useState } from 'react';
+import { Fragment, useEffect, useState } from 'react';
 import { FiPlus } from 'react-icons/fi';
 import { useDebouncedValue } from '@mantine/hooks';
 import ErrorState from '@/components/contentDisplay/errorState/ErrorState';
 import CreateCollectionDrawer from '../createCollectionDrawer/CreateCollectionDrawer';
 import useSearchCollections from '../../lib/queries/useSearchCollections';
+import {
+  CollectionPickSource,
+  CollectionPickTracker,
+} from '../../lib/useCollectionPicks';
 import { Collection, CollectionAccessType } from '@semble/types';
 import useOpenCollectionsWithContributor from '../../lib/queries/useOpenCollectionsWithContributor';
 import { useAuth } from '@/hooks/useAuth';
@@ -26,6 +30,7 @@ import EmptyState from '@/components/contentDisplay/emptyState/EmptyState';
 interface Props {
   selectedCollections: Collection[];
   onSelectedCollectionsChange: (collectionIds: Collection[]) => void;
+  pickTracker?: CollectionPickTracker;
 }
 
 export default function CollectionSelectorOpenCollections(props: Props) {
@@ -74,12 +79,23 @@ export default function CollectionSelectorOpenCollections(props: Props) {
     (c) => !props.selectedCollections.some((sel) => sel.id === c.id),
   );
 
-  const handleCollectionChange = (checked: boolean, item: Collection) => {
+  const { pickTracker } = props;
+  useEffect(() => {
+    if (debouncedSearch) pickTracker?.searched('open_collections');
+  }, [debouncedSearch, pickTracker]);
+
+  const handleCollectionChange = (
+    checked: boolean,
+    item: Collection,
+    source: CollectionPickSource = 'open_collections',
+  ) => {
     if (checked) {
+      pickTracker?.pick(item.id, source, !!search);
       if (!props.selectedCollections.some((col) => col.id === item.id)) {
         props.onSelectedCollectionsChange([...props.selectedCollections, item]);
       }
     } else {
+      pickTracker?.unpick(item.id);
       props.onSelectedCollectionsChange(
         props.selectedCollections.filter((col) => col.id !== item.id),
       );
@@ -189,7 +205,7 @@ export default function CollectionSelectorOpenCollections(props: Props) {
         initialAccessType={CollectionAccessType.OPEN}
         onCreate={(collection) => {
           setSearch('');
-          handleCollectionChange(true, collection);
+          handleCollectionChange(true, collection, 'created');
         }}
       />
     </Fragment>

@@ -19,6 +19,7 @@ import { useRouter } from 'next/navigation';
 import { MouseEvent } from 'react';
 import { getPostRkeyFromUri } from '../../lib/utils/link';
 import { getSembleHref } from '@/lib/utils/link';
+import { useSembleNavigation } from '@/features/semble/lib/sembleNavigation';
 
 interface Props {
   post: PostView;
@@ -27,13 +28,15 @@ interface Props {
 export default function BlueskyMentionPost(props: Props) {
   const record = props.post.record as AppBskyFeedPost.Record;
   const router = useRouter();
+  const navigate = useSembleNavigation()?.navigate ?? router.push;
 
   const handleNavigateToPost = (e: MouseEvent<HTMLElement>) => {
     e.stopPropagation();
 
-    router.push(
+    navigate(
       getSembleHref(
         `https://bsky.app/profile/${props.post.author.did}/post/${getPostRkeyFromUri(props.post.uri)}`,
+        { ref: 'semble_page' },
       ),
     );
   };
@@ -48,6 +51,8 @@ export default function BlueskyMentionPost(props: Props) {
       withBorder
       className={styles.root}
       onClick={handleNavigateToPost}
+      data-analytics-target="open"
+      data-analytics-destination="semble_page"
     >
       <Stack justify="space-between" gap={'sm'} flex={1}>
         <Stack justify="space-between" gap="xs">

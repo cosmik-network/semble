@@ -75,6 +75,7 @@ export default function HeaderSearchBar() {
       <Popover.Target>
         <Card pr="4" py="2" pl="xs" radius="lg" w="100%" withBorder>
           <form
+            data-analytics-form="search"
             onSubmit={(e) => {
               e.preventDefault();
               if (search) onSearch();

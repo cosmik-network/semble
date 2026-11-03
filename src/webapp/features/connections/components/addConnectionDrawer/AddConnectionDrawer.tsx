@@ -3,6 +3,7 @@
 import { Container, Drawer } from '@mantine/core';
 import { DEFAULT_OVERLAY_PROPS } from '@/styles/overlays';
 import AddConnectionForm from './AddConnectionForm';
+import { ConnectionCreateSource } from '@/features/analytics/types';
 
 interface Props {
   isOpen: boolean;
@@ -29,6 +30,7 @@ export default function AddConnectionDrawer(props: Props) {
       <Container size={'sm'} p={0}>
         <AddConnectionForm
           onClose={props.onClose}
+          createSource={ConnectionCreateSource.CARD}
           sourceUrl={props.sourceUrl}
         />
       </Container>

@@ -1,9 +1,6 @@
 import { URL } from '../../../domain/value-objects/URL';
 import { IMetadataService } from '../../../domain/services/IMetadataService';
-import { ICardRepository } from '../../../domain/ICardRepository';
 import { ICardQueryRepository } from '../../../domain/ICardQueryRepository';
-import { ICollectionQueryRepository } from '../../../domain/ICollectionQueryRepository';
-import { IConnectionQueryRepository } from '../../../domain/IConnectionQueryRepository';
 import { UseCase } from 'src/shared/core/UseCase';
 import { err, ok, Result } from 'src/shared/core/Result';
 import { UrlMetadata } from 'src/modules/cards/domain/value-objects/UrlMetadata';
@@ -11,6 +8,8 @@ import {
   toUrlMetadataDTO,
   UrlMetadataDTO,
 } from 'src/modules/cards/domain/value-objects/urlMetadataMapping';
+import { UrlAggregateStats } from '@semble/types';
+import { UrlStatsMapper } from '../../mappers/UrlStatsMapper';
 
 export interface GetUrlMetadataQuery {
   url: string;
@@ -20,25 +19,7 @@ export interface GetUrlMetadataQuery {
 
 export interface GetUrlMetadataResult {
   metadata: UrlMetadataDTO;
-  stats?: {
-    libraryCount: number;
-    noteCount: number;
-    collectionCount: number;
-    connections: {
-      all: {
-        total: number;
-        [type: string]: number;
-      };
-      incoming: {
-        total: number;
-        [type: string]: number;
-      };
-      outgoing: {
-        total: number;
-        [type: string]: number;
-      };
-    };
-  };
+  stats?: UrlAggregateStats;
   urlInLibrary?: boolean;
   urlIsConnected?: boolean;
 }
@@ -56,10 +37,7 @@ export class GetUrlMetadataUseCase implements UseCase<
 > {
   constructor(
     private metadataService: IMetadataService,
-    private cardRepository: ICardRepository,
     private cardQueryRepository: ICardQueryRepository,
-    private collectionQueryRepository: ICollectionQueryRepository,
-    private connectionQueryRepository: IConnectionQueryRepository,
   ) {}
 
   async execute(
@@ -77,11 +55,18 @@ export class GetUrlMetadataUseCase implements UseCase<
     try {
       // Fetch metadata from external service. Fast mode: this endpoint powers
       // latency-sensitive previews; persisted cards get enriched asynchronously.
-      let metadataResult = await this.metadataService.fetchMetadata(
-        url,
-        false,
-        'fast',
-      );
+      // Stats don't depend on metadata, so fetch them concurrently.
+      const [fetchedMetadata, statsMap] = await Promise.all([
+        this.metadataService.fetchMetadata(url, false, 'fast'),
+        query.includeStats
+          ? this.cardQueryRepository.getBatchUrlStats(
+              [url.value],
+              query.callingUserId,
+            )
+          : undefined,
+      ]);
+
+      let metadataResult = fetchedMetadata;
       if (metadataResult.isErr()) {
         metadataResult = UrlMetadata.create({ url: url.value });
         if (metadataResult.isErr()) {
@@ -100,63 +85,12 @@ export class GetUrlMetadataUseCase implements UseCase<
         metadata: { ...toUrlMetadataDTO(metadata), url: url.value },
       };
 
-      // If includeStats is true, fetch aggregate statistics in parallel
-      if (query.includeStats) {
-        const [cardStats, collectionCount, connectionStats, libraryInfoMap] =
-          await Promise.all([
-            this.cardQueryRepository.getUrlAggregateStats(url.value),
-            this.collectionQueryRepository.getCollectionCountForUrl(url.value),
-            this.connectionQueryRepository.getConnectionStatsForUrl(url.value),
-            // Only meaningful for an authenticated caller; skip the query otherwise
-            query.callingUserId
-              ? this.cardQueryRepository.getBatchUrlLibraryInfo(
-                  [url.value],
-                  query.callingUserId,
-                )
-              : Promise.resolve(undefined),
-          ]);
+      if (statsMap) {
+        const stats = statsMap.get(url.value)!;
 
-        // Convert connection type Maps to plain objects for JSON serialization
-        const allConnections: { total: number; [type: string]: number } = {
-          total: connectionStats.forwardTotal + connectionStats.backwardTotal,
-        };
-        const incomingConnections: { total: number; [type: string]: number } = {
-          total: connectionStats.backwardTotal,
-        };
-        const outgoingConnections: { total: number; [type: string]: number } = {
-          total: connectionStats.forwardTotal,
-        };
-
-        // Add type breakdown for all connections (combining forward and backward)
-        const allTypeMap = new Map<string, number>();
-        connectionStats.forwardByType.forEach((count, type) => {
-          allTypeMap.set(type, (allTypeMap.get(type) || 0) + count);
-          outgoingConnections[type] = count;
-        });
-        connectionStats.backwardByType.forEach((count, type) => {
-          allTypeMap.set(type, (allTypeMap.get(type) || 0) + count);
-          incomingConnections[type] = count;
-        });
-        allTypeMap.forEach((count, type) => {
-          allConnections[type] = count;
-        });
-
-        result.stats = {
-          libraryCount: cardStats.libraryCount,
-          noteCount: cardStats.noteCount,
-          collectionCount,
-          connections: {
-            all: allConnections,
-            incoming: incomingConnections,
-            outgoing: outgoingConnections,
-          },
-        };
-
-        if (libraryInfoMap) {
-          const libraryInfo = libraryInfoMap.get(url.value);
-          result.urlInLibrary = libraryInfo?.urlInLibrary ?? false;
-          result.urlIsConnected = libraryInfo?.urlIsConnected ?? false;
-        }
+        result.stats = UrlStatsMapper.toAggregateStats(stats);
+        result.urlInLibrary = stats.urlInLibrary;
+        result.urlIsConnected = stats.urlIsConnected;
       }
 
       return ok(result);

@@ -10,13 +10,17 @@ import { FiPlus } from 'react-icons/fi';
 import AddCardDrawer from '@/features/cards/components/addCardDrawer/AddCardDrawer';
 import AddCardToModal from '@/features/cards/components/addCardToModal/AddCardToModal';
 import FollowActions from '@/features/follows/components/followActions/FollowActions';
-import { FollowSource } from '@/features/analytics/types';
+import {
+  ConnectionCreateSource,
+  FollowSource,
+} from '@/features/analytics/types';
 import useGetCardFromMyLibrary from '@/features/cards/lib/queries/useGetCardFromMyLibrary';
 import useSembleLibraries from '@/features/semble/lib/queries/useSembleLibraries';
 import { IoMdCheckmark } from 'react-icons/io';
 import { FaRegNoteSticky } from 'react-icons/fa6';
 import { TbPlugConnected } from 'react-icons/tb';
 import AddConnectionModal from '@/features/connections/components/addConnectionModal/AddConnectionModal';
+import { trackCollectionAction } from '../../lib/analytics';
 
 interface Props {
   collection: Collection & {
@@ -92,13 +96,22 @@ function AuthenticatedCollectionActions({ collection }: Props) {
           initialIsFollowing={collection.isFollowing}
           initialIsSubscribed={collection.isSubscribed}
           initialSubscriptionScopes={collection.subscriptionScopes}
+          onFollowChange={(isFollowing) =>
+            trackCollectionAction(
+              collection.rkey,
+              isFollowing ? 'follow' : 'unfollow',
+            )
+          }
         />
       )}
 
       <AddConnectionModal
         isOpen={showAddConnectionModal}
         onClose={() => setShowAddConnectionModal(false)}
+        createSource={ConnectionCreateSource.COLLECTION_PAGE}
         sourceUrl={collectionPageUrl}
+        sourceInLibrary={isInYourLibrary}
+        onCreated={() => trackCollectionAction(collection.rkey, 'connect')}
       />
 
       <AddCardToModal
@@ -107,6 +120,7 @@ function AuthenticatedCollectionActions({ collection }: Props) {
         url={collectionPageUrl}
         isInYourLibrary={isInYourLibrary}
         urlLibraryCount={urlLibraryCount}
+        onSaved={() => trackCollectionAction(collection.rkey, 'save')}
       />
 
       {user && (

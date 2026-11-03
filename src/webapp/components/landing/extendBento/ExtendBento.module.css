@@ -1,0 +1,108 @@
+.bento {
+  display: grid;
+  grid-template-areas: 'extension' 'plugins' 'mcp' 'api';
+  grid-template-columns: 1fr;
+  gap: var(--mantine-spacing-xs);
+
+  @media (min-width: $mantine-breakpoint-xs) {
+    grid-template-areas:
+      'extension extension'
+      'mcp api'
+      'plugins plugins';
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  /* Checkerboard: each wide card sits beside a narrow one */
+  @media (min-width: $mantine-breakpoint-md) {
+    grid-template-areas:
+      'extension extension mcp'
+      'api plugins plugins';
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+/* A row by default; .tileStack puts the logo on top and pins the text to the
+   bottom above xs */
+.tile {
+  display: grid;
+  grid-template-areas: 'logo text arrow';
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: var(--mantine-spacing-sm);
+  padding: var(--mantine-spacing-sm);
+  color: var(--mantine-color-text);
+  text-decoration: none;
+  background-color: light-dark(
+    var(--mantine-color-white),
+    var(--mantine-color-dark-6)
+  );
+  border-radius: var(--mantine-radius-md);
+
+  &:focus-visible {
+    outline: 2px solid var(--mantine-primary-color-filled);
+    outline-offset: 2px;
+  }
+
+  &[data-disabled] {
+    opacity: 0.55;
+  }
+}
+
+.tileStack {
+  @media (min-width: $mantine-breakpoint-xs) {
+    grid-template-areas:
+      'logo arrow'
+      'text text';
+    grid-template-rows: auto 1fr;
+    grid-template-columns: 1fr auto;
+    align-items: start;
+    row-gap: var(--mantine-spacing-md);
+
+    .tileText {
+      align-self: end;
+    }
+  }
+}
+
+.logo {
+  display: flex;
+  grid-area: logo;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  background-color: light-dark(
+    var(--mantine-color-white),
+    var(--mantine-color-dark-6)
+  );
+  border-radius: 9px;
+  box-shadow: 0 0 0 1px light-dark(rgb(0 0 0 / 0.06), rgb(255 255 255 / 0.06));
+}
+
+.tileText {
+  grid-area: text;
+}
+
+.arrow {
+  grid-area: arrow;
+  color: var(--mantine-color-dimmed);
+  transition: color 120ms ease;
+
+  .tile:hover & {
+    color: var(--mantine-color-text);
+  }
+}
+
+/* A tint of the card, not the tiles' solid fill, so it doesn't read as a link */
+.preview {
+  background-color: light-dark(rgb(0 0 0 / 0.04), rgb(255 255 255 / 0.04));
+  border-radius: var(--mantine-radius-md);
+}
+
+.bubble {
+  align-self: flex-end;
+  max-width: 85%;
+  padding: 6px 12px;
+  background-color: light-dark(rgb(0 0 0 / 0.06), rgb(255 255 255 / 0.08));
+  border-radius: var(--mantine-radius-lg);
+}

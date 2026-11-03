@@ -25,7 +25,7 @@ import {
   CardSortField,
   SortOrder,
   UrlLibraryInfo,
-  UrlRankingStats,
+  UrlStats,
   UserActivityStats,
   SearchUrlsOptions,
   UrlSearchResultDTO,
@@ -38,6 +38,12 @@ import { connections } from '../schema/connection.sql';
 import { CardMapper, RawUrlCardData } from '../mappers/CardMapper';
 import { CardTypeEnum } from '../../../domain/value-objects/CardType';
 import { toUrlMetadataView } from '../../../domain/value-objects/urlMetadataMapping';
+import {
+  fetchUrlEngagement,
+  fetchUrlLibraryCounts,
+  fetchUrlsSavedByUser,
+  fetchUrlStats,
+} from './urlStatsQueries';
 
 export class UrlCardQueryService {
   constructor(private db: PostgresJsDatabase) {}
@@ -50,22 +56,7 @@ export class UrlCardQueryService {
     userId: string,
     urls: string[],
   ): Promise<Set<string>> {
-    if (urls.length === 0) {
-      return new Set();
-    }
-
-    const rows = await this.db
-      .selectDistinct({ url: cards.url })
-      .from(cards)
-      .where(
-        and(
-          eq(cards.authorId, userId),
-          eq(cards.type, CardTypeEnum.URL),
-          inArray(cards.url, urls),
-        ),
-      );
-
-    return new Set(rows.map((row) => row.url as string));
+    return fetchUrlsSavedByUser(this.db, userId, urls);
   }
 
   async getUrlCardsOfUser(
@@ -160,30 +151,7 @@ export class UrlCardQueryService {
         const urls = filteredUrlCards.map((card) => card.url || '');
 
         // Calculate urlLibraryCount for each URL
-        const urlLibraryCountsQuery = this.db
-          .select({
-            url: cards.url,
-            count: countDistinct(libraryMemberships.userId),
-          })
-          .from(cards)
-          .innerJoin(
-            libraryMemberships,
-            eq(cards.id, libraryMemberships.cardId),
-          )
-          .where(
-            and(eq(cards.type, CardTypeEnum.URL), inArray(cards.url, urls)),
-          )
-          .groupBy(cards.url);
-
-        const urlLibraryCountsResult = await urlLibraryCountsQuery;
-
-        // Create a map of URL to urlLibraryCount
-        const urlLibraryCountMap = new Map<string, number>();
-        urlLibraryCountsResult.forEach((row) => {
-          if (row.url) {
-            urlLibraryCountMap.set(row.url, row.count);
-          }
-        });
+        const urlLibraryCountMap = await fetchUrlLibraryCounts(this.db, urls);
 
         // Combine cards with their urlLibraryCount
         const cardsWithUrlLibraryCount = filteredUrlCards.map((card) => ({
@@ -242,8 +210,6 @@ export class UrlCardQueryService {
           )
           .where(inArray(collectionCards.cardId, cardIds));
 
-        const collectionsResult = await collectionsQuery;
-
         // Get note cards for these URL cards (same user, parentCardId matches, type = NOTE)
         const notesQuery = this.db
           .select({
@@ -260,141 +226,12 @@ export class UrlCardQueryService {
             ),
           );
 
-        const notesResult = await notesQuery;
-
-        // Get urlInLibrary for each URL if callingUserId is provided
-        let urlInLibraryMap: Map<string, boolean> | undefined;
-        if (callingUserId) {
-          const urlInLibraryQuery = this.db
-            .select({
-              url: cards.url,
-            })
-            .from(cards)
-            .where(
-              and(
-                eq(cards.authorId, callingUserId),
-                eq(cards.type, CardTypeEnum.URL),
-                inArray(cards.url, urls_paginated),
-              ),
-            );
-
-          const urlInLibraryResult = await urlInLibraryQuery;
-
-          urlInLibraryMap = new Map<string, boolean>();
-          // Initialize all URLs as false
-          urls_paginated.forEach((url) => urlInLibraryMap!.set(url, false));
-          // Set true for URLs the calling user has
-          urlInLibraryResult.forEach((row) => {
-            if (row.url) {
-              urlInLibraryMap!.set(row.url, true);
-            }
-          });
-        }
-
-        // Get connection counts for each URL
-        // Query connections where URLs are sources
-        const sourceConnectionCountsQuery = this.db
-          .select({
-            url: connections.sourceValue,
-            count: count(),
-          })
-          .from(connections)
-          .where(
-            and(
-              eq(connections.sourceType, 'URL'),
-              inArray(connections.sourceValue, urls_paginated),
-              eq(connections.targetType, 'URL'),
-            ),
-          )
-          .groupBy(connections.sourceValue);
-
-        // Query connections where URLs are targets
-        const targetConnectionCountsQuery = this.db
-          .select({
-            url: connections.targetValue,
-            count: count(),
-          })
-          .from(connections)
-          .where(
-            and(
-              eq(connections.targetType, 'URL'),
-              inArray(connections.targetValue, urls_paginated),
-              eq(connections.sourceType, 'URL'),
-            ),
-          )
-          .groupBy(connections.targetValue);
-
-        const [sourceConnectionCounts, targetConnectionCounts] =
+        const [collectionsResult, notesResult, urlEngagementMap] =
           await Promise.all([
-            sourceConnectionCountsQuery,
-            targetConnectionCountsQuery,
+            collectionsQuery,
+            notesQuery,
+            fetchUrlEngagement(this.db, urls_paginated, callingUserId),
           ]);
-
-        const urlConnectionCountMap = new Map<string, number>();
-        sourceConnectionCounts.forEach((row) => {
-          if (row.url) {
-            urlConnectionCountMap.set(row.url, Number(row.count));
-          }
-        });
-        targetConnectionCounts.forEach((row) => {
-          if (row.url) {
-            urlConnectionCountMap.set(
-              row.url,
-              (urlConnectionCountMap.get(row.url) || 0) + Number(row.count),
-            );
-          }
-        });
-
-        // Get URLs that calling user has connections with
-        let urlIsConnectedMap: Map<string, boolean> | undefined;
-        if (callingUserId) {
-          urlIsConnectedMap = new Map();
-
-          // Query for URLs where user's connections have them as source
-          const userSourceConnectionsQuery = this.db
-            .select({
-              url: connections.sourceValue,
-            })
-            .from(connections)
-            .where(
-              and(
-                eq(connections.curatorId, callingUserId),
-                eq(connections.sourceType, 'URL'),
-                inArray(connections.sourceValue, urls_paginated),
-                eq(connections.targetType, 'URL'),
-              ),
-            );
-
-          // Query for URLs where user's connections have them as target
-          const userTargetConnectionsQuery = this.db
-            .select({
-              url: connections.targetValue,
-            })
-            .from(connections)
-            .where(
-              and(
-                eq(connections.curatorId, callingUserId),
-                eq(connections.targetType, 'URL'),
-                inArray(connections.targetValue, urls_paginated),
-                eq(connections.sourceType, 'URL'),
-              ),
-            );
-
-          const [userSourceConnections, userTargetConnections] =
-            await Promise.all([
-              userSourceConnectionsQuery,
-              userTargetConnectionsQuery,
-            ]);
-
-          urls_paginated.forEach((url) => urlIsConnectedMap!.set(url, false));
-          [...userSourceConnections, ...userTargetConnections].forEach(
-            (row) => {
-              if (row.url) {
-                urlIsConnectedMap!.set(row.url, true);
-              }
-            },
-          );
-        }
 
         const totalCount = filteredUrlCards.length;
         const hasMore = startIndex + urlCardsResult.length < totalCount;
@@ -414,17 +251,6 @@ export class UrlCardQueryService {
           // Find note for this card
           const note = notesResult.find((n) => n.parentCardId === card.id);
 
-          // Get urlLibraryCount from the card (already calculated)
-          const urlLibraryCount = card.urlLibraryCount;
-
-          // Get urlInLibrary from the map (undefined if callingUserId not provided)
-          const urlInLibrary = urlInLibraryMap?.get(card.url || '');
-
-          // Get connection stats from the maps
-          const urlConnectionCount =
-            urlConnectionCountMap.get(card.url || '') || 0;
-          const urlIsConnected = urlIsConnectedMap?.get(card.url || '');
-
           return {
             id: card.id,
             authorId: card.authorId,
@@ -432,10 +258,8 @@ export class UrlCardQueryService {
             uri: card.publishedRecordUri || undefined,
             contentData: card.contentData,
             libraryCount: card.libraryCount,
-            urlLibraryCount,
-            urlInLibrary,
-            urlConnectionCount,
-            urlIsConnected,
+            ...urlEngagementMap.get(card.url || '')!,
+            urlLibraryCount: card.urlLibraryCount,
             createdAt: card.createdAt,
             updatedAt: card.updatedAt,
             collections: cardCollections,
@@ -523,8 +347,6 @@ export class UrlCardQueryService {
         )
         .where(inArray(collectionCards.cardId, cardIds));
 
-      const collectionsResult = await collectionsQuery;
-
       // Get note cards for these URL cards (same user, parentCardId matches, type = NOTE)
       const notesQuery = this.db
         .select({
@@ -541,160 +363,12 @@ export class UrlCardQueryService {
           ),
         );
 
-      const notesResult = await notesQuery;
-
-      // Get urlLibraryCount for each URL (count of unique users who have cards with this URL)
-      const urlLibraryCountsQuery = this.db
-        .select({
-          url: cards.url,
-          count: countDistinct(libraryMemberships.userId),
-        })
-        .from(cards)
-        .innerJoin(libraryMemberships, eq(cards.id, libraryMemberships.cardId))
-        .where(and(eq(cards.type, CardTypeEnum.URL), inArray(cards.url, urls)))
-        .groupBy(cards.url);
-
-      const urlLibraryCountsResult = await urlLibraryCountsQuery;
-
-      // Create a map of URL to urlLibraryCount
-      const urlLibraryCountMap = new Map<string, number>();
-      urlLibraryCountsResult.forEach((row) => {
-        if (row.url) {
-          urlLibraryCountMap.set(row.url, row.count);
-        }
-      });
-
-      // Get urlInLibrary for each URL if callingUserId is provided
-      let urlInLibraryMap: Map<string, boolean> | undefined;
-      if (callingUserId) {
-        const urlInLibraryQuery = this.db
-          .select({
-            url: cards.url,
-          })
-          .from(cards)
-          .where(
-            and(
-              eq(cards.authorId, callingUserId),
-              eq(cards.type, CardTypeEnum.URL),
-              inArray(cards.url, urls),
-            ),
-          );
-
-        const urlInLibraryResult = await urlInLibraryQuery;
-
-        urlInLibraryMap = new Map<string, boolean>();
-        // Initialize all URLs as false
-        urls.forEach((url) => urlInLibraryMap!.set(url, false));
-        // Set true for URLs the calling user has
-        urlInLibraryResult.forEach((row) => {
-          if (row.url) {
-            urlInLibraryMap!.set(row.url, true);
-          }
-        });
-      }
-
-      // Get connection counts for each URL
-      // Query connections where URLs are sources
-      const sourceConnectionCountsQuery = this.db
-        .select({
-          url: connections.sourceValue,
-          count: count(),
-        })
-        .from(connections)
-        .where(
-          and(
-            eq(connections.sourceType, 'URL'),
-            inArray(connections.sourceValue, urls),
-            eq(connections.targetType, 'URL'),
-          ),
-        )
-        .groupBy(connections.sourceValue);
-
-      // Query connections where URLs are targets
-      const targetConnectionCountsQuery = this.db
-        .select({
-          url: connections.targetValue,
-          count: count(),
-        })
-        .from(connections)
-        .where(
-          and(
-            eq(connections.targetType, 'URL'),
-            inArray(connections.targetValue, urls),
-            eq(connections.sourceType, 'URL'),
-          ),
-        )
-        .groupBy(connections.targetValue);
-
-      const [sourceConnectionCounts, targetConnectionCounts] =
+      const [collectionsResult, notesResult, urlEngagementMap] =
         await Promise.all([
-          sourceConnectionCountsQuery,
-          targetConnectionCountsQuery,
+          collectionsQuery,
+          notesQuery,
+          fetchUrlEngagement(this.db, urls, callingUserId),
         ]);
-
-      const urlConnectionCountMap = new Map<string, number>();
-      sourceConnectionCounts.forEach((row) => {
-        if (row.url) {
-          urlConnectionCountMap.set(row.url, Number(row.count));
-        }
-      });
-      targetConnectionCounts.forEach((row) => {
-        if (row.url) {
-          urlConnectionCountMap.set(
-            row.url,
-            (urlConnectionCountMap.get(row.url) || 0) + Number(row.count),
-          );
-        }
-      });
-
-      // Get URLs that calling user has connections with
-      let urlIsConnectedMap: Map<string, boolean> | undefined;
-      if (callingUserId) {
-        urlIsConnectedMap = new Map();
-
-        // Query for URLs where user's connections have them as source
-        const userSourceConnectionsQuery = this.db
-          .select({
-            url: connections.sourceValue,
-          })
-          .from(connections)
-          .where(
-            and(
-              eq(connections.curatorId, callingUserId),
-              eq(connections.sourceType, 'URL'),
-              inArray(connections.sourceValue, urls),
-              eq(connections.targetType, 'URL'),
-            ),
-          );
-
-        // Query for URLs where user's connections have them as target
-        const userTargetConnectionsQuery = this.db
-          .select({
-            url: connections.targetValue,
-          })
-          .from(connections)
-          .where(
-            and(
-              eq(connections.curatorId, callingUserId),
-              eq(connections.targetType, 'URL'),
-              inArray(connections.targetValue, urls),
-              eq(connections.sourceType, 'URL'),
-            ),
-          );
-
-        const [userSourceConnections, userTargetConnections] =
-          await Promise.all([
-            userSourceConnectionsQuery,
-            userTargetConnectionsQuery,
-          ]);
-
-        urls.forEach((url) => urlIsConnectedMap!.set(url, false));
-        [...userSourceConnections, ...userTargetConnections].forEach((row) => {
-          if (row.url) {
-            urlIsConnectedMap!.set(row.url, true);
-          }
-        });
-      }
 
       // Get total count
       const totalCountResult = await this.db
@@ -720,17 +394,6 @@ export class UrlCardQueryService {
         // Find note for this card
         const note = notesResult.find((n) => n.parentCardId === card.id);
 
-        // Get urlLibraryCount from the map
-        const urlLibraryCount = urlLibraryCountMap.get(card.url || '') || 0;
-
-        // Get urlInLibrary from the map (undefined if callingUserId not provided)
-        const urlInLibrary = urlInLibraryMap?.get(card.url || '');
-
-        // Get connection stats from the maps
-        const urlConnectionCount =
-          urlConnectionCountMap.get(card.url || '') || 0;
-        const urlIsConnected = urlIsConnectedMap?.get(card.url || '');
-
         return {
           id: card.id,
           authorId: card.authorId,
@@ -738,10 +401,7 @@ export class UrlCardQueryService {
           uri: card.publishedRecordUri || undefined,
           contentData: card.contentData,
           libraryCount: card.libraryCount,
-          urlLibraryCount,
-          urlInLibrary,
-          urlConnectionCount,
-          urlIsConnected,
+          ...urlEngagementMap.get(card.url || '')!,
           createdAt: card.createdAt,
           updatedAt: card.updatedAt,
           collections: cardCollections,
@@ -1277,161 +937,10 @@ export class UrlCardQueryService {
           ),
         );
 
-      const notesResult = await notesQuery;
-
-      // Get urlLibraryCount for all URLs in one query
-      const urlLibraryCountsQuery = this.db
-        .select({
-          url: cards.url,
-          count: countDistinct(libraryMemberships.userId),
-        })
-        .from(cards)
-        .innerJoin(libraryMemberships, eq(cards.id, libraryMemberships.cardId))
-        .where(and(eq(cards.type, CardTypeEnum.URL), inArray(cards.url, urls)))
-        .groupBy(cards.url);
-
-      const urlLibraryCountsResult = await urlLibraryCountsQuery;
-
-      // Create map of URL to urlLibraryCount
-      const urlLibraryCountMap = new Map<string, number>();
-      urlLibraryCountsResult.forEach((row) => {
-        if (row.url) {
-          urlLibraryCountMap.set(row.url, row.count);
-        }
-      });
-
-      // Get urlInLibrary for all URLs if callingUserId is provided
-      let urlInLibraryMap: Map<string, boolean> | undefined;
-      if (callingUserId) {
-        const urlInLibraryQuery = this.db
-          .select({
-            url: cards.url,
-          })
-          .from(cards)
-          .where(
-            and(
-              eq(cards.authorId, callingUserId),
-              eq(cards.type, CardTypeEnum.URL),
-              inArray(cards.url, urls),
-            ),
-          );
-
-        const urlInLibraryResult = await urlInLibraryQuery;
-
-        urlInLibraryMap = new Map<string, boolean>();
-        // Initialize all URLs as false
-        urls.forEach((url) => urlInLibraryMap!.set(url, false));
-        // Set true for URLs the calling user has
-        urlInLibraryResult.forEach((row) => {
-          if (row.url) {
-            urlInLibraryMap!.set(row.url, true);
-          }
-        });
-      }
-
-      // Get connection counts for each URL (total connections where URL is source or target)
-      // Query connections where URLs are sources
-      const sourceConnectionCountsQuery = this.db
-        .select({
-          url: connections.sourceValue,
-          count: count(),
-        })
-        .from(connections)
-        .where(
-          and(
-            eq(connections.sourceType, 'URL'),
-            inArray(connections.sourceValue, urls),
-            eq(connections.targetType, 'URL'), // Only URL-to-URL connections
-          ),
-        )
-        .groupBy(connections.sourceValue);
-
-      // Query connections where URLs are targets
-      const targetConnectionCountsQuery = this.db
-        .select({
-          url: connections.targetValue,
-          count: count(),
-        })
-        .from(connections)
-        .where(
-          and(
-            eq(connections.targetType, 'URL'),
-            inArray(connections.targetValue, urls),
-            eq(connections.sourceType, 'URL'), // Only URL-to-URL connections
-          ),
-        )
-        .groupBy(connections.targetValue);
-
-      const [sourceConnectionCounts, targetConnectionCounts] =
-        await Promise.all([
-          sourceConnectionCountsQuery,
-          targetConnectionCountsQuery,
-        ]);
-
-      // Build map of URL to connection count (combining source and target counts)
-      const urlConnectionCountMap = new Map<string, number>();
-      sourceConnectionCounts.forEach((row) => {
-        if (row.url) {
-          urlConnectionCountMap.set(row.url, Number(row.count));
-        }
-      });
-      targetConnectionCounts.forEach((row) => {
-        if (row.url) {
-          urlConnectionCountMap.set(
-            row.url,
-            (urlConnectionCountMap.get(row.url) || 0) + Number(row.count),
-          );
-        }
-      });
-
-      // Get URLs that calling user has connections with (if callingUserId provided)
-      let urlIsConnectedMap: Map<string, boolean> | undefined;
-      if (callingUserId) {
-        urlIsConnectedMap = new Map();
-
-        // Query for URLs where user's connections have them as source
-        const userSourceConnectionsQuery = this.db
-          .select({
-            url: connections.sourceValue,
-          })
-          .from(connections)
-          .where(
-            and(
-              eq(connections.curatorId, callingUserId),
-              eq(connections.sourceType, 'URL'),
-              inArray(connections.sourceValue, urls),
-              eq(connections.targetType, 'URL'),
-            ),
-          );
-
-        // Query for URLs where user's connections have them as target
-        const userTargetConnectionsQuery = this.db
-          .select({
-            url: connections.targetValue,
-          })
-          .from(connections)
-          .where(
-            and(
-              eq(connections.curatorId, callingUserId),
-              eq(connections.targetType, 'URL'),
-              inArray(connections.targetValue, urls),
-              eq(connections.sourceType, 'URL'),
-            ),
-          );
-
-        const [userSourceConnections, userTargetConnections] =
-          await Promise.all([
-            userSourceConnectionsQuery,
-            userTargetConnectionsQuery,
-          ]);
-
-        // Mark URLs as connected if they appear in either source or target
-        [...userSourceConnections, ...userTargetConnections].forEach((row) => {
-          if (row.url) {
-            urlIsConnectedMap!.set(row.url, true);
-          }
-        });
-      }
+      const [notesResult, engagementMap] = await Promise.all([
+        notesQuery,
+        fetchUrlEngagement(this.db, urls, callingUserId),
+      ]);
 
       // Build result map
       const resultMap = new Map<string, UrlCardView>();
@@ -1442,18 +951,7 @@ export class UrlCardQueryService {
           (n) => n.parentCardId === card.id && n.authorId === card.authorId,
         );
 
-        // Get urlLibraryCount from map
-        const urlLibraryCount = urlLibraryCountMap.get(card.url || '') || 0;
-
-        // Get urlInLibrary from map
-        const urlInLibrary = urlInLibraryMap?.get(card.url || '');
-
-        // Get urlConnectionCount from map
-        const urlConnectionCount =
-          urlConnectionCountMap.get(card.url || '') || 0;
-
-        // Get urlIsConnected from map
-        const urlIsConnected = urlIsConnectedMap?.get(card.url || '');
+        const engagement = engagementMap.get(card.url || '')!;
 
         const rawCardData = {
           id: card.id,
@@ -1462,10 +960,7 @@ export class UrlCardQueryService {
           uri: card.publishedRecordUri || undefined,
           contentData: card.contentData,
           libraryCount: card.libraryCount,
-          urlLibraryCount,
-          urlInLibrary,
-          urlConnectionCount,
-          urlIsConnected,
+          ...engagement,
           createdAt: card.createdAt,
           updatedAt: card.updatedAt,
           note: note
@@ -1487,123 +982,14 @@ export class UrlCardQueryService {
     }
   }
 
-  async getBatchUrlRankingStats(
+  async getBatchUrlStats(
     urls: string[],
-  ): Promise<Map<string, UrlRankingStats>> {
+    callingUserId?: string,
+  ): Promise<Map<string, UrlStats>> {
     try {
-      if (urls.length === 0) {
-        return new Map();
-      }
-
-      const urlCardCountsQuery = this.db
-        .select({
-          url: cards.url,
-          count: count(),
-        })
-        .from(cards)
-        .where(and(eq(cards.type, CardTypeEnum.URL), inArray(cards.url, urls)))
-        .groupBy(cards.url);
-
-      const noteCountsQuery = this.db
-        .select({
-          url: cards.url,
-          count: count(),
-        })
-        .from(cards)
-        .where(and(eq(cards.type, CardTypeEnum.NOTE), inArray(cards.url, urls)))
-        .groupBy(cards.url);
-
-      const collectionCountsQuery = this.db
-        .select({
-          url: cards.url,
-          count: countDistinct(collectionCards.collectionId),
-        })
-        .from(collectionCards)
-        .innerJoin(cards, eq(collectionCards.cardId, cards.id))
-        .where(and(eq(cards.type, CardTypeEnum.URL), inArray(cards.url, urls)))
-        .groupBy(cards.url);
-
-      const sourceConnectionCountsQuery = this.db
-        .select({
-          url: connections.sourceValue,
-          count: count(),
-        })
-        .from(connections)
-        .where(
-          and(
-            eq(connections.sourceType, 'URL'),
-            inArray(connections.sourceValue, urls),
-          ),
-        )
-        .groupBy(connections.sourceValue);
-
-      const targetConnectionCountsQuery = this.db
-        .select({
-          url: connections.targetValue,
-          count: count(),
-        })
-        .from(connections)
-        .where(
-          and(
-            eq(connections.targetType, 'URL'),
-            inArray(connections.targetValue, urls),
-          ),
-        )
-        .groupBy(connections.targetValue);
-
-      const [
-        urlCardCounts,
-        noteCounts,
-        collectionCounts,
-        sourceConnectionCounts,
-        targetConnectionCounts,
-      ] = await Promise.all([
-        urlCardCountsQuery,
-        noteCountsQuery,
-        collectionCountsQuery,
-        sourceConnectionCountsQuery,
-        targetConnectionCountsQuery,
-      ]);
-
-      const resultMap = new Map<string, UrlRankingStats>();
-      for (const url of urls) {
-        resultMap.set(url, {
-          urlCardCount: 0,
-          noteCount: 0,
-          collectionCount: 0,
-          connectionCount: 0,
-        });
-      }
-
-      urlCardCounts.forEach((row) => {
-        if (row.url && resultMap.has(row.url)) {
-          resultMap.get(row.url)!.urlCardCount = Number(row.count);
-        }
-      });
-      noteCounts.forEach((row) => {
-        if (row.url && resultMap.has(row.url)) {
-          resultMap.get(row.url)!.noteCount = Number(row.count);
-        }
-      });
-      collectionCounts.forEach((row) => {
-        if (row.url && resultMap.has(row.url)) {
-          resultMap.get(row.url)!.collectionCount = Number(row.count);
-        }
-      });
-      sourceConnectionCounts.forEach((row) => {
-        if (row.url && resultMap.has(row.url)) {
-          resultMap.get(row.url)!.connectionCount += Number(row.count);
-        }
-      });
-      targetConnectionCounts.forEach((row) => {
-        if (row.url && resultMap.has(row.url)) {
-          resultMap.get(row.url)!.connectionCount += Number(row.count);
-        }
-      });
-
-      return resultMap;
+      return await fetchUrlStats(this.db, urls, callingUserId);
     } catch (error) {
-      console.error('Error in getBatchUrlRankingStats:', error);
+      console.error('Error in getBatchUrlStats:', error);
       throw error;
     }
   }
@@ -1788,110 +1174,10 @@ export class UrlCardQueryService {
     callingUserId?: string,
   ): Promise<Map<string, UrlLibraryInfo>> {
     try {
-      // Return empty map if no URLs provided
       if (urls.length === 0) {
         return new Map();
       }
 
-      // All queries below are independent of one another, so they are built
-      // first and executed in a single parallel batch at the end.
-
-      // 1. Get URL library counts (distinct users per URL)
-      const urlLibraryCountsQuery = this.db
-        .select({
-          url: cards.url,
-          count: countDistinct(libraryMemberships.userId),
-        })
-        .from(cards)
-        .innerJoin(libraryMemberships, eq(cards.id, libraryMemberships.cardId))
-        .where(and(eq(cards.type, CardTypeEnum.URL), inArray(cards.url, urls)))
-        .groupBy(cards.url);
-
-      // 2. Get URLs that calling user has (if callingUserId provided)
-      const userUrlsQuery = callingUserId
-        ? this.db
-            .select({
-              url: cards.url,
-            })
-            .from(cards)
-            .where(
-              and(
-                eq(cards.type, CardTypeEnum.URL),
-                eq(cards.authorId, callingUserId),
-                inArray(cards.url, urls),
-              ),
-            )
-        : undefined;
-
-      // 3. Get connection counts for each URL (total connections where URL is source or target)
-      // Query connections where URLs are sources
-      const sourceConnectionCountsQuery = this.db
-        .select({
-          url: connections.sourceValue,
-          count: count(),
-        })
-        .from(connections)
-        .where(
-          and(
-            eq(connections.sourceType, 'URL'),
-            inArray(connections.sourceValue, urls),
-            eq(connections.targetType, 'URL'), // Only URL-to-URL connections
-          ),
-        )
-        .groupBy(connections.sourceValue);
-
-      // Query connections where URLs are targets
-      const targetConnectionCountsQuery = this.db
-        .select({
-          url: connections.targetValue,
-          count: count(),
-        })
-        .from(connections)
-        .where(
-          and(
-            eq(connections.targetType, 'URL'),
-            inArray(connections.targetValue, urls),
-            eq(connections.sourceType, 'URL'), // Only URL-to-URL connections
-          ),
-        )
-        .groupBy(connections.targetValue);
-
-      // 4. Get URLs that calling user has connections with (if callingUserId provided)
-      // Query for URLs where user's connections have them as source
-      const userSourceConnectionsQuery = callingUserId
-        ? this.db
-            .select({
-              url: connections.sourceValue,
-            })
-            .from(connections)
-            .where(
-              and(
-                eq(connections.curatorId, callingUserId),
-                eq(connections.sourceType, 'URL'),
-                inArray(connections.sourceValue, urls),
-                eq(connections.targetType, 'URL'),
-              ),
-            )
-        : undefined;
-
-      // Query for URLs where user's connections have them as target
-      const userTargetConnectionsQuery = callingUserId
-        ? this.db
-            .select({
-              url: connections.targetValue,
-            })
-            .from(connections)
-            .where(
-              and(
-                eq(connections.curatorId, callingUserId),
-                eq(connections.targetType, 'URL'),
-                inArray(connections.targetValue, urls),
-                eq(connections.sourceType, 'URL'),
-              ),
-            )
-        : undefined;
-
-      // 5. Get sample card metadata for each URL (one card per URL)
       // DISTINCT ON keeps only the most recently updated card per URL
       const sampleCardsQuery = this.db
         .selectDistinctOn([cards.url], {
@@ -1902,70 +1188,11 @@ export class UrlCardQueryService {
         .where(and(eq(cards.type, CardTypeEnum.URL), inArray(cards.url, urls)))
         .orderBy(asc(cards.url), desc(cards.updatedAt));
 
-      const [
-        urlLibraryCountsResult,
-        userUrlsResult,
-        sourceConnectionCounts,
-        targetConnectionCounts,
-        userSourceConnections,
-        userTargetConnections,
-        sampleCardsResult,
-      ] = await Promise.all([
-        urlLibraryCountsQuery,
-        userUrlsQuery,
-        sourceConnectionCountsQuery,
-        targetConnectionCountsQuery,
-        userSourceConnectionsQuery,
-        userTargetConnectionsQuery,
+      const [engagementMap, sampleCardsResult] = await Promise.all([
+        fetchUrlEngagement(this.db, urls, callingUserId),
         sampleCardsQuery,
       ]);
 
-      // Build map of URL to library count
-      const urlLibraryCountMap = new Map<string, number>();
-      urlLibraryCountsResult.forEach((row) => {
-        if (row.url) {
-          urlLibraryCountMap.set(row.url, Number(row.count));
-        }
-      });
-
-      let urlInLibraryMap: Map<string, boolean> | undefined;
-      if (userUrlsResult) {
-        urlInLibraryMap = new Map();
-        userUrlsResult.forEach((row) => {
-          if (row.url) {
-            urlInLibraryMap!.set(row.url, true);
-          }
-        });
-      }
-
-      // Build map of URL to connection count (combining source and target counts)
-      const urlConnectionCountMap = new Map<string, number>();
-      sourceConnectionCounts.forEach((row) => {
-        if (row.url) {
-          urlConnectionCountMap.set(row.url, Number(row.count));
-        }
-      });
-      targetConnectionCounts.forEach((row) => {
-        if (row.url) {
-          urlConnectionCountMap.set(
-            row.url,
-            (urlConnectionCountMap.get(row.url) || 0) + Number(row.count),
-          );
-        }
-      });
-
-      // Mark URLs as connected if they appear in either source or target
-      let urlIsConnectedMap: Map<string, boolean> | undefined;
-      if (userSourceConnections && userTargetConnections) {
-        urlIsConnectedMap = new Map();
-        [...userSourceConnections, ...userTargetConnections].forEach((row) => {
-          if (row.url) {
-            urlIsConnectedMap!.set(row.url, true);
-          }
-        });
-      }
-
-      // Build map of URL to sample card
       const sampleCardMap = new Map<string, any>();
       sampleCardsResult.forEach((row) => {
         if (row.url) {
@@ -1973,14 +1200,8 @@ export class UrlCardQueryService {
         }
       });
 
-      // 6. Build result map
       const resultMap = new Map<string, UrlLibraryInfo>();
-
       urls.forEach((url) => {
-        const urlLibraryCount = urlLibraryCountMap.get(url) || 0;
-        const urlInLibrary = urlInLibraryMap?.get(url);
-        const urlConnectionCount = urlConnectionCountMap.get(url) || 0;
-        const urlIsConnected = urlIsConnectedMap?.get(url);
         const contentData = sampleCardMap.get(url);
 
         // Build metadata from contentData or create minimal metadata
@@ -1994,10 +1215,7 @@ export class UrlCardQueryService {
             };
 
         resultMap.set(url, {
-          urlLibraryCount,
-          urlInLibrary,
-          urlConnectionCount,
-          urlIsConnected,
+          ...engagementMap.get(url)!,
           metadata,
         });
       });
@@ -2176,60 +1394,6 @@ export class UrlCardQueryService {
       };
     } catch (error) {
       console.error('Error in searchUrls:', error);
-      throw error;
-    }
-  }
-
-  async getUrlAggregateStats(url: string): Promise<{
-    libraryCount: number;
-    noteCount: number;
-  }> {
-    try {
-      // Get library count - count distinct users who have cards with this URL
-      const libraryCountResult = await this.db
-        .select({
-          count: countDistinct(libraryMemberships.userId),
-        })
-        .from(cards)
-        .innerJoin(libraryMemberships, eq(cards.id, libraryMemberships.cardId))
-        .where(and(eq(cards.type, CardTypeEnum.URL), eq(cards.url, url)));
-
-      const libraryCount = Number(libraryCountResult[0]?.count || 0);
-
-      // Get note count - count NOTE cards that have a parent card with this URL
-      // First get all URL cards with this URL
-      const urlCardIds = await this.db
-        .select({ id: cards.id })
-        .from(cards)
-        .where(and(eq(cards.type, CardTypeEnum.URL), eq(cards.url, url)));
-
-      let noteCount = 0;
-      if (urlCardIds.length > 0) {
-        // Count NOTE cards that reference any of these URL cards
-        const noteCountResult = await this.db
-          .select({
-            count: count(cards.id),
-          })
-          .from(cards)
-          .where(
-            and(
-              eq(cards.type, CardTypeEnum.NOTE),
-              inArray(
-                cards.parentCardId,
-                urlCardIds.map((c) => c.id),
-              ),
-            ),
-          );
-
-        noteCount = Number(noteCountResult[0]?.count || 0);
-      }
-
-      return {
-        libraryCount,
-        noteCount,
-      };
-    } catch (error) {
-      console.error('Error in getUrlAggregateStats:', error);
       throw error;
     }
   }

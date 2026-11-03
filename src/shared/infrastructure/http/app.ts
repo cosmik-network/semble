@@ -7,6 +7,7 @@ import { openApiDocument } from './openapi';
 import { registerUserRoutes } from '../../../modules/user/infrastructure/http/routes/userRoutes';
 import { createStatsRoutes } from '../../../modules/user/infrastructure/http/routes/statsRoutes';
 import { OnboardingStatsComposer } from '../../../modules/analytics/application/OnboardingStatsComposer';
+import { CachedProductAnalyticsQueryRepository } from '../../../modules/analytics/infrastructure/repositories/CachedProductAnalyticsQueryRepository';
 import { BatchProfileFetcher } from '../../../modules/cards/application/services/BatchProfileFetcher';
 import { createAtprotoRoutes } from '../../../modules/atproto/infrastructure/atprotoRoutes';
 import { registerCardsModuleRoutes } from '../../../modules/cards/infrastructure/http/routes';
@@ -68,6 +69,14 @@ export const createExpressApp = async (
   const allowedOriginsSet = new Set(allowedOrigins);
 
   // Middleware setup
+  // TEMP: block Lightpanda headless scraper, correlated with DB latency spikes
+  app.use((req, res, next) => {
+    if (req.get('user-agent')?.startsWith('Lightpanda')) {
+      res.status(403).end();
+      return;
+    }
+    next();
+  });
   app.use(cookieParser()); // Parse cookies from incoming requests
   app.use(express.json());
   app.use(express.urlencoded({ extended: true }));
@@ -216,17 +225,23 @@ export const createExpressApp = async (
   app.use('/api/test', testRouter);
 
   const statsRouter = Router();
+  const cachedProductAnalyticsQueryRepository =
+    new CachedProductAnalyticsQueryRepository(
+      repositories.productAnalyticsQueryRepository,
+      services.statsCache,
+    );
   const onboardingStatsComposer = new OnboardingStatsComposer(
-    repositories.productAnalyticsQueryRepository,
+    cachedProductAnalyticsQueryRepository,
     new BatchProfileFetcher(services.profileService),
     repositories.collectionRepository,
     repositories.connectionRepository,
+    services.statsCache,
   );
   createStatsRoutes(
     statsRouter,
     services.statsApiKeyMiddleware,
     controllers.getUserStatsController,
-    repositories.productAnalyticsQueryRepository,
+    cachedProductAnalyticsQueryRepository,
     onboardingStatsComposer,
   );
   app.use('/api/stats', statsRouter);
@@ -321,6 +336,7 @@ export const createExpressApp = async (
       controllers.getLibrariesForUrlController,
       controllers.getNoteCardsForUrlController,
       controllers.searchUrlsController,
+      controllers.getBatchUrlStatsController,
       // Collection controllers
       controllers.createCollectionController,
       controllers.updateCollectionController,

@@ -15,6 +15,8 @@ interface Props {
   initialIsFollowing?: boolean;
   initialIsSubscribed?: boolean;
   initialSubscriptionScopes?: SubscriptionScope[];
+  /** Fires with the new state once the write lands. */
+  onFollowChange?: (isFollowing: boolean) => void;
 }
 
 export default function FollowActions(props: Props) {
@@ -39,6 +41,7 @@ export default function FollowActions(props: Props) {
         initialIsFollowing={props.initialIsFollowing}
         followText={props.followText}
         followSource={props.followSource}
+        onFollowChange={props.onFollowChange}
       />
     </>
   );

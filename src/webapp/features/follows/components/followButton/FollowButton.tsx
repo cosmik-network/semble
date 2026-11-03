@@ -37,6 +37,7 @@ export default function FollowButton({
     <Button
       variant={isFollowing ? 'light' : 'inverse'}
       color="gray"
+      data-analytics-target="follow"
       {...buttonProps}
       onClick={(e) => {
         buttonProps.onClick?.(e);

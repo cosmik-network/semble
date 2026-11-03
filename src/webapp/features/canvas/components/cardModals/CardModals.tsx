@@ -1,5 +1,8 @@
 import { usePathname } from 'next/navigation';
-import { CardSaveSource } from '@/features/analytics/types';
+import {
+  CardSaveSource,
+  ConnectionCreateSource,
+} from '@/features/analytics/types';
 import AddCardToModal from '@/features/cards/components/addCardToModal/AddCardToModal';
 import { useUrlMetadataWithStats } from '@/features/cards/lib/queries/useUrlMetadata';
 import AddConnectionModal from '@/features/connections/components/addConnectionModal/AddConnectionModal';
@@ -47,6 +50,7 @@ export default function CardModals(props: Props) {
         isOpen={props.modal?.kind === 'connect'}
         onClose={props.onClose}
         sourceUrl={url}
+        createSource={ConnectionCreateSource.CARD}
         analyticsContext={analyticsContext}
       />
     </>

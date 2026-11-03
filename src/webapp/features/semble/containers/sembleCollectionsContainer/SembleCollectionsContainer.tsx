@@ -16,9 +16,12 @@ import {
 } from '@/features/collections/components/collectionFilters/CollectionFilters';
 import { CollectionSortField } from '@semble/types';
 import { useSearchParams } from 'next/navigation';
+import { EntrySource } from '@/features/analytics/pageVisit';
 
 interface Props {
   url: string;
+  /** entry_source for the collection pages it links to */
+  entryRef?: EntrySource;
 }
 
 export default function SembleCollectionsContainer(props: Props) {
@@ -89,6 +92,7 @@ export default function SembleCollectionsContainer(props: Props) {
               collection={col}
               showAuthor
               followSource={FollowSource.SEMBLE_PAGE}
+              entryRef={props.entryRef ?? 'semble_page'}
             />
           ))}
         </SimpleGrid>

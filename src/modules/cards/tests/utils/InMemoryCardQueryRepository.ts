@@ -11,7 +11,8 @@ import {
   LibraryForUrlDTO,
   NoteCardForUrlRawDTO,
   UrlLibraryInfo,
-  UrlRankingStats,
+  UrlStats,
+  UrlConnectionCounts,
   UserActivityStats,
   SearchUrlsOptions,
   UrlSearchResultDTO,
@@ -274,42 +275,67 @@ export class InMemoryCardQueryRepository implements ICardQueryRepository {
     );
   }
 
-  private async getUrlConnectionCount(url: string): Promise<number> {
+  // URL↔URL connections only, matching the Drizzle implementation
+  private async getUrlConnectionCounts(
+    url: string,
+  ): Promise<UrlConnectionCounts> {
+    const counts: UrlConnectionCounts = {
+      forwardTotal: 0,
+      backwardTotal: 0,
+      forwardByType: new Map(),
+      backwardByType: new Map(),
+    };
     if (!this.connectionRepository) {
-      return 0;
+      return counts;
     }
 
-    try {
-      const urlResult = URL.create(url);
-      if (urlResult.isErr()) {
-        return 0;
-      }
-
-      const urlOrCardIdResult = UrlOrCardId.createFromUrl(urlResult.value);
-      if (urlOrCardIdResult.isErr()) {
-        return 0;
-      }
-
-      const urlOrCardId = urlOrCardIdResult.value;
-
-      // Get connections where this URL is the source
-      const sourceConnectionsResult =
-        await this.connectionRepository.findBySource(urlOrCardId);
-      const sourceConnections = sourceConnectionsResult.isOk()
-        ? sourceConnectionsResult.value
-        : [];
-
-      // Get connections where this URL is the target
-      const targetConnectionsResult =
-        await this.connectionRepository.findByTarget(urlOrCardId);
-      const targetConnections = targetConnectionsResult.isOk()
-        ? targetConnectionsResult.value
-        : [];
-
-      return sourceConnections.length + targetConnections.length;
-    } catch (error) {
-      return 0;
+    const urlResult = URL.create(url);
+    if (urlResult.isErr()) {
+      return counts;
     }
+    const urlOrCardIdResult = UrlOrCardId.createFromUrl(urlResult.value);
+    if (urlOrCardIdResult.isErr()) {
+      return counts;
+    }
+    const urlOrCardId = urlOrCardIdResult.value;
+
+    const [sourceResult, targetResult] = await Promise.all([
+      this.connectionRepository.findBySource(urlOrCardId),
+      this.connectionRepository.findByTarget(urlOrCardId),
+    ]);
+    const forward = (sourceResult.isOk() ? sourceResult.value : []).filter(
+      (conn) => conn.target.isUrl,
+    );
+    const backward = (targetResult.isOk() ? targetResult.value : []).filter(
+      (conn) => conn.source.isUrl,
+    );
+
+    counts.forwardTotal = forward.length;
+    counts.backwardTotal = backward.length;
+    for (const conn of forward) {
+      if (conn.type) {
+        const type = conn.type.value;
+        counts.forwardByType.set(
+          type,
+          (counts.forwardByType.get(type) ?? 0) + 1,
+        );
+      }
+    }
+    for (const conn of backward) {
+      if (conn.type) {
+        const type = conn.type.value;
+        counts.backwardByType.set(
+          type,
+          (counts.backwardByType.get(type) ?? 0) + 1,
+        );
+      }
+    }
+    return counts;
+  }
+
+  private async getUrlConnectionCount(url: string): Promise<number> {
+    const counts = await this.getUrlConnectionCounts(url);
+    return counts.forwardTotal + counts.backwardTotal;
   }
 
   private async isUrlConnectedByUser(
@@ -337,10 +363,12 @@ export class InMemoryCardQueryRepository implements ICardQueryRepository {
       const connections = connectionsResult.value;
 
       // Check if any connection involves this URL (as source or target)
+      // URL↔URL connections only, matching the Drizzle implementation
       return connections.some(
         (conn) =>
-          (conn.source.isUrl && conn.source.url?.value === url) ||
-          (conn.target.isUrl && conn.target.url?.value === url),
+          conn.source.isUrl &&
+          conn.target.isUrl &&
+          (conn.source.url?.value === url || conn.target.url?.value === url),
       );
     } catch (error) {
       return false;
@@ -835,19 +863,19 @@ export class InMemoryCardQueryRepository implements ICardQueryRepository {
     return resultMap;
   }
 
-  async getBatchUrlRankingStats(
+  async getBatchUrlStats(
     urls: string[],
-  ): Promise<Map<string, UrlRankingStats>> {
-    const resultMap = new Map<string, UrlRankingStats>();
+    callingUserId?: string,
+  ): Promise<Map<string, UrlStats>> {
+    const resultMap = new Map<string, UrlStats>();
     const allCards = this.cardRepository.getAllCards();
     const allCollections = this.collectionRepository.getAllCollections();
 
-    for (const url of urls) {
-      const urlCards = allCards.filter(
-        (card) => card.isUrlCard && card.url?.value === url,
-      );
+    for (const url of new Set(urls)) {
       const urlCardIds = new Set(
-        urlCards.map((card) => card.cardId.getStringValue()),
+        allCards
+          .filter((card) => card.isUrlCard && card.url?.value === url)
+          .map((card) => card.cardId.getStringValue()),
       );
 
       const noteCount = allCards.filter(
@@ -860,13 +888,17 @@ export class InMemoryCardQueryRepository implements ICardQueryRepository {
         ),
       ).length;
 
-      const connectionCount = await this.getUrlConnectionCount(url);
-
       resultMap.set(url, {
-        urlCardCount: urlCards.length,
+        libraryCount: this.getUrlLibraryCount(url),
         noteCount,
         collectionCount,
-        connectionCount,
+        connections: await this.getUrlConnectionCounts(url),
+        urlInLibrary: callingUserId
+          ? this.isUrlInUserLibrary(url, callingUserId)
+          : undefined,
+        urlIsConnected: callingUserId
+          ? await this.isUrlConnectedByUser(url, callingUserId)
+          : undefined,
       });
     }
 
@@ -1172,39 +1204,6 @@ export class InMemoryCardQueryRepository implements ICardQueryRepository {
         `Failed to search URLs: ${error instanceof Error ? error.message : String(error)}`,
       );
     }
-  }
-
-  async getUrlAggregateStats(url: string): Promise<{
-    libraryCount: number;
-    noteCount: number;
-  }> {
-    const allCards = this.cardRepository.getAllCards();
-
-    // Get library count - count distinct users who have URL cards with this URL
-    const urlCards = allCards.filter(
-      (c) => c.type.value === 'URL' && c.url?.value === url,
-    );
-    const uniqueUsers = new Set<string>();
-    urlCards.forEach((card) => {
-      card.libraryMemberships.forEach((membership) => {
-        uniqueUsers.add(membership.curatorId.value);
-      });
-    });
-    const libraryCount = uniqueUsers.size;
-
-    // Get note count - count NOTE cards that reference URL cards with this URL
-    const urlCardIds = new Set(urlCards.map((c) => c.cardId.getStringValue()));
-    const noteCount = allCards.filter(
-      (c) =>
-        c.type.value === 'NOTE' &&
-        c.parentCardId &&
-        urlCardIds.has(c.parentCardId.getStringValue()),
-    ).length;
-
-    return {
-      libraryCount,
-      noteCount,
-    };
   }
 
   async getProfileCardStats(authorId: string): Promise<{

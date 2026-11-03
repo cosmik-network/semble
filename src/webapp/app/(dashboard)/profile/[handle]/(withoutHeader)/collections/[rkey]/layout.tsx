@@ -10,6 +10,7 @@ import CollectionHeaderSkeleton from '@/features/collections/components/collecti
 import CollectionShareHeaderButton from '@/features/collections/components/CollectionShareHeaderButton/CollectionShareHeaderButton';
 import OpenCollectionInCanvasButton from '@/features/canvas/components/openCollectionInCanvasButton/OpenCollectionInCanvasButton';
 import CollectionTabs from '@/features/collections/components/collectionTabs/CollectionTabs';
+import CollectionTabContentTracker from '@/features/collections/components/collectionTabs/CollectionTabContentTracker';
 import { Container } from '@mantine/core';
 
 interface Props {
@@ -69,7 +70,9 @@ export default async function Layout(props: Props) {
       <Container size={'xl'} px={'xs'} mt={'md'}>
         <CollectionTabs handle={handle} rkey={rkey} />
       </Container>
-      {props.children}
+      <CollectionTabContentTracker rkey={rkey}>
+        {props.children}
+      </CollectionTabContentTracker>
     </Fragment>
   );
 }

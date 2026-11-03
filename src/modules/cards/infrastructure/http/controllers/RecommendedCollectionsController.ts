@@ -1,6 +1,9 @@
 import { Controller } from '../../../../../shared/infrastructure/http/Controller';
 import { Response } from 'express';
-import { RecommendedCollectionsUseCase } from '../../../application/useCases/queries/RecommendedCollectionsUseCase';
+import {
+  RecommendedCollectionsUseCase,
+  ValidationError,
+} from '../../../application/useCases/queries/RecommendedCollectionsUseCase';
 import { AuthenticatedRequest } from '../../../../../shared/infrastructure/http/middleware/AuthMiddleware';
 
 export class RecommendedCollectionsController extends Controller {
@@ -23,7 +26,7 @@ export class RecommendedCollectionsController extends Controller {
       // for. Unauthenticated ones may omit them and get seeds drawn from the
       // global feed instead.
       if (req.did && urlList.length === 0) {
-        return this.fail(res, 'At least one urls parameter is required');
+        return this.badRequest(res, 'At least one urls parameter is required');
       }
 
       const result = await this.recommendedCollectionsUseCase.execute({
@@ -32,6 +35,9 @@ export class RecommendedCollectionsController extends Controller {
       });
 
       if (result.isErr()) {
+        if (result.error instanceof ValidationError) {
+          return this.badRequest(res, result.error.message);
+        }
         return this.fail(res, result.error);
       }
 

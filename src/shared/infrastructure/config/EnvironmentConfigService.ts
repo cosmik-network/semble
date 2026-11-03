@@ -22,6 +22,10 @@ export interface EnvironmentConfig {
   };
   database: {
     url: string;
+    // Direct (non-pooled) connection for /api/stats queries. PgBouncer won't
+    // forward the statement_timeout startup parameter, so the stats pool's
+    // timeout only applies when this is set.
+    statsUrl?: string;
   };
   auth: {
     jwtSecret: string;
@@ -140,6 +144,7 @@ export class EnvironmentConfigService {
         url:
           process.env.DATABASE_URL ||
           'postgres://postgres:postgres@localhost:5432/annotations',
+        statsUrl: process.env.STATS_DATABASE_URL,
       },
       auth: {
         jwtSecret:
@@ -291,6 +296,16 @@ export class EnvironmentConfigService {
           this.config.auth.jwtSecret === 'default-secret-change-in-production'
         ) {
           throw new Error('JWT secret must be set in production environment');
+        }
+        // Same as dev: prod runs as a confidential OAuth client, so a missing
+        // key must fail loudly rather than silently fall back to public.
+        if (
+          !this.config.oauthClient.privateKeyPkcs8 ||
+          !this.config.oauthClient.keyId
+        ) {
+          throw new Error(
+            'OAUTH_PRIVATE_KEY_PKCS8 and OAUTH_KEY_ID must be set in the production environment',
+          );
         }
         break;
       case Environment.LOCAL:

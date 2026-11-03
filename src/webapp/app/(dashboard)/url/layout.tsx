@@ -3,7 +3,8 @@ import Header from '@/components/navigation/header/Header';
 import ReaderHeaderButton from '@/features/reader/components/ReaderHeaderButton/ReaderHeaderButton';
 import OpenInCanvasHeaderButton from '@/features/canvas/components/openInCanvasHeaderButton/OpenInCanvasHeaderButton';
 import ShareHeaderButton from '@/features/semble/components/ShareHeaderButton/ShareHeaderButton';
-import { Fragment, Suspense } from 'react';
+import { SembleNavigationProvider } from '@/features/semble/lib/sembleNavigation';
+import { Suspense } from 'react';
 
 interface Props {
   children: React.ReactNode;
@@ -11,7 +12,7 @@ interface Props {
 
 export default async function Layout(props: Props) {
   return (
-    <Fragment>
+    <SembleNavigationProvider>
       <Header>
         <BackButton />
         <Suspense fallback={null}>
@@ -25,6 +26,6 @@ export default async function Layout(props: Props) {
         </Suspense>
       </Header>
       {props.children}
-    </Fragment>
+    </SembleNavigationProvider>
   );
 }

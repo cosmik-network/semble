@@ -11,15 +11,39 @@ import CreateCollectionDrawer from '@/features/collections/components/createColl
 import useMyProfileStats from '@/features/profile/lib/queries/useMyProfileStats';
 import { CardSaveSource } from '@/features/analytics/types';
 import { useAuth } from '@/hooks/useAuth';
+import ZoteroIcon from '@/assets/icons/zotero-icon.svg';
+import ObsidianIcon from '@/assets/icons/obsidian-icon.svg';
+import AirglowIcon from '@/assets/icons/airglow-icon.svg';
 import useOnboardingMilestones from '../../../lib/useOnboardingMilestones';
 import WhatNextTile from '../../whatNextTile/WhatNextTile';
 import ConnectTileCards from '../../connectTileCards/ConnectTileCards';
 import SaveTileCards from '../../saveTileCards/SaveTileCards';
 import InstallOptions from '../../installOptions/InstallOptions';
-import OptionTile, { iconMark } from '../../optionTile/OptionTile';
+import OptionTile, { brandMark, iconMark } from '../../optionTile/OptionTile';
 import StepHeading from '../../stepHeading/StepHeading';
 
 const DOCS_URL = 'https://docs.cosmik.network/semble';
+
+const PLUGINS = [
+  {
+    href: 'https://github.com/ChrisShank/zemble/releases/tag/v0.0.5',
+    mark: brandMark(ZoteroIcon.src),
+    title: 'Zotero',
+    description: 'Sync your links to Zotero',
+  },
+  {
+    href: 'https://community.obsidian.md/plugins/semble-collect',
+    mark: brandMark(ObsidianIcon.src),
+    title: 'Obsidian',
+    description: 'Save links from your notes',
+  },
+  {
+    href: 'https://airglow.run/automations/all?q=semble',
+    mark: brandMark(AirglowIcon.src),
+    title: 'Airglow',
+    description: 'Save from Bluesky likes',
+  },
+];
 
 interface Props {
   title: string;
@@ -157,6 +181,24 @@ export default function WhatNextStep(props: Props) {
             props.onComplete();
           }}
         />
+      </Stack>
+
+      <Stack gap={'sm'}>
+        {sectionHeading('Bring Semble into your tools')}
+
+        <SimpleGrid cols={{ base: 1, xs: 2, sm: 3 }} spacing={'xs'}>
+          {PLUGINS.map((plugin) => (
+            <OptionTile
+              key={plugin.href}
+              href={plugin.href}
+              external
+              mark={plugin.mark}
+              title={plugin.title}
+              description={plugin.description}
+              onClick={props.onComplete}
+            />
+          ))}
+        </SimpleGrid>
       </Stack>
 
       <Stack gap={'sm'}>

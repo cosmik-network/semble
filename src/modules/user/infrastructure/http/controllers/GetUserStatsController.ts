@@ -1,5 +1,6 @@
 import { Controller } from '../../../../../shared/infrastructure/http/Controller';
 import { Request, Response } from 'express';
+import { isStatementTimeoutError } from '../../../../../shared/infrastructure/database/isStatementTimeoutError';
 import { GetUserStatsUseCase } from '../../../application/useCases/queries/GetUserStatsUseCase';
 import {
   UserStatType,
@@ -39,6 +40,11 @@ export class GetUserStatsController extends Controller {
       });
 
       if (result.isErr()) {
+        if (isStatementTimeoutError(result.error)) {
+          return res
+            .status(503)
+            .json({ message: 'Stats query timed out, try again later' });
+        }
         return this.fail(res, result.error);
       }
 

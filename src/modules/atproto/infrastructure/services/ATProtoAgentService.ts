@@ -7,8 +7,12 @@ import { IAgentService } from '../../application/IAgentService';
 import { DID } from '../../domain/DID';
 import { IAppPasswordSessionService } from '../../application/IAppPasswordSessionService';
 import { ATPROTO_SERVICE_ENDPOINTS } from './ServiceEndpoints';
-import { AuthenticationError } from 'src/shared/core/AuthenticationError';
+import {
+  AuthenticationError,
+  PdsUnavailableError,
+} from 'src/shared/core/AuthenticationError';
 import { EnvironmentConfigService } from 'src/shared/infrastructure/config/EnvironmentConfigService';
+import { reportPdsAuthFailure } from './pdsAuthFailure';
 
 // How long to short-circuit restore() attempts for a DID whose OAuth session
 // is known to be gone. Kept short so a re-login on another machine (which we
@@ -30,22 +34,6 @@ function fetchWithTimeout(
     ? AbortSignal.any([init.signal, timeoutSignal])
     : timeoutSignal;
   return fetch(input, { ...init, signal });
-}
-
-/**
- * Only session-terminal failures should be negative-cached: a missing row or
- * a rejected/revoked refresh token stays dead until the user re-authenticates.
- * Transient failures (network, 5xx from the PDS) are rethrown by the library
- * with their original error types and must NOT deny agents for the TTL.
- */
-function isTerminalSessionError(error: unknown): boolean {
-  if (error instanceof AuthenticationError) return true; // our "no session found"
-  if (!(error instanceof Error)) return false;
-  return (
-    error.name === 'TokenRefreshError' ||
-    error.name === 'TokenRevokedError' ||
-    error.name === 'TokenInvalidError'
-  );
 }
 
 export class ATProtoAgentService implements IAgentService {
@@ -125,6 +113,11 @@ export class ATProtoAgentService implements IAgentService {
       const appPasswordAgentResult =
         await this.getAuthenticatedAgentByAppPasswordSession(did);
       if (appPasswordAgentResult.isErr()) {
+        // A retryable OAuth failure must stay retryable: wrapping it in a
+        // plain AuthenticationError would log the user out over a blip.
+        if (oauthAgentResult.error instanceof PdsUnavailableError) {
+          return oauthAgentResult;
+        }
         return err(
           new AuthenticationError(
             `Failed to authenticate: No valid OAuth or App Password session found. OAuth error: ${oauthAgentResult.error.message}. App Password error: ${appPasswordAgentResult.error.message}`,
@@ -167,13 +160,19 @@ export class ATProtoAgentService implements IAgentService {
         'No OAuth session found for the provided DID',
       );
     } catch (error) {
-      if (isTerminalSessionError(error)) {
+      // Only session-terminal failures are negative-cached: a missing row or
+      // a rejected/revoked refresh token stays dead until the user
+      // re-authenticates. Transient failures (network, PDS 5xx) must NOT
+      // deny agents for the TTL.
+      const failure = reportPdsAuthFailure('oauth_restore', did.value, error);
+      if (failure.terminal) {
         this.deadOAuthSessions.set(did.value, Date.now() + DEAD_SESSION_TTL_MS);
       }
+      const message = `OAuth authentication failed: ${failure.causeChain}`;
       return err(
-        new AuthenticationError(
-          `OAuth authentication failed: ${error instanceof Error ? error.message : String(error)}`,
-        ),
+        failure.requiresReauth
+          ? new AuthenticationError(message)
+          : new PdsUnavailableError(message),
       );
     }
   }

@@ -9,6 +9,7 @@ import { UpdateUrlCardAssociationsController } from '../../../../modules/cards/i
 import { RemoveCardFromLibraryController } from '../../../../modules/cards/infrastructure/http/controllers/RemoveCardFromLibraryController';
 import { RemoveCardFromCollectionController } from '../../../../modules/cards/infrastructure/http/controllers/RemoveCardFromCollectionController';
 import { GetUrlMetadataController } from '../../../../modules/cards/infrastructure/http/controllers/GetUrlMetadataController';
+import { GetBatchUrlStatsController } from '../../../../modules/cards/infrastructure/http/controllers/GetBatchUrlStatsController';
 import { GetUrlCardViewController } from '../../../../modules/cards/infrastructure/http/controllers/GetUrlCardViewController';
 import { GetLibrariesForCardController } from '../../../../modules/cards/infrastructure/http/controllers/GetLibrariesForCardController';
 import { GetMyUrlCardsController } from '../../../../modules/cards/infrastructure/http/controllers/GetMyUrlCardsController';
@@ -129,6 +130,7 @@ export interface Controllers {
   removeCardFromLibraryController: RemoveCardFromLibraryController;
   removeCardFromCollectionController: RemoveCardFromCollectionController;
   getUrlMetadataController: GetUrlMetadataController;
+  getBatchUrlStatsController: GetBatchUrlStatsController;
   getUrlCardViewController: GetUrlCardViewController;
   getLibrariesForCardController: GetLibrariesForCardController;
   getMyUrlCardsController: GetMyUrlCardsController;
@@ -337,6 +339,9 @@ export class ControllerFactory {
         ),
       getUrlMetadataController: new GetUrlMetadataController(
         useCases.getUrlMetadataUseCase,
+      ),
+      getBatchUrlStatsController: new GetBatchUrlStatsController(
+        useCases.getBatchUrlStatsUseCase,
       ),
       getUrlCardViewController: new GetUrlCardViewController(
         useCases.getUrlCardViewUseCase,
