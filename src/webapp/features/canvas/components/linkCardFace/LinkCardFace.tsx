@@ -67,9 +67,10 @@ export default function LinkCardFace(props: Props) {
         shadow="none"
         style={{
           pointerEvents: 'none',
-          outline: copyState.isOutlined && !exporting
-            ? '2px dashed var(--mantine-primary-color-filled)'
-            : undefined,
+          outline:
+            copyState.isOutlined && !exporting
+              ? '2px dashed var(--mantine-primary-color-filled)'
+              : undefined,
           outlineOffset: 2,
         }}
       >
