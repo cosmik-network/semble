@@ -4,7 +4,6 @@ import 'tldraw/tldraw.css';
 import {
   Button,
   Center,
-  Loader,
   Stack,
   Text,
   useComputedColorScheme,
@@ -50,6 +49,7 @@ import DeleteConnectionModal from '../deleteConnectionModal/DeleteConnectionModa
 import ReadOnlyBanner from '../readOnlyBanner/ReadOnlyBanner';
 import SelectionPopup from '../selectionPopup/SelectionPopup';
 import UndoToast from '../undoToast/UndoToast';
+import CanvasBoardSkeleton from '../canvasBoard/Skeleton.CanvasBoard';
 import { canvasHref } from '../../lib/constants';
 import { showCanvasError } from '../../lib/showCanvasError';
 import { boardOverrides } from './boardOverrides';
@@ -305,9 +305,14 @@ export default function BoardEditor(props: Props) {
           </CanvasCopiesProvider>
         </CanvasServerProvider>
       </div>
-      {status !== 'ready' && (
+      {status === 'loading' && (
+        <CanvasBoardSkeleton
+          progress={seedProgress ? seedProgressText(seedProgress) : undefined}
+        />
+      )}
+      {status !== 'ready' && status !== 'loading' && (
         <Center pos="absolute" inset={0} bg="var(--mantine-color-body)">
-          <BoardStatus status={status} seedProgress={seedProgress} />
+          <BoardStatus status={status} />
         </Center>
       )}
     </div>
@@ -328,24 +333,10 @@ function seedProgressText(progress: SeedProgress) {
 }
 
 interface BoardStatusProps {
-  status: Exclude<Status, 'ready'>;
-  seedProgress: SeedProgress | null;
+  status: Exclude<Status, 'ready' | 'loading'>;
 }
 
 function BoardStatus(props: BoardStatusProps) {
-  if (props.status === 'loading') {
-    return (
-      <Stack align="center" gap="sm">
-        <Loader />
-        {props.seedProgress && (
-          <Text c="dimmed" fz="sm">
-            {seedProgressText(props.seedProgress)}
-          </Text>
-        )}
-      </Stack>
-    );
-  }
-
   return (
     <Stack align="center" gap="sm">
       <Text fw={500}>

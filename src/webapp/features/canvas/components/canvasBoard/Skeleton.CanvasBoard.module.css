@@ -1,0 +1,22 @@
+/* tldraw's --color-background, which is only set inside its container */
+.board {
+  background: hsl(210, 20%, 98%);
+
+  @mixin dark {
+    background: hsl(240, 5%, 6.5%);
+  }
+}
+
+.progress {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.toolbar {
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+}
