@@ -23,7 +23,6 @@ import {
 } from '@/features/collections/components/collectionsNavList/CollectionNavSectionItems';
 import { useFeatureFlags } from '@/lib/clientFeatureFlags';
 import CanvasNavItems from '@/features/canvas/components/canvasNavItems/CanvasNavItems';
-import NewCanvasNavButton from '@/features/canvas/components/newCanvasNavButton/NewCanvasNavButton';
 import LibraryNavSection from './LibraryNavSection';
 
 type ExpandedKey =
@@ -84,7 +83,6 @@ export default function LibraryNav() {
             icon={<BsEasel size={20} />}
             viewAllHref="/canvas"
             errorMessage="Could not load canvases"
-            action={<NewCanvasNavButton />}
             {...expanded('canvasesNavExpanded')}
           >
             <CanvasNavItems />
