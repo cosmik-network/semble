@@ -4,7 +4,7 @@ import { ActionIcon, Tooltip } from '@mantine/core';
 import { useMounted } from '@mantine/hooks';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
-import { BsEasel } from 'react-icons/bs';
+import { LuSquareDashedMousePointer } from 'react-icons/lu';
 import { useFeatureFlags } from '@/lib/clientFeatureFlags';
 import { seededCanvasHref } from '../../lib/constants';
 
@@ -30,7 +30,7 @@ export default function OpenInCanvasHeaderButton() {
         radius="xl"
         aria-label="Open in canvas"
       >
-        <BsEasel />
+        <LuSquareDashedMousePointer />
       </ActionIcon>
     </Tooltip>
   );

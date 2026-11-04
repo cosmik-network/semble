@@ -4,7 +4,7 @@ import { ActionIcon, Menu, Tooltip } from '@mantine/core';
 import { useMounted } from '@mantine/hooks';
 import Link from 'next/link';
 import { Suspense } from 'react';
-import { BsEasel } from 'react-icons/bs';
+import { LuSquareDashedMousePointer } from 'react-icons/lu';
 import { FiPlus } from 'react-icons/fi';
 import useCollection from '@/features/collections/lib/queries/useCollection';
 import { useFeatureFlags } from '@/lib/clientFeatureFlags';
@@ -55,7 +55,7 @@ function OpenInCanvasMenu(props: Props) {
             radius="xl"
             aria-label="Open in canvas"
           >
-            <BsEasel />
+            <LuSquareDashedMousePointer />
           </ActionIcon>
         </Tooltip>
       </Menu.Target>
