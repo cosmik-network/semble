@@ -225,7 +225,7 @@ export default function BoardEditor(props: Props) {
         if (loaded === 'ready') onLoaded?.(editor);
         // Reloading would otherwise place a collection again after its
         // frame was deleted. Not a navigation, so the board stays attached.
-        if (seed.url || seed.collectionId) {
+        if ((seed.url || seed.collectionId) && !attached.seedNeedsRetry()) {
           window.history.replaceState(null, '', canvasHref(props.canvasId));
         }
       },

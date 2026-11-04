@@ -227,10 +227,14 @@ export function attachCanvasController(deps: CanvasControllerDeps) {
     await deps.storage.renameCanvas(deps.canvasId, name);
   };
   const canPlace = () => !detached && !editor.getIsReadonly();
-  const seedFailed = () =>
+  // Left in the address, so reloading tries again
+  let seedNeedsRetry = false;
+  const seedFailed = () => {
+    seedNeedsRetry = true;
     deps.onServerError(
       "Couldn't load this link's connections. Reload to try again.",
     );
+  };
   const linkSeed = attachLinkSeed({
     editor,
     fetchLinks: links.fetchLinks,
@@ -393,6 +397,7 @@ export function attachCanvasController(deps: CanvasControllerDeps) {
     connectionEdits,
     refreshFailed: refreshLoop.failed,
     takeOver: () => board.takeOver(),
+    seedNeedsRetry: () => seedNeedsRetry,
     async detach() {
       detached = true;
       quickAdd.detach();
