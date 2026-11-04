@@ -625,13 +625,20 @@ export function attachCollectionFrames(deps: CollectionFramesDeps) {
       editor.run(change, { history: 'ignore' }),
     );
 
-  // Its frame goes with what's in it, and copies dragged out become free
+  // Its frame goes with the copies it placed, copies dragged out become free,
+  // and whatever else the user put in it stays on the board where it is
   function removeCollection(frameId: TLShapeId) {
-    const outside = Object.values(metaOf(frameId)!.entries)
+    const entries = Object.values(metaOf(frameId)!.entries);
+    const placed = new Set(entries);
+    const outside = entries
       .map((id) => editor.getShape<LinkCardShape>(id as TLShapeId))
       .filter((card): card is LinkCardShape => card?.parentId !== frameId);
+    const kept = editor
+      .getSortedChildIdsForParent(frameId)
+      .filter((id) => !placed.has(id));
     outsideUndo(() => {
       editor.updateShapes(outside.map(asFree));
+      editor.reparentShapes(kept, editor.getCurrentPageId());
       editor.deleteShapes([frameId]);
     });
   }

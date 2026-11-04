@@ -2727,6 +2727,29 @@ describe('open in canvas from a collection', () => {
       });
     });
 
+    it("should keep what the user put in a deleted collection's frame where it is on the page", async () => {
+      // Arrange
+      const server = withEntries(1);
+      board = await createTestBoard({ server, ...OPENED });
+      const [frame] = board.frames();
+      const free = await dragInto(frame.id, 'https://example.com/mine');
+      // Its height settles once its link loads
+      await refresh();
+      const at = board.editor.getShapePageTransform(free).point();
+
+      // Act
+      server.collections.delete('collection-1');
+      await refresh();
+
+      // Assert
+      expect(board.frames()).toEqual([]);
+      expect(board.editor.getShape(free)).toMatchObject({
+        parentId: board.editor.getCurrentPageId(),
+        x: at.x,
+        y: at.y,
+      });
+    });
+
     it('should leave a free copy dragged into the frame where it is, and write nothing', async () => {
       // Arrange
       board = await createTestBoard({ server: withEntries(1), ...OPENED });
