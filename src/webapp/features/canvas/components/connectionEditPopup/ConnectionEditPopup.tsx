@@ -2,7 +2,7 @@ import { ActionIcon, Menu, Tooltip } from '@mantine/core';
 import { useEffect, useState } from 'react';
 import { LuArrowLeftRight } from 'react-icons/lu';
 import { MdDeleteOutline } from 'react-icons/md';
-import { TbArrowsExchange } from 'react-icons/tb';
+import { TbSelector } from 'react-icons/tb';
 import { useEditor, useValue, type TLArrowShape } from 'tldraw';
 import { CONNECTION_TYPES } from '@/features/connections/const/connectionTypes';
 import BoardPopup, {
@@ -81,7 +81,7 @@ function Popup(props: PopupProps) {
         <Menu.Target>
           <Tooltip label="Change type" withArrow withinPortal={false}>
             <ActionIcon {...ICON_PROPS} aria-label="Change type">
-              <TbArrowsExchange size={16} />
+              <TbSelector size={16} />
             </ActionIcon>
           </Tooltip>
         </Menu.Target>
