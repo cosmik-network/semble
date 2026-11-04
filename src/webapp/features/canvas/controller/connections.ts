@@ -8,19 +8,15 @@ import {
   type TLShapeId,
 } from 'tldraw';
 import { CONNECTION_TYPES } from '@/features/connections/const/connectionTypes';
-import {
-  collectionFrameOf,
-  type CollectionPageUrl,
-} from '../model/collectionFrames';
-import { LINK_CARD_TYPE, linkKey } from '../model/linkCards';
+import { collectionFrameOf } from '../model/collectionFrames';
 import type { CanvasServer, NewConnection } from '../server/canvasServer';
 import { isConnectionArrow } from '../shapes/connectionArrow/connectionArrows';
-import type { LinkCardShape } from '../shapes/linkCard/LinkCardShapeUtil';
+import type { ConnectionEnds } from './connectionEnds';
 
 export interface ConnectionsDeps {
   editor: Editor;
   server: CanvasServer;
-  collectionPageUrl: CollectionPageUrl;
+  ends: ConnectionEnds;
   // As a connection starts publishing. Settled with its id, or null if it
   // wasn't published.
   onPublishing(
@@ -86,17 +82,6 @@ export function attachConnections(deps: ConnectionsDeps) {
     return !isDrawnFrame && canBindShapes.call(editor, opts);
   };
 
-  // A link, or a collection by its Semble page
-  const urlOf = (id: TLShapeId | undefined) => {
-    const shape = id && editor.getShape(id);
-    if (!shape) return null;
-    if (editor.isShapeOfType<LinkCardShape>(shape, LINK_CARD_TYPE)) {
-      return linkKey(shape.props.url) ?? shape.props.url;
-    }
-    const frame = collectionFrameOf(shape);
-    return frame && deps.collectionPageUrl(frame.collection);
-  };
-
   function close() {
     if (!state.get()) return;
     state.set(null);
@@ -107,8 +92,8 @@ export function attachConnections(deps: ConnectionsDeps) {
   // board only
   function arrowDrawn(markId: string, arrow: TLArrowShape) {
     const bindings = getArrowBindings(editor, arrow);
-    const sourceUrl = urlOf(bindings.start?.toId);
-    const targetUrl = urlOf(bindings.end?.toId);
+    const sourceUrl = deps.ends.urlOf(bindings.start?.toId);
+    const targetUrl = deps.ends.urlOf(bindings.end?.toId);
     if (!sourceUrl || !targetUrl || sourceUrl === targetUrl) return;
     pickerMarkId = markId;
     state.set({

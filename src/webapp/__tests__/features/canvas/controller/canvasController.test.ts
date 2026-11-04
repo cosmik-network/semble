@@ -5743,6 +5743,30 @@ describe('connections to collection frames', () => {
     );
   });
 
+  it("should let me edit and delete my connection to a collection's frame", async () => {
+    // Arrange
+    const server = withCollection();
+    server.connections = [connection('c1', A, PAGE)];
+    board = await createTestBoard({ server, ...OPENED });
+    await board.dropUrl(A, { x: -2000, y: 0 });
+    await vi.waitFor(() => expect(board.arrows()).toHaveLength(1));
+
+    // Act
+    board.editor.select(board.arrows()[0].id);
+    const editable = board.connectionEdits.selected.get();
+    board.connectionEdits.requestDelete();
+
+    // Assert
+    expect(editable).toMatchObject({
+      connectionId: 'c1',
+      sourceUrl: A,
+      targetUrl: PAGE,
+    });
+    expect(board.connectionEdits.deleting.get()?.connections).toMatchObject([
+      { connectionId: 'c1' },
+    ]);
+  });
+
   it('should fan out the arrows of every connection between a link and a collection, either way round', async () => {
     // Arrange
     const server = withCollection();

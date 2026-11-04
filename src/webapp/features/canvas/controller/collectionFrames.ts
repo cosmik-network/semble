@@ -145,12 +145,6 @@ export function attachCollectionFrames(deps: CollectionFramesDeps) {
           ),
       ),
   );
-  const ends = computed('collection frame ends', () =>
-    frames.get().map((frame) => ({
-      url: deps.collectionPageUrl(frame.meta.collection.collection),
-      shapeIds: [frame.id],
-    })),
-  );
   const metaOf = (id: TLShapeId) => {
     const frame = editor.getShape(id);
     return frame ? collectionFrameOf(frame) : null;
@@ -825,7 +819,6 @@ export function attachCollectionFrames(deps: CollectionFramesDeps) {
   }
 
   return {
-    ends: () => ends.get(),
     // The collection whose page the URL names, on any host, if it has a frame
     nameAt(url: string) {
       const page = parseCollectionPage(url);

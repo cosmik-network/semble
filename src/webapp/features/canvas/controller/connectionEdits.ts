@@ -1,17 +1,17 @@
 import type { ConnectionType } from '@semble/types';
 import { atom, computed, type Editor, type TLShapeId } from 'tldraw';
-import { LINK_CARD_TYPE } from '../model/linkCards';
 import type { CanvasServer, ConnectionChange } from '../server/canvasServer';
 import {
   connectionOf,
   isConnectionArrow,
 } from '../shapes/connectionArrow/connectionArrows';
-import type { LinkCardShape } from '../shapes/linkCard/LinkCardShapeUtil';
+import type { ConnectionEnds } from './connectionEnds';
 import type { UndoToast } from './connections';
 
 export interface ConnectionEditsDeps {
   editor: Editor;
   server: CanvasServer;
+  ends: ConnectionEnds;
   undoToast: UndoToast;
   onConnectionUpdated(connectionId: string): void;
   // Takes its arrows off the board too
@@ -27,7 +27,7 @@ export interface EditableConnection {
   arrowId: TLShapeId;
   connectionId: string;
   type: ConnectionType | null;
-  // The links of the copies the arrow joins
+  // The URLs of the ends the arrow joins
   sourceUrl: string;
   targetUrl: string;
 }
@@ -49,19 +49,12 @@ export function attachConnectionEdits(deps: ConnectionEditsDeps) {
   // answer redraws
   let editing = false;
 
-  const urlOf = (id: TLShapeId) => {
-    const shape = editor.getShape(id);
-    return shape && editor.isShapeOfType<LinkCardShape>(shape, LINK_CARD_TYPE)
-      ? shape.props.url
-      : null;
-  };
-
   function editableOf(id: TLShapeId): EditableConnection | null {
     const shape = editor.getShape(id);
     const connection = shape && connectionOf(shape);
     if (!connection?.own) return null;
-    const sourceUrl = urlOf(connection.from);
-    const targetUrl = urlOf(connection.to);
+    const sourceUrl = deps.ends.urlOf(connection.from);
+    const targetUrl = deps.ends.urlOf(connection.to);
     if (!sourceUrl || !targetUrl) return null;
     return {
       arrowId: id,

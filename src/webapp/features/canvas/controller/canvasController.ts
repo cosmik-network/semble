@@ -5,7 +5,6 @@ import {
   type Editor,
   type TLRecord,
   type TLSessionStateSnapshot,
-  type TLShapeId,
   type TLStoreSnapshot,
 } from 'tldraw';
 import {
@@ -28,6 +27,7 @@ import {
   invalidateAfterConnectionUpdated,
 } from '@/features/connections/lib/connectionInvalidation';
 import { attachConnectionEdits } from './connectionEdits';
+import { attachConnectionEnds } from './connectionEnds';
 import { attachConnections } from './connections';
 import { attachCopies } from './copies';
 import { attachLinkCards, type LinkCardsDeps } from './linkCards';
@@ -165,31 +165,21 @@ export function attachCanvasController(deps: CanvasControllerDeps) {
   // Stays false for a board never saved, which loads nothing
   let hasDocument = false;
   const copies = attachCopies(editor);
-  const connectionEnds = () => [
-    ...Array.from(copies.byUrl(), ([url, shapeIds]) => ({ url, shapeIds })),
-    ...collectionFrames.ends(),
-  ];
-  const connectionUrls = () =>
-    Array.from(new Set(connectionEnds().map((end) => end.url)));
-  const urlsInView = () => {
-    const view = editor.getViewportPageBounds();
-    const isInView = (id: TLShapeId) =>
-      view.collides(editor.getShapePageBounds(id)!);
-    const inView = connectionEnds().filter((end) =>
-      end.shapeIds.some(isInView),
-    );
-    return Array.from(new Set(inView.map((end) => end.url)));
-  };
+  const ends = attachConnectionEnds({
+    editor,
+    copies,
+    collectionPageUrl: deps.collectionPageUrl,
+  });
   const arrows = attachArrows({
     editor,
     viewerDid: deps.ownerDid,
-    ends: connectionEnds,
+    ends: ends.all,
     // Only read after the board has loaded
     fetchedConnections: () => links.fetchedConnections(),
   });
   const links = attachLinkCards(deps, {
     onLinkFetched: arrows.reconcileSoon,
-    connectionUrls,
+    connectionUrls: ends.urls,
     placeCollection: (address, at, link) =>
       openCollection(address, { at, link }),
   });
@@ -200,7 +190,7 @@ export function attachCanvasController(deps: CanvasControllerDeps) {
   const connections = attachConnections({
     editor,
     server: deps.server,
-    collectionPageUrl: deps.collectionPageUrl,
+    ends,
     onPublishing: arrows.drawPending,
     onConnectionCreated: (connection) =>
       invalidateAfterConnectionCreated(deps.queryClient, connection),
@@ -210,6 +200,7 @@ export function attachCanvasController(deps: CanvasControllerDeps) {
   const connectionEdits = attachConnectionEdits({
     editor,
     server: deps.server,
+    ends,
     undoToast: connections.undoToast,
     onConnectionUpdated: (connectionId) =>
       invalidateAfterConnectionUpdated(deps.queryClient, { connectionId }),
@@ -272,8 +263,8 @@ export function attachCanvasController(deps: CanvasControllerDeps) {
   let pendingCollection: string | null = null;
   const mediaReveals = createMediaReveals();
   const refreshLoop = attachRefreshLoop({
-    connectionUrls,
-    urlsInView,
+    connectionUrls: ends.urls,
+    urlsInView: ends.urlsInView,
     fetchLinks: links.fetchLinks,
     refreshFrames: (options) => collectionFrames.refresh(options),
     everyTimedRefresh: deps.everyTimedRefresh,
@@ -313,9 +304,7 @@ export function attachCanvasController(deps: CanvasControllerDeps) {
         applyRemoteSave(editor, document);
         // Saves carry no arrows, so a read-only tab derives them for the
         // links the writer added. Only those: the rest refresh on their own.
-        void links.fetchLinks(
-          connectionUrls().filter((url) => !links.linkOf(url)),
-        );
+        void links.fetchLinks(ends.urls().filter((url) => !links.linkOf(url)));
         arrows.reconcileSoon();
       },
       onRoleChange(role) {
