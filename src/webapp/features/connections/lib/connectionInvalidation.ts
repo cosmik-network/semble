@@ -3,8 +3,10 @@ import type {
   DeleteConnectionRequest,
   UpdateConnectionRequest,
 } from '@semble/types';
-import { canvasKeys } from '@/features/canvas/lib/canvasKeys';
-import { announceLinkChange } from '@/features/canvas/lib/linkChanges';
+import {
+  invalidateChangedLinks,
+  isCanvasLinkQuery,
+} from '@/features/canvas/lib/linkChanges';
 import { cardKeys } from '@/features/cards/lib/cardKeys';
 import { collectionKeys } from '@/features/collections/lib/collectionKeys';
 import { feedKeys } from '@/features/feeds/lib/feedKeys';
@@ -33,8 +35,7 @@ function invalidateCanvasConnection(
   queryClient: QueryClient,
   connectionId: string,
 ) {
-  queryClient.invalidateQueries({ queryKey: canvasKeys.links() });
-  announceLinkChange({ connectionIds: [connectionId] });
+  invalidateChangedLinks(queryClient, { connectionIds: [connectionId] });
 }
 
 // Shared by the webapp's mutations and the canvas, which calls the server
@@ -47,10 +48,16 @@ export function invalidateAfterConnectionCreated(
   queryClient.invalidateQueries({ queryKey: connectionKeys.all() });
   // Invalidate all feed queries so the new connection appears in feeds
   queryClient.invalidateQueries({ queryKey: feedKeys.all() });
-  // Invalidate all card queries so connection count updates everywhere
-  queryClient.invalidateQueries({ queryKey: cardKeys.all() });
-  // Canvas boards in other tabs draw it as an arrow
-  announceLinkChange({ urls: [variables.sourceUrl, variables.targetUrl] });
+  // Invalidate all card queries so connection count updates everywhere,
+  // except canvas links, where only the two ends change
+  queryClient.invalidateQueries({
+    queryKey: cardKeys.all(),
+    predicate: (query) => !isCanvasLinkQuery(query),
+  });
+  // Canvas boards draw it as an arrow, here and in other tabs
+  invalidateChangedLinks(queryClient, {
+    urls: [variables.sourceUrl, variables.targetUrl],
+  });
   // Invalidate all collection queries so connection count updates in collection views
   queryClient.invalidateQueries({ queryKey: collectionKeys.all() });
   // Invalidate tag queries so tags typed in the connection note appear in autocomplete
