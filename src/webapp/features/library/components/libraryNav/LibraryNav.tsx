@@ -77,18 +77,6 @@ export default function LibraryNav() {
           <MyCollectionsNavItems />
         </LibraryNavSection>
 
-        {mounted && featureFlags?.canvas && (
-          <LibraryNavSection
-            label="Canvases"
-            icon={<LuSquareDashedMousePointer size={20} />}
-            viewAllHref="/canvas"
-            errorMessage="Could not load canvases"
-            {...expanded('canvasesNavExpanded')}
-          >
-            <CanvasNavItems />
-          </LibraryNavSection>
-        )}
-
         <LibraryNavSection
           label="Following"
           icon={<BiCollection size={20} />}
@@ -108,6 +96,18 @@ export default function LibraryNav() {
         >
           <ContributedCollectionsNavItems identifier={handle} />
         </LibraryNavSection>
+
+        {mounted && featureFlags?.canvas && (
+          <LibraryNavSection
+            label="Canvases"
+            icon={<LuSquareDashedMousePointer size={20} />}
+            viewAllHref="/canvas"
+            errorMessage="Could not load canvases"
+            {...expanded('canvasesNavExpanded')}
+          >
+            <CanvasNavItems />
+          </LibraryNavSection>
+        )}
       </Stack>
 
       <StatDrawer
