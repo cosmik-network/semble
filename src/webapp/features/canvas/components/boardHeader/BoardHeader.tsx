@@ -1,10 +1,10 @@
 'use client';
 
-import { ActionIcon, Group, Paper, Text } from '@mantine/core';
+import { ActionIcon, Group, Paper, Text, Tooltip } from '@mantine/core';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
-import { BsPencilFill } from 'react-icons/bs';
 import { IoArrowBack } from 'react-icons/io5';
+import { LuPencil } from 'react-icons/lu';
 import { useEditor, useValue } from 'tldraw';
 import type { CanvasController } from '../../controller/canvasController';
 import { useNavHistory } from '@/providers/navHistory';
@@ -46,6 +46,7 @@ export default function BoardHeader(props: Props) {
 
   return (
     <Paper
+      withBorder
       shadow="sm"
       radius="xl"
       p={4}
@@ -54,31 +55,35 @@ export default function BoardHeader(props: Props) {
       style={{ pointerEvents: 'all' }}
     >
       <Group gap="xs" wrap="nowrap">
-        <ActionIcon
-          onClick={goBack}
-          variant="subtle"
-          size="lg"
-          color="gray"
-          radius="xl"
-          aria-label="Go back"
-        >
-          <IoArrowBack />
-        </ActionIcon>
-        <Text fw={600} truncate maw={320}>
+        <Tooltip label="Go back" withArrow withinPortal={false}>
+          <ActionIcon
+            onClick={goBack}
+            variant="subtle"
+            size="lg"
+            color="gray"
+            radius="xl"
+            aria-label="Go back"
+          >
+            <IoArrowBack />
+          </ActionIcon>
+        </Tooltip>
+        <Text fw={700} truncate maw={320}>
           {name}
         </Text>
         {/* Renaming before the name loads would start from the default */}
         {canvas && (
-          <ActionIcon
-            onClick={() => setIsRenaming(true)}
-            variant="subtle"
-            size="md"
-            color="gray"
-            radius="xl"
-            aria-label="Rename canvas"
-          >
-            <BsPencilFill size={12} />
-          </ActionIcon>
+          <Tooltip label="Rename" withArrow withinPortal={false}>
+            <ActionIcon
+              onClick={() => setIsRenaming(true)}
+              variant="subtle"
+              size="md"
+              color="gray"
+              radius="xl"
+              aria-label="Rename canvas"
+            >
+              <LuPencil size={14} />
+            </ActionIcon>
+          </Tooltip>
         )}
         {refreshFailed && (
           <Text size="xs" c="dimmed" style={{ whiteSpace: 'nowrap' }}>

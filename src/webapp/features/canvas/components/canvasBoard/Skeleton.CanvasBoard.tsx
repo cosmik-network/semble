@@ -11,7 +11,15 @@ interface Props {
 export default function CanvasBoardSkeleton(props: Props) {
   return (
     <Box pos="absolute" inset={0} className={classes.board}>
-      <Paper shadow="sm" radius="xl" p={4} pr="xs" m="xs" pos="absolute">
+      <Paper
+        withBorder
+        shadow="sm"
+        radius="xl"
+        p={4}
+        pr="xs"
+        m="xs"
+        pos="absolute"
+      >
         <Group gap="xs" wrap="nowrap">
           <Skeleton circle height={34} />
           <Skeleton height={14} width={120} radius="xl" />

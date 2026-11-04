@@ -21,6 +21,7 @@ export default function ReadOnlyBanner(props: Props) {
 
   return (
     <Paper
+      withBorder
       shadow={'sm'}
       radius={'xl'}
       p={4}
