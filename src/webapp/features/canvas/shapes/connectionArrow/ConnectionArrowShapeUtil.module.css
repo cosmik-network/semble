@@ -1,0 +1,40 @@
+/* The webapp's green, which tldraw's palette lacks */
+.arrow {
+  fill: none;
+  stroke: var(--mantine-color-green-filled);
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+/* While its connection publishes */
+.pending {
+  animation: pulse 0.8s ease-in-out infinite alternate;
+}
+
+/* Once, as the server confirms it */
+.landed {
+  animation: land 0.7s ease-out;
+}
+
+@keyframes pulse {
+  to {
+    opacity: 0.25;
+  }
+}
+
+@keyframes land {
+  from {
+    filter: drop-shadow(0 0 6px var(--mantine-color-green-filled));
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pending {
+    animation: none;
+    opacity: 0.5;
+  }
+
+  .landed {
+    animation: none;
+  }
+}

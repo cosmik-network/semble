@@ -11,6 +11,7 @@ export interface UserSettings {
   followingNavExpanded: boolean;
   contributedToNavExpanded: boolean;
   cardsNavExpanded: boolean;
+  canvasesNavExpanded: boolean;
   feedSource: ActivitySource | null;
   feedView: FeedView;
   feedUrlType: UrlType | null;
@@ -31,6 +32,7 @@ export const defaultSettings: UserSettings = {
   followingNavExpanded: false,
   contributedToNavExpanded: false,
   cardsNavExpanded: false,
+  canvasesNavExpanded: false,
   feedSource: null,
   feedView: 'global',
   feedUrlType: null,

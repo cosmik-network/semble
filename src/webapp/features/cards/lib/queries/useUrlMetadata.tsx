@@ -17,11 +17,16 @@ export default function useUrlMetadata(props: Props) {
   });
 }
 
+interface WithStatsProps extends Props {
+  enabled?: boolean;
+}
+
 // Non-suspense: stats are progressive — tabs render immediately, counts fill in async
-export function useUrlMetadataWithStats(props: Props) {
+export function useUrlMetadataWithStats(props: WithStatsProps) {
   return useQuery({
     queryKey: cardKeys.urlMetadata(props.url, { includeStats: true }),
     queryFn: () => getUrlMetadata({ url: props.url, includeStats: true }),
+    enabled: props.enabled ?? true,
   });
 }
 

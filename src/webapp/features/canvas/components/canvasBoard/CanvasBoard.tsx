@@ -1,0 +1,29 @@
+'use client';
+
+import dynamic from 'next/dynamic';
+import CanvasBoardSkeleton from './Skeleton.CanvasBoard';
+
+// Loaded on demand so tldraw stays out of every other page's bundle. tldraw
+// touches window on import, so it never renders on the server.
+const BoardEditor = dynamic(() => import('../boardEditor/BoardEditor'), {
+  ssr: false,
+  loading: () => <CanvasBoardSkeleton />,
+});
+
+interface Props {
+  canvasId: string;
+  seedUrl?: string;
+  seedCollectionId?: string;
+}
+
+export default function CanvasBoard(props: Props) {
+  // Keyed so another board gets a fresh editor instead of the last one's shapes
+  return (
+    <BoardEditor
+      key={props.canvasId}
+      canvasId={props.canvasId}
+      seedUrl={props.seedUrl}
+      seedCollectionId={props.seedCollectionId}
+    />
+  );
+}

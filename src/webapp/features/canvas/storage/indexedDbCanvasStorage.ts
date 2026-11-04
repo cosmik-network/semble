@@ -1,0 +1,572 @@
+import {
+  openBoardSession,
+  type BoardStorage,
+  type CanvasClaim,
+  type CanvasSaver,
+  type ClaimOptions,
+} from './boardSession';
+import {
+  DEFAULT_CANVAS_NAME,
+  type BoardEvents,
+  type BoardOptions,
+  type CanvasDocument,
+  type CanvasRecord,
+  type CanvasSchema,
+  type CanvasSession,
+  type CanvasSource,
+  type CanvasStorage,
+  type KnownLinks,
+  type OpenedCanvas,
+} from './canvasStorage';
+import { countLinks } from '../model/linkCards';
+
+export const CANVAS_DB_NAME = 'semble-canvas';
+const DB_VERSION = 2;
+const CANVASES = 'canvases';
+const DOCUMENTS = 'documents';
+const THUMBNAILS = 'thumbnails';
+const LINK_INFO = 'linkInfo';
+// Each board's current writer, which every save checks it still is
+const WRITERS = 'writers';
+
+const SAVE_THROTTLE_MS = 500;
+export const THUMBNAIL_IDLE_MS = 2000;
+
+const sessionKey = (id: string) => `semble:canvas-session:${id}`;
+// Names both the board's lock and the channel its saves are announced on
+const boardKey = (id: string) => `canvas:${id}`;
+
+function request<T>(req: IDBRequest<T>) {
+  return new Promise<T>((resolve, reject) => {
+    req.onsuccess = () => resolve(req.result);
+    req.onerror = () => reject(req.error);
+  });
+}
+
+function transactionDone(tx: IDBTransaction) {
+  return new Promise<void>((resolve, reject) => {
+    tx.oncomplete = () => resolve();
+    tx.onerror = () => reject(tx.error);
+    tx.onabort = () =>
+      reject(tx.error ?? new DOMException('Transaction aborted', 'AbortError'));
+  });
+}
+
+// A sequence the running code lacks, or one past its last migration, was
+// written by a newer app; tldraw can't migrate it down
+function isNewerSchema(saved: CanvasSchema, running: CanvasSchema) {
+  return Object.entries(saved.sequences).some(
+    ([id, version]) =>
+      running.sequences[id] === undefined || version > running.sequences[id],
+  );
+}
+
+function lockOptions(options: ClaimOptions): LockOptions {
+  switch (options.mode ?? 'if-free') {
+    case 'if-free':
+      return { ifAvailable: true };
+    case 'take-over':
+      return { steal: true };
+    case 'when-free':
+      return { signal: options.signal };
+  }
+}
+
+type WriteOutcome = 'written' | 'deleted' | 'not-writer';
+
+interface Writer {
+  token: string;
+  grantedAt: number;
+  tookOver: boolean;
+}
+
+// Whether a writer granted the lock comes after the one recorded. Grants in
+// the same millisecond are ordered by kind: a take-over always follows the
+// grant it took from, while plain grants follow one another.
+function isLaterWriter(writer: Writer, current: Writer) {
+  if (writer.grantedAt !== current.grantedAt) {
+    return writer.grantedAt > current.grantedAt;
+  }
+  return writer.tookOver || !current.tookOver;
+}
+
+// The one form of Web Locks' request the storage uses
+interface Locks {
+  request<T>(
+    name: string,
+    options: LockOptions,
+    callback: (lock: Lock | null) => Promise<T>,
+  ): Promise<T>;
+}
+
+interface Options {
+  tldrawVersion: string;
+  indexedDB?: IDBFactory;
+  locks?: Locks;
+}
+
+// The lock and save primitives are public for the board session and for
+// tests of races it can't set up; other callers open a board instead
+export class IndexedDbCanvasStorage implements CanvasStorage, BoardStorage {
+  private db: Promise<IDBDatabase> | null = null;
+  private listeners = new Set<() => void>();
+  // This tab's latest claim on each board, settled once refused or released
+  private claims = new Map<string, Promise<void>>();
+  // Written to WRITERS when a claim is granted, so a tab that lost the board
+  // can't save even before it hears it lost the lock
+  private writerTokens = new WeakMap<CanvasClaim, string>();
+
+  constructor(private options: Options) {}
+
+  subscribe(listener: () => void) {
+    this.listeners.add(listener);
+    return () => {
+      this.listeners.delete(listener);
+    };
+  }
+
+  private changed() {
+    this.listeners.forEach((listener) => listener());
+  }
+
+  private openDb() {
+    this.db ??= new Promise((resolve, reject) => {
+      const req = (this.options.indexedDB ?? indexedDB).open(
+        CANVAS_DB_NAME,
+        DB_VERSION,
+      );
+      req.onupgradeneeded = () => {
+        const db = req.result;
+        const missing = (store: string) => !db.objectStoreNames.contains(store);
+        if (missing(CANVASES)) {
+          db.createObjectStore(CANVASES, { keyPath: 'id' }).createIndex(
+            'ownerDid',
+            'ownerDid',
+          );
+        }
+        if (missing(DOCUMENTS)) db.createObjectStore(DOCUMENTS);
+        if (missing(THUMBNAILS)) db.createObjectStore(THUMBNAILS);
+        if (missing(LINK_INFO)) db.createObjectStore(LINK_INFO);
+        if (missing(WRITERS)) db.createObjectStore(WRITERS);
+      };
+      req.onsuccess = () => {
+        const db = req.result;
+        db.onversionchange = (event) => {
+          db.close();
+          // A newer schema: the next call opens it. Site data cleared: don't
+          // block it, and let later writes fail and get reported rather than
+          // land in a new, empty database.
+          if (event.newVersion !== null) this.db = null;
+        };
+        resolve(db);
+      };
+      req.onerror = () => reject(req.error);
+    });
+    return this.db;
+  }
+
+  async createCanvas(ownerDid: string, id: string = crypto.randomUUID()) {
+    const now = new Date().toISOString();
+    const record: CanvasRecord = {
+      id,
+      ownerDid,
+      name: DEFAULT_CANVAS_NAME,
+      tldrawVersion: this.options.tldrawVersion,
+      linkCount: 0,
+      createdAt: now,
+      updatedAt: now,
+    };
+    const tx = (await this.openDb()).transaction(CANVASES, 'readwrite');
+    tx.objectStore(CANVASES).add(record);
+    await transactionDone(tx);
+    this.changed();
+    return record;
+  }
+
+  async listCanvases(ownerDid: string) {
+    const tx = (await this.openDb()).transaction(
+      [CANVASES, THUMBNAILS],
+      'readonly',
+    );
+    const records = await request<CanvasRecord[]>(
+      tx.objectStore(CANVASES).index('ownerDid').getAll(ownerDid),
+    );
+    const thumbnails = await Promise.all(
+      records.map((record) =>
+        request<string | undefined>(tx.objectStore(THUMBNAILS).get(record.id)),
+      ),
+    );
+    return records
+      .map((record, i) => ({ ...record, thumbnail: thumbnails[i] ?? null }))
+      .sort((a, b) => b.updatedAt.localeCompare(a.updatedAt));
+  }
+
+  async getCanvas(id: string) {
+    const tx = (await this.openDb()).transaction(CANVASES, 'readonly');
+    const record = await request<CanvasRecord | undefined>(
+      tx.objectStore(CANVASES).get(id),
+    );
+    return record ?? null;
+  }
+
+  async renameCanvas(id: string, name: string) {
+    const tx = (await this.openDb()).transaction(CANVASES, 'readwrite');
+    const canvases = tx.objectStore(CANVASES);
+    const req = canvases.get(id);
+    req.onsuccess = () => {
+      const record: CanvasRecord | undefined = req.result;
+      if (record) {
+        canvases.put({ ...record, name, updatedAt: new Date().toISOString() });
+      }
+    };
+    await transactionDone(tx);
+    this.changed();
+  }
+
+  async duplicateCanvas(id: string) {
+    const tx = (await this.openDb()).transaction(
+      [CANVASES, DOCUMENTS, THUMBNAILS, LINK_INFO],
+      'readwrite',
+    );
+    const [record, doc, thumbnail, linkInfo] = await Promise.all([
+      request<CanvasRecord | undefined>(tx.objectStore(CANVASES).get(id)),
+      request<CanvasDocument | undefined>(tx.objectStore(DOCUMENTS).get(id)),
+      request<string | undefined>(tx.objectStore(THUMBNAILS).get(id)),
+      request<KnownLinks | undefined>(tx.objectStore(LINK_INFO).get(id)),
+    ]);
+    if (!record) throw new Error(`Canvas ${id} doesn't exist`);
+    const now = new Date().toISOString();
+    const copy: CanvasRecord = {
+      ...record,
+      id: crypto.randomUUID(),
+      name: `Copy of ${record.name}`,
+      createdAt: now,
+      updatedAt: now,
+    };
+    tx.objectStore(CANVASES).add(copy);
+    if (doc) tx.objectStore(DOCUMENTS).add(doc, copy.id);
+    if (thumbnail) tx.objectStore(THUMBNAILS).add(thumbnail, copy.id);
+    if (linkInfo) tx.objectStore(LINK_INFO).add(linkInfo, copy.id);
+    await transactionDone(tx);
+    this.changed();
+    return copy;
+  }
+
+  async deleteCanvas(id: string) {
+    const stores = [CANVASES, DOCUMENTS, THUMBNAILS, LINK_INFO, WRITERS];
+    const tx = (await this.openDb()).transaction(stores, 'readwrite');
+    for (const store of stores) tx.objectStore(store).delete(id);
+    await transactionDone(tx);
+    this.changed();
+    try {
+      localStorage.removeItem(sessionKey(id));
+    } catch {
+      // A leftover session is harmless: it's keyed by an id nothing reuses
+    }
+  }
+
+  async openCanvas(
+    id: string,
+    runningSchema: CanvasSchema,
+  ): Promise<OpenedCanvas> {
+    const tx = (await this.openDb()).transaction(
+      [CANVASES, DOCUMENTS, LINK_INFO],
+      'readonly',
+    );
+    const [record, doc, links] = await Promise.all([
+      request<CanvasRecord | undefined>(tx.objectStore(CANVASES).get(id)),
+      request<CanvasDocument | undefined>(tx.objectStore(DOCUMENTS).get(id)),
+      request<KnownLinks | undefined>(tx.objectStore(LINK_INFO).get(id)),
+    ]);
+    if (!record) return { status: 'missing' };
+    if (doc && isNewerSchema(doc.schema, runningSchema)) {
+      return { status: 'newer-version' };
+    }
+    return {
+      status: 'ready',
+      record,
+      document: doc ?? null,
+      session: readSession(id),
+      links: links ?? {},
+    };
+  }
+
+  async saveKnownLinks(id: string, links: KnownLinks) {
+    const tx = (await this.openDb()).transaction(
+      [CANVASES, LINK_INFO],
+      'readwrite',
+    );
+    // Deleted while open: don't leave an orphan behind
+    const key = await request(tx.objectStore(CANVASES).getKey(id));
+    if (key !== undefined) tx.objectStore(LINK_INFO).put(links, id);
+    await transactionDone(tx);
+  }
+
+  openBoard(id: string, options: BoardOptions, events: BoardEvents) {
+    return openBoardSession(this, id, options, events);
+  }
+
+  async claimCanvas(
+    id: string,
+    onLost: () => void,
+    options: ClaimOptions = {},
+  ): Promise<CanvasClaim | null> {
+    // A board reopened in this tab waits for its previous claim, which may
+    // still be flushing, rather than find its own lock held
+    const previous = this.claims.get(id);
+    let settle = () => {};
+    const settled = new Promise<void>((resolve) => (settle = resolve));
+    this.claims.set(id, settled);
+    void settled.then(() => {
+      if (this.claims.get(id) === settled) this.claims.delete(id);
+    });
+    await previous;
+
+    const locks = this.options.locks ?? navigator.locks;
+    let held = false;
+    let released = false;
+    let unlock = () => {};
+    const unlocked = new Promise<void>((resolve) => (unlock = resolve));
+
+    return new Promise((resolve, reject) => {
+      const claim: CanvasClaim = {
+        id,
+        isHeld: () => held,
+        release: () => {
+          released = true;
+          held = false;
+          unlock();
+          return settled;
+        },
+      };
+      const token = crypto.randomUUID();
+      this.writerTokens.set(claim, token);
+      locks
+        .request(boardKey(id), lockOptions(options), async (lock) => {
+          if (!lock) return resolve(null);
+          held = true;
+          // The system clock orders grants across tabs; performance.now()
+          // can't, as it stops while the computer sleeps
+          const grantedAt = Date.now();
+          try {
+            await this.recordWriter(id, {
+              token,
+              grantedAt,
+              tookOver: options.mode === 'take-over',
+            });
+            // Cancelled while being granted: let the lock go at once
+            options.signal?.throwIfAborted();
+          } catch (error) {
+            held = false;
+            released = true;
+            return reject(error);
+          }
+          resolve(claim);
+          await unlocked;
+        })
+        // A take-over rejects the former writer's request
+        .catch((error) => {
+          const lost = held;
+          held = false;
+          if (lost) onLost();
+          else if (!released) reject(error);
+        })
+        .finally(settle);
+    });
+  }
+
+  // A tab that took the lock earlier can get here later; it mustn't replace
+  // the newer writer
+  private async recordWriter(id: string, writer: Writer) {
+    const tx = (await this.openDb()).transaction(WRITERS, 'readwrite');
+    const writers = tx.objectStore(WRITERS);
+    const current = await request<Writer | undefined>(writers.get(id));
+    if (!current || isLaterWriter(writer, current)) {
+      writers.put(writer, id);
+    }
+    await transactionDone(tx);
+  }
+
+  // Run inside a write's transaction, so a take-over can't land in between
+  private async isWriter(tx: IDBTransaction, claim: CanvasClaim) {
+    const writer = await request<Writer | undefined>(
+      tx.objectStore(WRITERS).get(claim.id),
+    );
+    return writer?.token === this.writerTokens.get(claim);
+  }
+
+  watchSaves(id: string, listener: () => void) {
+    const channel = new BroadcastChannel(boardKey(id));
+    channel.onmessage = () => listener();
+    return () => channel.close();
+  }
+
+  startSaving(
+    claim: CanvasClaim,
+    source: CanvasSource,
+    onError: (error: unknown) => void,
+  ): CanvasSaver {
+    const { id } = claim;
+    const channel = new BroadcastChannel(boardKey(id));
+    let timer: ReturnType<typeof setTimeout> | null = null;
+    let thumbnailTimer: ReturnType<typeof setTimeout> | null = null;
+    let dirty = false;
+    let thumbnailStale = false;
+    let stopped = false;
+    let writing = Promise.resolve();
+    let writingThumbnail = Promise.resolve();
+    let captures = 0;
+
+    const write = async () => {
+      if (!claim.isHeld()) return;
+      try {
+        localStorage.setItem(
+          sessionKey(id),
+          JSON.stringify(source.getSession()),
+        );
+      } catch (error) {
+        onError(error);
+      }
+      if (!dirty) return;
+      dirty = false;
+      try {
+        const outcome = await this.writeDocument(claim, source.getDocument());
+        if (outcome === 'written') channel.postMessage('saved');
+        // Still holding the lock, so nothing else will tell the user
+        if (outcome === 'not-writer' && claim.isHeld()) {
+          onError(
+            new Error(`Another tab is recorded as canvas ${id}'s writer`),
+          );
+        }
+      } catch (error) {
+        onError(error);
+      }
+    };
+
+    // Writes queue behind each other, so stop() resolves once all have landed
+    const flush = () => {
+      source.reportPendingChanges();
+      if (timer) clearTimeout(timer);
+      timer = null;
+      // A failed write mustn't block the ones after it
+      writing = writing.catch(() => {}).then(write);
+      return writing;
+    };
+
+    // Capturing is too slow to repeat on every save, so it waits for a pause
+    const captureThumbnail = () => {
+      if (thumbnailTimer) clearTimeout(thumbnailTimer);
+      thumbnailTimer = null;
+      if (!thumbnailStale) return writingThumbnail;
+      thumbnailStale = false;
+      // Started now, while a closing board can still draw itself
+      const captured = source.getThumbnail();
+      const capture = ++captures;
+      writingThumbnail = captured.then(
+        async (thumbnail) => {
+          // A slower, older capture mustn't overwrite a newer one
+          if (capture !== captures || !claim.isHeld()) return;
+          try {
+            await this.writeThumbnail(claim, thumbnail);
+          } catch (error) {
+            onError(error);
+          }
+        },
+        // Keep the last thumbnail rather than report a save error
+        () => {},
+      );
+      return writingThumbnail;
+    };
+
+    const leave = async () => {
+      await Promise.all([flush(), captureThumbnail()]);
+    };
+
+    const onVisibilityChange = () => {
+      if (document.visibilityState === 'hidden') void leave();
+    };
+    const onPageHide = () => void leave();
+    document.addEventListener('visibilitychange', onVisibilityChange);
+    window.addEventListener('pagehide', onPageHide);
+
+    return {
+      documentChanged() {
+        if (stopped) return;
+        dirty = true;
+        thumbnailStale = true;
+        timer ??= setTimeout(() => void flush(), SAVE_THROTTLE_MS);
+        if (thumbnailTimer) clearTimeout(thumbnailTimer);
+        thumbnailTimer = setTimeout(
+          () => void captureThumbnail(),
+          THUMBNAIL_IDLE_MS,
+        );
+      },
+      stop() {
+        document.removeEventListener('visibilitychange', onVisibilityChange);
+        window.removeEventListener('pagehide', onPageHide);
+        const left = leave();
+        stopped = true;
+        return left.finally(() => channel.close());
+      },
+    };
+  }
+
+  private async writeThumbnail(claim: CanvasClaim, thumbnail: string | null) {
+    const { id } = claim;
+    const tx = (await this.openDb()).transaction(
+      [CANVASES, THUMBNAILS, WRITERS],
+      'readwrite',
+    );
+    const [key, isWriter] = await Promise.all([
+      request(tx.objectStore(CANVASES).getKey(id)),
+      this.isWriter(tx, claim),
+    ]);
+    if (key !== undefined && isWriter) {
+      const thumbnails = tx.objectStore(THUMBNAILS);
+      if (thumbnail) thumbnails.put(thumbnail, id);
+      else thumbnails.delete(id);
+    }
+    await transactionDone(tx);
+    this.changed();
+  }
+
+  private async writeDocument(claim: CanvasClaim, doc: CanvasDocument) {
+    const { id } = claim;
+    const tx = (await this.openDb()).transaction(
+      [CANVASES, DOCUMENTS, WRITERS],
+      'readwrite',
+    );
+    const canvases = tx.objectStore(CANVASES);
+    const [record, isWriter] = await Promise.all([
+      request<CanvasRecord | undefined>(canvases.get(id)),
+      this.isWriter(tx, claim),
+    ]);
+    // Deleted while open: don't leave an orphan document behind
+    const outcome: WriteOutcome = !record
+      ? 'deleted'
+      : isWriter
+        ? 'written'
+        : 'not-writer';
+    if (record && isWriter) {
+      canvases.put({
+        ...record,
+        linkCount: countLinks(doc.store),
+        tldrawVersion: this.options.tldrawVersion,
+        updatedAt: new Date().toISOString(),
+      });
+      tx.objectStore(DOCUMENTS).put(doc, id);
+    }
+    await transactionDone(tx);
+    if (outcome === 'written') this.changed();
+    return outcome;
+  }
+}
+
+function readSession(id: string): CanvasSession | null {
+  try {
+    const saved = localStorage.getItem(sessionKey(id));
+    return saved ? JSON.parse(saved) : null;
+  } catch {
+    return null;
+  }
+}

@@ -1,15 +1,17 @@
-import { describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import {
   SupportedPlatform,
   buildSembleQuery,
   detectUrlPlatform,
   encodeUrlParam,
   getDisplayUrl,
+  getCollectionPageUrl,
   getDomain,
   getSembleHref,
   getUrlFromSlug,
   isCollectionPage,
   isProfilePage,
+  parseCollectionPage,
 } from '@/lib/utils/link';
 
 // ─────────────────────────────────────────────
@@ -290,6 +292,77 @@ describe('isCollectionPage', () => {
 
     // Assert
     expect(result).toBe(false);
+  });
+});
+
+// ─────────────────────────────────────────────
+// getCollectionPageUrl
+// ─────────────────────────────────────────────
+describe('getCollectionPageUrl', () => {
+  afterEach(() => {
+    vi.unstubAllEnvs();
+  });
+
+  it('should build the page on the given origin', () => {
+    // Arrange
+    const collection = { handle: 'alice.bsky.social', rkey: 'rkey123' };
+
+    // Act
+    const result = getCollectionPageUrl(collection, 'https://semble.test');
+
+    // Assert
+    expect(result).toBe(
+      'https://semble.test/profile/alice.bsky.social/collections/rkey123',
+    );
+  });
+
+  it('should drop a trailing slash from the configured app URL', () => {
+    // Arrange
+    vi.stubEnv('NEXT_PUBLIC_APP_URL', 'https://semble.so/');
+
+    // Act
+    const result = getCollectionPageUrl({ handle: 'alice', rkey: 'rkey123' });
+
+    // Assert
+    expect(result).toBe('https://semble.so/profile/alice/collections/rkey123');
+  });
+});
+
+// ─────────────────────────────────────────────
+// parseCollectionPage
+// ─────────────────────────────────────────────
+describe('parseCollectionPage', () => {
+  it('should read the handle and rkey on any host', () => {
+    // Arrange
+    const url = 'https://semble.so/profile/alice/collections/rkey123/';
+
+    // Act
+    const result = parseCollectionPage(url);
+
+    // Assert
+    expect(result).toEqual({ handle: 'alice', rkey: 'rkey123' });
+  });
+
+  it('should read a page built from an app URL with a trailing slash', () => {
+    // Arrange
+    const url = 'https://semble.so//profile/alice/collections/rkey123';
+
+    // Act
+    const result = parseCollectionPage(url);
+
+    // Assert
+    expect(result).toEqual({ handle: 'alice', rkey: 'rkey123' });
+  });
+
+  it('should return null for any other page', () => {
+    // Arrange
+    const url = 'https://semble.so/profile/alice/collections';
+
+    // Act
+    const result = parseCollectionPage(url);
+
+    // Assert
+    expect(result).toBeNull();
   });
 });
 

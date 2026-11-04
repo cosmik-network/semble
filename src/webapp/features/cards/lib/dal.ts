@@ -43,6 +43,7 @@ export const getMyUrlCards = cache(async (params?: PageParams) => {
   const response = await client.getMyUrlCards({
     page: params?.page,
     limit: params?.limit,
+    searchText: params?.searchText,
   });
 
   return response;

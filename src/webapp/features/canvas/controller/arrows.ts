@@ -1,0 +1,403 @@
+import {
+  createBindingId,
+  createShapeId,
+  getArrowBindings,
+  type Editor,
+  type TLArrowBinding,
+  type TLArrowShape,
+  type TLBindingCreate,
+  type TLRecord,
+  type TLShapeId,
+  type TLShapePartial,
+} from 'tldraw';
+import { collectionFrameOf } from '../model/collectionFrames';
+import { LINK_CARD_TYPE } from '../model/linkCards';
+import {
+  isArrowKey,
+  listedConnections,
+  reconcileArrows,
+  type ConnectionEnd,
+  type BoardArrowSpec,
+  type FetchedConnections,
+} from '../model/arrows';
+import {
+  arrowPhases,
+  arrowSettings,
+  connectionOf,
+  DEFAULT_ARROW_SETTINGS,
+  isConnectionArrow,
+  selectedCardsHideArrows,
+  type ArrowPhase,
+  type ConnectionArrowMeta,
+} from '../shapes/connectionArrow/connectionArrows';
+import type { LinkCardShape } from '../shapes/linkCard/LinkCardShapeUtil';
+import type { LinkConnection, NewConnection } from '../server/canvasServer';
+import type { SavedArrowSettings } from '../storage/canvasStorage';
+
+const LANDED_MS = 700;
+
+export interface ArrowsDeps {
+  editor: Editor;
+  viewerDid: string;
+  ends(): ConnectionEnd[];
+  // Each link's connections, for links fetched at least once
+  fetchedConnections(): Map<string, FetchedConnections>;
+}
+
+const SHAPE_PREFIX = 'shape:';
+const withoutShapePrefix = (id: string) =>
+  id.startsWith(SHAPE_PREFIX) ? id.slice(SHAPE_PREFIX.length) : id;
+
+// A connection arrow or one of its bindings. They follow from the links' last
+// known connections, so they're rebuilt on open rather than saved.
+export function isDerivedArrowRecord(record: TLRecord) {
+  if (record.typeName === 'shape') {
+    return isArrowKey(withoutShapePrefix(record.id));
+  }
+  if (record.typeName === 'binding') {
+    return isArrowKey(withoutShapePrefix(record.fromId));
+  }
+  return false;
+}
+
+const arrowStyle = (spec: BoardArrowSpec): Partial<TLArrowShape['props']> => ({
+  kind: 'arc',
+  bend: spec.bend,
+  color: 'green',
+  dash: spec.own ? 'solid' : 'dotted',
+  size: 'm',
+  arrowheadStart: 'none',
+  arrowheadEnd: 'arrow',
+  text: '',
+});
+
+const metaOf = (spec: BoardArrowSpec): ConnectionArrowMeta => ({
+  connectionId: spec.connectionId,
+  connectionType: spec.type,
+  own: spec.own,
+  from: createShapeId(spec.fromEnd),
+  to: createShapeId(spec.toEnd),
+});
+
+const sameMeta = (arrow: TLArrowShape, meta: ConnectionArrowMeta) =>
+  JSON.stringify(connectionOf(arrow)) === JSON.stringify(meta);
+
+function bindingFor(
+  arrowId: TLShapeId,
+  terminal: 'start' | 'end',
+  toId: TLShapeId,
+): TLBindingCreate<TLArrowBinding> {
+  return {
+    id: createBindingId(`${withoutShapePrefix(arrowId)}:${terminal}`),
+    type: 'arrow',
+    fromId: arrowId,
+    toId,
+    props: {
+      terminal,
+      normalizedAnchor: { x: 0.5, y: 0.5 },
+      isExact: false,
+      isPrecise: false,
+    },
+  };
+}
+
+// Arrows follow from the server, never from an edit, so they're written as
+// remote changes, outside undo
+export function attachArrows(deps: ArrowsDeps) {
+  const { editor } = deps;
+
+  // Deleted from this board, though the links' cached connections may still
+  // list them until they're refetched
+  const deleted = new Set<string>();
+  // Published from this tab, drawn until every fetched end lists them
+  const pending = new Map<string, LinkConnection>();
+  const published: string[] = [];
+  let pendingCount = 0;
+  const phases = arrowPhases(editor);
+  const setPhases = (change: Record<string, ArrowPhase | null>) =>
+    phases.update((all) => {
+      const next = { ...all };
+      for (const [connectionId, phase] of Object.entries(change)) {
+        if (phase) next[connectionId] = phase;
+        else delete next[connectionId];
+      }
+      return next;
+    });
+  let detached = false;
+  const landedTimers = new Set<ReturnType<typeof setTimeout>>();
+
+  // Links fetched together arrive one by one; they're reconciled once
+  let reconcileTimer: ReturnType<typeof setTimeout> | null = null;
+  function reconcileSoon() {
+    reconcileTimer ??= setTimeout(() => {
+      reconcileTimer = null;
+      reconcile();
+    });
+  }
+
+  function reconcile() {
+    const ends = deps.ends().map((end) => ({
+      url: end.url,
+      shapeIds: end.shapeIds.map(withoutShapePrefix),
+    }));
+    const links = deps.fetchedConnections();
+    const listed = listedConnections(links);
+    for (const [key, connection] of Array.from(pending)) {
+      if (listed.has(connection.id) || deleted.has(connection.id)) {
+        pending.delete(key);
+      }
+    }
+    const specs = reconcileArrows({
+      ends,
+      links,
+      viewerDid: deps.viewerDid,
+      pending: Array.from(pending.values()),
+      published,
+    }).filter((spec) => !deleted.has(spec.connectionId));
+    const wanted = new Map(
+      specs.map((spec) => [createShapeId(spec.key), spec]),
+    );
+
+    const removed = editor
+      .getCurrentPageShapes()
+      .filter((shape) => isConnectionArrow(shape) && !wanted.has(shape.id))
+      .map((shape) => shape.id);
+    const created: TLShapePartial<TLArrowShape>[] = [];
+    const updated: TLShapePartial<TLArrowShape>[] = [];
+    const staleBindings: TLArrowBinding['id'][] = [];
+    const bindings: TLBindingCreate<TLArrowBinding>[] = [];
+
+    for (const [id, spec] of Array.from(wanted)) {
+      const meta = metaOf(spec);
+      const from = createShapeId(spec.fromEnd);
+      const to = createShapeId(spec.toEnd);
+      const arrow = editor.getShape<TLArrowShape>(id);
+      if (!arrow) {
+        const start = editor.getShapePageBounds(from)!.center;
+        const end = editor.getShapePageBounds(to)!.center;
+        created.push({
+          id,
+          type: 'arrow',
+          x: start.x,
+          y: start.y,
+          meta: { ...meta },
+          props: {
+            ...arrowStyle(spec),
+            start: { x: 0, y: 0 },
+            end: { x: end.x - start.x, y: end.y - start.y },
+          },
+        });
+      } else if (!sameMeta(arrow, meta) || arrow.props.bend !== spec.bend) {
+        updated.push({
+          id,
+          type: 'arrow',
+          meta: { ...meta },
+          props: arrowStyle(spec),
+        });
+      }
+      const bound: Partial<Record<'start' | 'end', TLArrowBinding>> = arrow
+        ? getArrowBindings(editor, arrow)
+        : {};
+      for (const [terminal, toId] of [
+        ['start', from],
+        ['end', to],
+      ] as const) {
+        const binding = bound[terminal];
+        if (binding?.toId === toId) continue;
+        if (binding) staleBindings.push(binding.id);
+        bindings.push(bindingFor(id, terminal, toId));
+      }
+    }
+
+    const nothingToDo =
+      removed.length + created.length + updated.length + bindings.length === 0;
+    if (nothingToDo) return;
+    // A flipped connection's arrow comes back under a new id, still selected
+    const selected = new Set(editor.getSelectedShapeIds());
+    const flipped = removed
+      .filter((id) => selected.has(id))
+      .map((id) => connectionOf(editor.getShape(id)!)!)
+      .flatMap((before) =>
+        created.filter((arrow) => {
+          const after = arrow.meta as unknown as ConnectionArrowMeta;
+          return (
+            after.connectionId === before.connectionId &&
+            after.from === before.to &&
+            after.to === before.from
+          );
+        }),
+      )
+      .map((arrow) => arrow.id);
+    // Arrows aren't saved, so a read-only tab draws its own. The editor
+    // refuses shape writes while read-only; these never reach the document.
+    const readonly = editor.getIsReadonly();
+    editor.store.mergeRemoteChanges(() => {
+      if (readonly) editor.updateInstanceState({ isReadonly: false });
+      try {
+        editor.deleteShapes(removed);
+        editor.deleteBindings(staleBindings);
+        editor.createShapes(created);
+        editor.updateShapes(updated);
+        editor.createBindings(bindings);
+        if (flipped.length > 0) {
+          editor.setSelectedShapes([
+            ...editor.getSelectedShapeIds(),
+            ...flipped,
+          ]);
+        }
+      } finally {
+        if (readonly) editor.updateInstanceState({ isReadonly: true });
+      }
+    });
+  }
+
+  // The user can't re-point or restyle connection arrows
+  const keepArrows = editor.sideEffects.registerBeforeChangeHandler(
+    'shape',
+    (before, after, source) =>
+      source === 'user' && isConnectionArrow(before)
+        ? { ...after, props: before.props, meta: before.meta }
+        : after,
+  );
+  const keepBindings = editor.sideEffects.registerBeforeChangeHandler(
+    'binding',
+    (before, after, source) =>
+      source === 'user' && isConnectionArrowId(before.fromId) ? before : after,
+  );
+
+  // Deletes go through the confirmation; this is a backstop for paths such as
+  // cut. tldraw has stripped the arrow's bindings by now, and the reconcile
+  // that follows binds it again.
+  const keepDeleted = editor.sideEffects.registerBeforeDeleteHandler(
+    'shape',
+    (shape, source) =>
+      source === 'user' && isConnectionArrow(shape) ? false : undefined,
+  );
+
+  // Moving an end changes no arrow, so only adds and deletes count
+  const unlisten = editor.store.listen(
+    ({ changes }) => {
+      const isEnd = (record: TLRecord) =>
+        record.typeName === 'shape' &&
+        (record.type === LINK_CARD_TYPE || !!collectionFrameOf(record));
+      const isArrowRecord = (record: TLRecord) =>
+        (record.typeName === 'shape' && isConnectionArrow(record)) ||
+        (record.typeName === 'binding' &&
+          record.type === 'arrow' &&
+          isConnectionArrowId(record.fromId));
+      const addedOrRemoved = [
+        ...Object.values(changes.added),
+        ...Object.values(changes.removed),
+      ];
+      const touched =
+        addedOrRemoved.some(
+          (record) => isEnd(record) || isArrowRecord(record),
+        ) ||
+        Object.values(changes.updated).some(([before]) =>
+          isArrowRecord(before),
+        );
+      if (touched) reconcile();
+    },
+    { scope: 'document', source: 'user' },
+  );
+
+  function isConnectionArrowId(id: TLShapeId) {
+    const shape = editor.getShape(id);
+    // A removed arrow's id still says what it was
+    return shape
+      ? isConnectionArrow(shape)
+      : isArrowKey(withoutShapePrefix(id));
+  }
+
+  const settings = arrowSettings(editor);
+
+  // None of it enters undo. A card's hidden arrows are saved with the board;
+  // the rest is session state.
+  const view = {
+    isFocusOn: () => settings.focus.get(),
+    areHidden: () => settings.hidden.get(),
+    toggleFocus: () => settings.focus.update((on) => !on),
+    toggleHidden: () => settings.hidden.update((hidden) => !hidden),
+    // Hides arrows on the selected cards, or shows them if all hide them
+    toggleSelectedArrows() {
+      const hideArrows = !selectedCardsHideArrows(editor);
+      const cards = editor
+        .getSelectedShapes()
+        .filter(
+          (shape): shape is LinkCardShape => shape.type === LINK_CARD_TYPE,
+        );
+      editor.run(
+        () =>
+          editor.updateShapes(
+            cards.map((card) => ({
+              id: card.id,
+              type: card.type,
+              props: { hideArrows },
+            })),
+          ),
+        { history: 'ignore' },
+      );
+    },
+  };
+
+  // Draws the connection while it publishes. Settled with its id once
+  // published, which flashes its arrow, or null if it wasn't.
+  function drawPending(connection: NewConnection) {
+    const key = `pending-${++pendingCount}`;
+    pending.set(key, { ...connection, id: key, curatorId: deps.viewerDid });
+    published.push(key);
+    setPhases({ [key]: 'pending' });
+    reconcile();
+    return (connectionId: string | null) => {
+      if (detached) return;
+      const drawn = pending.get(key);
+      if (connectionId && drawn) {
+        pending.set(key, { ...drawn, id: connectionId });
+        published[published.indexOf(key)] = connectionId;
+        setPhases({ [key]: null, [connectionId]: 'landed' });
+        const timer = setTimeout(() => {
+          landedTimers.delete(timer);
+          setPhases({ [connectionId]: null });
+        }, LANDED_MS);
+        landedTimers.add(timer);
+      } else {
+        setPhases({ [key]: null });
+        pending.delete(key);
+        published.splice(published.indexOf(key), 1);
+      }
+      reconcile();
+    };
+  }
+
+  // Takes a deleted connection's arrows off at once, outside undo
+  function dropConnection(connectionId: string) {
+    deleted.add(connectionId);
+    reconcile();
+  }
+
+  return {
+    reconcile,
+    reconcileSoon,
+    drawPending,
+    dropConnection,
+    view,
+    saveSettings: (): SavedArrowSettings => ({
+      focus: settings.focus.get(),
+      hidden: settings.hidden.get(),
+    }),
+    restoreSettings(saved: SavedArrowSettings | undefined) {
+      const { focus, hidden } = saved ?? DEFAULT_ARROW_SETTINGS;
+      settings.focus.set(focus);
+      settings.hidden.set(hidden);
+    },
+    detach() {
+      detached = true;
+      if (reconcileTimer) clearTimeout(reconcileTimer);
+      landedTimers.forEach(clearTimeout);
+      unlisten();
+      keepArrows();
+      keepBindings();
+      keepDeleted();
+    },
+  };
+}

@@ -1,0 +1,48 @@
+/* Centred on the card's edges */
+.dot {
+  position: absolute;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--mantine-color-body);
+  border: 2px solid var(--mantine-color-green-filled);
+  box-shadow: var(--mantine-shadow-xs);
+  pointer-events: all;
+  cursor: crosshair;
+  z-index: 2;
+  transform: translate(-50%, -50%);
+  transition: transform 100ms ease;
+}
+
+/* A larger target than the dot shows */
+.dot::after {
+  content: '';
+  position: absolute;
+  inset: -4px;
+  border-radius: 50%;
+}
+
+.dot:hover {
+  transform: translate(-50%, -50%) scale(1.25);
+  background: var(--mantine-color-green-filled);
+}
+
+.dot[data-edge='top'] {
+  left: 50%;
+  top: 0;
+}
+
+.dot[data-edge='right'] {
+  left: 100%;
+  top: 50%;
+}
+
+.dot[data-edge='bottom'] {
+  left: 50%;
+  top: 100%;
+}
+
+.dot[data-edge='left'] {
+  left: 0;
+  top: 50%;
+}

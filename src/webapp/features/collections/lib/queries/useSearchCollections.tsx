@@ -1,4 +1,5 @@
 import {
+  keepPreviousData,
   useInfiniteQuery,
   useSuspenseInfiniteQuery,
 } from '@tanstack/react-query';
@@ -19,6 +20,7 @@ interface Props {
   identifier?: string;
   sortOrder?: SortOrder;
   enabled?: boolean;
+  keepPreviousData?: boolean;
 }
 
 export default function useSearchCollections(props: Props) {
@@ -56,5 +58,6 @@ export default function useSearchCollections(props: Props) {
         : undefined;
     },
     enabled: props.enabled !== false,
+    placeholderData: props.keepPreviousData ? keepPreviousData : undefined,
   });
 }

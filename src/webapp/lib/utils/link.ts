@@ -102,7 +102,7 @@ const getAppOrigin = () => {
   return window.location.origin;
 };
 
-const isSembleUrl = (url: string): boolean => {
+export const isSembleUrl = (url: string): boolean => {
   // Relative paths are always local to the app
   if (url.startsWith('/')) return true;
   try {
@@ -113,18 +113,29 @@ const isSembleUrl = (url: string): boolean => {
   }
 };
 
-export const isCollectionPage = (url: string) => {
+// Extra leading slashes are from app URLs configured with a trailing slash
+const COLLECTION_PAGE_PATH = /^\/+profile\/([^/]+)\/collections\/([^/]+)\/?$/;
+
+// What connections to a collection name it by
+export const getCollectionPageUrl = (
+  collection: { handle: string; rkey: string },
+  origin = getAppOrigin(),
+) => `${origin}/profile/${collection.handle}/collections/${collection.rkey}`;
+
+// On any host, as the same collection's page may be named on another
+export const parseCollectionPage = (url: string) => {
+  let pathname: string;
   try {
-    if (!isSembleUrl(url)) return false;
-    const pathname = url.startsWith('/') ? url : new URL(url).pathname;
-    // expect /profile/:handle/collections/:id
-    const pattern = /^\/profile\/[^/]+\/collections\/[^/]+\/?$/;
-    return pattern.test(pathname);
+    pathname = url.startsWith('/') ? url : new URL(url).pathname;
   } catch {
-    // invalid URL
-    return false;
+    return null;
   }
+  const match = COLLECTION_PAGE_PATH.exec(pathname);
+  return match ? { handle: match[1], rkey: match[2] } : null;
 };
+
+export const isCollectionPage = (url: string) =>
+  isSembleUrl(url) && !!parseCollectionPage(url);
 
 export const isProfilePage = (url: string) => {
   try {
@@ -175,22 +186,13 @@ type PlatformData =
     };
 
 export const detectUrlPlatform = (url: string): PlatformData => {
-  if (isCollectionPage(url)) {
-    try {
-      const pathname = url.startsWith('/') ? url : new URL(url).pathname;
-      const pathParts = pathname.split('/').filter(Boolean);
-      // expected format: profile/:handle/collections/:rkey
-      const handle = pathParts[1];
-      const rkey = pathParts[3];
-      return { type: SupportedPlatform.SEMBLE_COLLECTION, url, handle, rkey };
-    } catch {
-      return {
-        type: SupportedPlatform.SEMBLE_COLLECTION,
-        url,
-        handle: '',
-        rkey: '',
-      };
-    }
+  const collectionPage = isSembleUrl(url) && parseCollectionPage(url);
+  if (collectionPage) {
+    return {
+      type: SupportedPlatform.SEMBLE_COLLECTION,
+      url,
+      ...collectionPage,
+    };
   }
 
   if (isProfilePage(url)) {

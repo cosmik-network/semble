@@ -182,6 +182,18 @@ export const updateCollection = cache(
   },
 );
 
+export const getCollectionPage = cache(
+  async (collectionId: string, params?: PageParams) => {
+    const client = createSembleClient();
+    const response = await client.getCollectionPage(collectionId, {
+      page: params?.page,
+      limit: params?.limit,
+    });
+
+    return response;
+  },
+);
+
 export const getCollectionPageByAtUri = cache(
   async ({
     recordKey,
