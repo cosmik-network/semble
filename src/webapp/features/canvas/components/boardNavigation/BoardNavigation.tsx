@@ -1,6 +1,6 @@
 import { ActionIcon, Divider, Group, Paper, Tooltip } from '@mantine/core';
 import type { ReactNode } from 'react';
-import { LuEyeOff, LuFocus, LuMinus, LuPlus, LuScan } from 'react-icons/lu';
+import { LuEyeOff, LuMinus, LuPlus, LuScan, LuSpline } from 'react-icons/lu';
 import { useEditor, useValue } from 'tldraw';
 import type { CanvasController } from '../../controller/canvasController';
 
@@ -71,7 +71,7 @@ export default function BoardNavigation(props: Props) {
           disabled={!props.arrowView || !!hidden}
           onClick={() => props.arrowView?.toggleFocus()}
         >
-          <LuFocus size={16} />
+          <LuSpline size={16} />
         </NavButton>
         <NavButton
           label={hidden ? 'Show arrows' : 'Hide arrows'}
