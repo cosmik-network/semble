@@ -12,7 +12,13 @@ import {
 import { notifications } from '@mantine/notifications';
 import { useQueryClient } from '@tanstack/react-query';
 import { useEffect, useMemo, useState } from 'react';
-import { Editor, Tldraw, type TLComponents } from 'tldraw';
+import {
+  Editor,
+  Tldraw,
+  atom,
+  type TLComponents,
+  type TldrawOptions,
+} from 'tldraw';
 import { useAuth } from '@/hooks/useAuth';
 import {
   attachCanvasController,
@@ -47,6 +53,10 @@ import UndoToast from '../undoToast/UndoToast';
 import { canvasHref } from '../../lib/constants';
 import { showCanvasError } from '../../lib/showCanvasError';
 import { boardOverrides } from './boardOverrides';
+import {
+  createBoardExportProvider,
+  type BoardExportContext,
+} from './boardExportProvider';
 
 // tldraw's licence forbids hiding, covering or restyling the "Made with
 // tldraw" watermark, or interfering with licence key validation, which decides
@@ -159,6 +169,21 @@ export default function BoardEditor(props: Props) {
     [props.canvasId, controller],
   );
   const overrides = useMemo(() => boardOverrides(controller), [controller]);
+  const [exportContext] = useState(() =>
+    atom<BoardExportContext>('board export', {
+      queryClient,
+      server,
+      controller: null,
+    }),
+  );
+  const options = useMemo<Partial<TldrawOptions>>(
+    () => ({ exportProvider: createBoardExportProvider(exportContext) }),
+    [exportContext],
+  );
+
+  useEffect(() => {
+    exportContext.set({ queryClient, server, controller });
+  }, [exportContext, queryClient, server, controller]);
 
   const isCardModalOpen = !!cardModal?.kind;
 
@@ -237,6 +262,7 @@ export default function BoardEditor(props: Props) {
                   getShapeVisibility={getShapeVisibility}
                   components={components}
                   overrides={overrides}
+                  options={options}
                   onMount={setEditor}
                 >
                   {controller && (

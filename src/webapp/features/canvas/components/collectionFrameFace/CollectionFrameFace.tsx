@@ -17,6 +17,7 @@ import { LuChevronDown, LuChevronUp } from 'react-icons/lu';
 import {
   stopEventPropagation,
   useEditor,
+  useSvgExportContext,
   useValue,
   type TLShapeId,
 } from 'tldraw';
@@ -50,6 +51,9 @@ export default function CollectionFrameFace(props: Props) {
   const editor = useEditor();
   const collectionFrames = useCollectionFrames();
   const readonly = useValue('readonly', () => editor.getIsReadonly(), [editor]);
+  // An exported image leaves out the frame's controls
+  const exporting = !!useSvgExportContext();
+  const controls = !readonly && !exporting;
   const loadingMore = useValue(
     'loading more',
     () => collectionFrames?.isLoadingMore(props.id) ?? false,
@@ -115,20 +119,22 @@ export default function CollectionFrameFace(props: Props) {
                 </Text>
               </Stack>
             </Group>
-            <Tooltip label={collapseLabel} withArrow>
-              <ActionIcon
-                className={classes.control}
-                variant="light"
-                color="gray"
-                radius="xl"
-                aria-label={collapseLabel}
-                disabled={readonly}
-                onPointerDown={stopEventPropagation}
-                onClick={() => collectionFrames?.toggleCollapsed(props.id)}
-              >
-                {collapsed ? <LuChevronDown /> : <LuChevronUp />}
-              </ActionIcon>
-            </Tooltip>
+            {!exporting && (
+              <Tooltip label={collapseLabel} withArrow>
+                <ActionIcon
+                  className={classes.control}
+                  variant="light"
+                  color="gray"
+                  radius="xl"
+                  aria-label={collapseLabel}
+                  disabled={readonly}
+                  onPointerDown={stopEventPropagation}
+                  onClick={() => collectionFrames?.toggleCollapsed(props.id)}
+                >
+                  {collapsed ? <LuChevronDown /> : <LuChevronUp />}
+                </ActionIcon>
+              </Tooltip>
+            )}
           </Group>
         </Group>
         {collection.description?.trim() && (
@@ -162,7 +168,7 @@ export default function CollectionFrameFace(props: Props) {
           >
             {footer.shown} of {footer.total}
           </Text>
-          {footer.hidden > 0 && !readonly && (
+          {footer.hidden > 0 && controls && (
             <Button
               className={classes.control}
               variant="subtle"
@@ -175,7 +181,7 @@ export default function CollectionFrameFace(props: Props) {
               Show hidden ({footer.hidden})
             </Button>
           )}
-          {footer.canLoadMore && !readonly && (
+          {footer.canLoadMore && controls && (
             <Button
               className={classes.control}
               variant="default"

@@ -1,7 +1,14 @@
 'use client';
 
 import { Badge, Box, Card, Stack, Text } from '@mantine/core';
-import { useEditor, useValue, type TLShapeId } from 'tldraw';
+import { useEffect } from 'react';
+import {
+  useDelaySvgExport,
+  useEditor,
+  useSvgExportContext,
+  useValue,
+  type TLShapeId,
+} from 'tldraw';
 import { getDomain } from '@/lib/utils/link';
 import LinkCardContent from '@/features/cards/components/urlCardContent/LinkCardContent';
 import CardAuthorRow from '@/features/cards/components/cardAuthorRow/CardAuthorRow';
@@ -33,14 +40,21 @@ interface Props {
 
 // Only its edge dots take clicks: the selection popup holds the card's actions
 export default function LinkCardFace(props: Props) {
-  const { data: link } = useCanvasLink(props.url);
+  const { data: link, isPending } = useCanvasLink(props.url);
+  // Rendered into the board's thumbnail, which waits for the link to load
+  const exporting = !!useSvgExportContext();
+  const exportReady = useDelaySvgExport();
   const preview = linkCardPreview(link);
   const note = shownNote(link, props.entry);
   const copyState = useCopyState(props.id, props.url);
   const mediaRevealed = useMediaRevealed(props.id);
   const editor = useEditor();
   const level = useValue('detail level', () => detailLevel(editor), [editor]);
-  const full = level === 'full';
+  const full = exporting || level === 'full';
+
+  useEffect(() => {
+    if (!isPending) exportReady();
+  }, [isPending, exportReady]);
 
   return (
     <Box pos="relative">
@@ -53,7 +67,7 @@ export default function LinkCardFace(props: Props) {
         shadow="none"
         style={{
           pointerEvents: 'none',
-          outline: copyState.isOutlined
+          outline: copyState.isOutlined && !exporting
             ? '2px dashed var(--mantine-primary-color-filled)'
             : undefined,
           outlineOffset: 2,
@@ -112,7 +126,7 @@ export default function LinkCardFace(props: Props) {
           ×{copyState.count}
         </Badge>
       )}
-      <EdgeDots cardId={props.id} />
+      {!exporting && <EdgeDots cardId={props.id} />}
     </Box>
   );
 }

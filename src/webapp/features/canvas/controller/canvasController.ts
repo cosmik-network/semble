@@ -86,16 +86,33 @@ async function captureThumbnail(editor: Editor) {
   if (pageBounds.length === 0) return null;
   const bounds = Box.Common(pageBounds);
   if (!(bounds.w > 0)) return null;
-  const { blob } = await editor.toImage(
-    shapes.map((shape) => shape.id),
-    {
-      format: 'jpeg',
-      quality: 0.8,
-      background: true,
-      scale: Math.min(1, THUMBNAIL_WIDTH / bounds.w),
-    },
-  );
-  return readAsDataUrl(blob);
+  // A board closed by navigating away is already out of the page, where the
+  // export can't read the styles it copies into the image
+  const container = editor.getContainer();
+  const offPage = !container.isConnected;
+  if (offPage) {
+    Object.assign(container.style, {
+      position: 'fixed',
+      top: '0px',
+      left: '-100000px',
+      pointerEvents: 'none',
+    });
+    document.body.append(container);
+  }
+  try {
+    const { blob } = await editor.toImage(
+      shapes.map((shape) => shape.id),
+      {
+        format: 'jpeg',
+        quality: 0.8,
+        background: true,
+        scale: Math.min(1, THUMBNAIL_WIDTH / bounds.w),
+      },
+    );
+    return await readAsDataUrl(blob);
+  } finally {
+    if (offPage) container.remove();
+  }
 }
 
 // Most of a large board's records, and rebuilt on open from the links' last

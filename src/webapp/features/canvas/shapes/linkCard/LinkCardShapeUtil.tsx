@@ -6,7 +6,6 @@ import {
   createShapePropsMigrationSequence,
   type Editor,
   type RecordProps,
-  type SvgExportContext,
   type TLBaseShape,
 } from 'tldraw';
 import {
@@ -84,26 +83,6 @@ export class LinkCardShapeUtil extends ShapeUtil<LinkCardShape> {
           entry={entryCardOf(shape.meta)}
         />
       </HTMLContainer>
-    );
-  }
-
-  // Exports render outside the app's providers, which the face needs, so they
-  // get the card's outline instead. Thumbnails are too small to read it anyway.
-  override toSvg(shape: LinkCardShape, ctx: SvgExportContext) {
-    const fill = ctx.isDarkMode ? '#2e2e2e' : '#ffffff';
-    const line = ctx.isDarkMode ? '#424242' : '#dee2e6';
-    return (
-      <g>
-        <rect
-          width={LINK_CARD_WIDTH}
-          height={shape.props.h}
-          rx={16}
-          fill={fill}
-          stroke={line}
-        />
-        <rect x={12} y={14} width={120} height={12} rx={6} fill={line} />
-        <rect x={12} y={38} width={280} height={16} rx={8} fill={line} />
-      </g>
     );
   }
 

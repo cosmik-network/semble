@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, describe, expect, it, onTestFinished, vi } from 'vitest';
 import { focusManager } from '@tanstack/react-query';
 import {
   DefaultColorStyle,
@@ -5388,6 +5388,14 @@ describe('editing connections', () => {
     // Arrange
     await boardWithConnections();
     const before = arrowOf('mine');
+    // jsdom has no clipboard, and tldraw writes to it on cut
+    Object.defineProperty(navigator, 'clipboard', {
+      value: { writeText: vi.fn().mockResolvedValue(undefined) },
+      configurable: true,
+    });
+    onTestFinished(() => {
+      delete (navigator as { clipboard?: unknown }).clipboard;
+    });
 
     // Act
     board.runAction('cut');

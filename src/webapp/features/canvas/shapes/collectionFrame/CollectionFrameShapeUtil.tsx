@@ -1,9 +1,11 @@
 import {
+  ErrorBoundary,
   FrameShapeUtil,
   Group2d,
   HTMLContainer,
   Rectangle2d,
   type Editor,
+  type SvgExportContext,
   type TLDragShapesOverInfo,
   type TLFrameShape,
   type TLShape,
@@ -11,11 +13,22 @@ import {
 import {
   FRAME_FOOTER_HEIGHT,
   collectionFrameMeta,
+  type CollectionFrameMeta,
   isCollapsed,
 } from '../../model/collectionFrames';
 import CollectionFrameFace from '../../components/collectionFrameFace/CollectionFrameFace';
 
 const FRAME_RADIUS = 16;
+
+const frameFace = (shape: TLFrameShape, meta: CollectionFrameMeta) => (
+  <CollectionFrameFace
+    id={shape.id}
+    w={shape.props.w}
+    h={shape.props.h}
+    meta={meta}
+    radius={FRAME_RADIUS}
+  />
+);
 
 const collapsedFrame = (shape: TLShape) => {
   const meta = collectionFrameMeta(shape.meta);
@@ -88,16 +101,24 @@ export class CollectionFrameShapeUtil extends FrameShapeUtil {
   override component(shape: TLFrameShape) {
     const meta = collectionFrameMeta(shape.meta);
     if (!meta) return super.component(shape);
+    return <HTMLContainer>{frameFace(shape, meta)}</HTMLContainer>;
+  }
+
+  // tldraw draws a frame's export itself, so the face is embedded as a link
+  // card's is, and a failing face drops only this frame from the export
+  override toSvg(shape: TLFrameShape, ctx: SvgExportContext) {
+    const meta = collectionFrameMeta(shape.meta);
+    if (!meta) return super.toSvg(shape, ctx);
     return (
-      <HTMLContainer>
-        <CollectionFrameFace
-          id={shape.id}
-          w={shape.props.w}
-          h={shape.props.h}
-          meta={meta}
-          radius={FRAME_RADIUS}
-        />
-      </HTMLContainer>
+      <ErrorBoundary fallback={() => null}>
+        <foreignObject
+          className="tl-export-embed-styles"
+          width={shape.props.w}
+          height={shape.props.h}
+        >
+          {frameFace(shape, meta)}
+        </foreignObject>
+      </ErrorBoundary>
     );
   }
 
