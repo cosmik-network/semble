@@ -153,6 +153,8 @@ export function attachConnections(deps: ConnectionsDeps) {
     const open = state.get();
     if (!open) return;
     close();
+    // Another tab took the board over while the picker showed
+    if (editor.getIsReadonly()) return;
     const connection: NewConnection = {
       sourceUrl: open.sourceUrl,
       targetUrl: open.targetUrl,
