@@ -10,19 +10,20 @@ const RESULTS = 8;
 export default function useQuickAddCollections(
   scope: SearchScope,
   query: string,
+  enabled: boolean,
 ) {
   // In the order the collection selector lists them, sharing its cache
   const recent = useMyCollectionsInfinite({
-    enabled: scope === 'mine' && !query,
+    enabled: enabled && scope === 'mine' && !query,
   });
   const mine = useCollectionSearch({
-    query: scope === 'mine' ? query : '',
+    query: enabled && scope === 'mine' ? query : '',
     keepPreviousData: true,
   });
   const everyone = useSearchCollections({
     searchText: query,
     limit: RESULTS,
-    enabled: scope === 'everyone' && !!query,
+    enabled: enabled && scope === 'everyone' && !!query,
     keepPreviousData: true,
   });
   const search = scope === 'everyone' ? everyone : query ? mine : recent;

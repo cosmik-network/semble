@@ -45,13 +45,14 @@ export default function QuickAdd(props: Props) {
   const [input, setInput] = useState('');
   const [query] = useDebouncedValue(input.trim(), 200);
   const scope = useValue(props.quickAdd.scope);
-  const links = useLinkSearch(scope, query);
-  const collections = useQuickAddCollections(scope, query);
   const isOpen = useValue(
     'quick-add open',
     () => props.quickAdd.placeAt.get() !== null,
     [props.quickAdd],
   );
+  // Stays mounted with the board, so it only searches while open
+  const links = useLinkSearch(scope, query, isOpen);
+  const collections = useQuickAddCollections(scope, query, isOpen);
   const url = linkKey(input);
   const messages = MESSAGES[scope];
   const linkResults = url ? [] : (links.data ?? []);
