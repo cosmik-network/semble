@@ -12,7 +12,10 @@ import {
 } from 'tldraw';
 import { CONNECTION_TYPE_MENU } from '@/features/canvas/controller/connectionEdits';
 import { COLLECTION_NOT_FOUND } from '@/features/canvas/controller/collectionFrames';
-import { announceLinkChange } from '@/features/canvas/lib/linkChanges';
+import {
+  LINK_CHANGES_CHANNEL,
+  type LinkChange,
+} from '@/features/canvas/lib/linkChanges';
 import { canvasKeys } from '@/features/canvas/lib/canvasKeys';
 import {
   arrowMiddle,
@@ -96,6 +99,13 @@ afterEach(async () => {
 // ─────────────────────────────────────────────
 // attachCanvasController
 // ─────────────────────────────────────────────
+// As a change made in another tab arrives
+function fromAnotherTab(change: LinkChange) {
+  const channel = new BroadcastChannel(LINK_CHANGES_CHANNEL);
+  channel.postMessage(change);
+  channel.close();
+}
+
 describe('attachCanvasController', () => {
   it('should let the user sketch without calling the server', async () => {
     // Arrange
@@ -4165,7 +4175,7 @@ describe('arrows', () => {
 
     // Act
     server.connections = [connection('c2', B, C)];
-    announceLinkChange({ connectionIds: ['c1'] });
+    fromAnotherTab({ connectionIds: ['c1'] });
 
     // Assert
     await vi.waitFor(() =>
@@ -4188,7 +4198,7 @@ describe('arrows', () => {
 
     // Act
     server.connections = [connection('c1', A, B)];
-    announceLinkChange({ urls: [A, B] });
+    fromAnotherTab({ urls: [A, B] });
 
     // Assert
     await vi.waitFor(() => expect(board.arrows()).toHaveLength(1));
@@ -4841,6 +4851,24 @@ describe('making connections', () => {
     expect(board.sketchArrows()).toEqual([]);
     expect(board.connectionPicker.state.get()).toBeNull();
   });
+  it('should tell other tabs once about a connection I publish', async () => {
+    // Arrange
+    await boardWithTwoLinks();
+    const otherTab = new BroadcastChannel(LINK_CHANGES_CHANNEL);
+    const heard: LinkChange[] = [];
+    otherTab.onmessage = (event: MessageEvent<LinkChange>) =>
+      heard.push(event.data);
+
+    // Act
+    board.drawArrow([0, 0], [800, 0]);
+    await board.connectionPicker.publish();
+    await settle();
+    otherTab.close();
+
+    // Assert
+    expect(heard).toEqual([{ urls: [A, B] }]);
+  });
+
   it('should move through the types with the arrow keys and publish the one highlighted', async () => {
     // Arrange
     await boardWithTwoLinks();

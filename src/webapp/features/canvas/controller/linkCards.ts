@@ -8,7 +8,7 @@ import {
   type VecLike,
 } from 'tldraw';
 import { canvasKeys } from '../lib/canvasKeys';
-import { LINK_CHANGES_CHANNEL, type LinkChange } from '../lib/linkChanges';
+import { announceLinkChange, watchLinkChanges } from '../lib/linkChanges';
 import { createLineCounter } from '../lib/lineCounter';
 import { jsonMeta } from '../lib/jsonMeta';
 import type { FetchedConnections } from '../model/arrows';
@@ -198,33 +198,12 @@ export function attachLinkCards(deps: LinkCardsDeps, hooks: LinkCardsHooks) {
       .catch(() => {});
   }
 
-  const changedLinks = new BroadcastChannel(LINK_CHANGES_CHANNEL);
-  // A save invalidates every link at once; they're sent together
-  let changedUrls = new Set<string>();
-  let announceTimer: ReturnType<typeof setTimeout> | null = null;
-  function announceChanged(url: string) {
-    changedUrls.add(url);
-    announceTimer ??= setTimeout(() => {
-      changedLinks.postMessage({
-        urls: Array.from(changedUrls),
-      } satisfies LinkChange);
-      changedUrls = new Set();
-      announceTimer = null;
-    });
-  }
   // Refetched rather than invalidated, which would announce them back
-  changedLinks.onmessage = (event: MessageEvent<LinkChange>) => {
-    const urls = (event.data.urls ?? []).map((url) => linkKey(url) ?? url);
-    const connectionIds = event.data.connectionIds ?? [];
-    const joinsChanged = (url: string) =>
-      !!known[url]?.link.connections?.some(({ id }) =>
-        connectionIds.includes(id),
-      );
-    hooks
-      .connectionUrls()
-      .filter((url) => urls.includes(url) || joinsChanged(url))
-      .forEach(refetchChanged);
-  };
+  const unwatchChanges = watchLinkChanges(queryClient, {
+    urls: hooks.connectionUrls,
+    connectionsOf: (url) => known[url]?.link.connections,
+    onChanged: refetchChanged,
+  });
 
   function linkFetched(url: string, link: LinkInfo, fetchedAt: number) {
     // Connections that didn't load keep the board's arrows as they were
@@ -251,7 +230,7 @@ export function attachLinkCards(deps: LinkCardsDeps, hooks: LinkCardsHooks) {
     // Saves elsewhere in the webapp invalidate links. Cards on screen refetch
     // theirs; the board refetches the rest.
     if (event.action.type === 'invalidate') {
-      announceChanged(url);
+      announceLinkChange(queryClient, { urls: [url] });
       if (!event.query.isActive()) refetchChanged(url);
       return;
     }
@@ -408,8 +387,7 @@ export function attachLinkCards(deps: LinkCardsDeps, hooks: LinkCardsHooks) {
       }
       unwatchLinks();
       unlistenSizes();
-      if (announceTimer) clearTimeout(announceTimer);
-      changedLinks.close();
+      unwatchChanges();
       return knownLinksTimer ? saveKnownLinks() : Promise.resolve();
     },
   };
