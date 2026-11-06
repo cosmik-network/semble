@@ -2,5 +2,8 @@
   position: absolute;
   top: 0;
   left: 0;
+  /* Its own width, not what's left of the arrow's box: a steep arrow's box
+     is narrower than the label */
+  width: max-content;
   pointer-events: none;
 }
