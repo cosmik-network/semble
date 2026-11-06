@@ -14,12 +14,14 @@ import {
 import { LINK_CARD_TYPE } from '../../model/linkCards';
 import { detailLevel } from '../detailLevel';
 import type { LinkCardShape } from '../linkCard/LinkCardShapeUtil';
+import type { ConnectionNote } from '../../server/canvasServer';
 
 // Kept on an arrow drawn for a server connection. Arrows without it are the
 // user's own sketching.
 export interface ConnectionArrowMeta {
   connectionId: string;
   connectionType: ConnectionType | null;
+  note: ConnectionNote | null;
   own: boolean;
   // The copies it joins
   from: TLShapeId;

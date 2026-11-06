@@ -66,19 +66,26 @@ export class ConnectionArrowShapeUtil extends ArrowShapeUtil {
     const middle =
       detailLevel(this.editor) === 'full' && arrowMiddle(this.editor, shape);
     const phase = arrowPhase(this.editor, shape);
+    // SelectedArrowPill draws it above every shape instead
+    const isOnlySelected = this.editor.getOnlySelectedShapeId() === shape.id;
 
     // The pill stays crisp on a faded arrow
     return (
       <>
         <ConnectionArrowSvg arrow={drawn} opacity={opacity} phase={phase} />
-        {display.pill && connection.connectionType && middle && (
-          <ArrowPill
-            arrowId={shape.id}
-            type={connection.connectionType}
-            own={connection.own}
-            middle={middle}
-          />
-        )}
+        {display.pill &&
+          !isOnlySelected &&
+          connection.connectionType &&
+          middle && (
+            <ArrowPill
+              arrowId={shape.id}
+              type={connection.connectionType}
+              own={connection.own}
+              note={connection.note ?? null}
+              showNote={false}
+              middle={middle}
+            />
+          )}
       </>
     );
   }

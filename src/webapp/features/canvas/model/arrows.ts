@@ -1,6 +1,6 @@
 import type { ConnectionType } from '@semble/types';
 import { parseCollectionPage } from '@/lib/utils/link';
-import type { LinkConnection } from '../server/canvasServer';
+import type { ConnectionNote, LinkConnection } from '../server/canvasServer';
 import { linkKey } from './linkCards';
 
 export interface FetchedConnections {
@@ -32,6 +32,7 @@ export interface BoardArrowSpec {
   key: string;
   connectionId: string;
   type: ConnectionType | null;
+  note: ConnectionNote | null;
   // Made by the viewer, rather than a ghost
   own: boolean;
   fromEnd: string;
@@ -117,6 +118,7 @@ export function reconcileArrows(input: ArrowsInput): BoardArrowSpec[] {
           key: arrowKey(connection.id, fromEnd, toEnd),
           connectionId: connection.id,
           type: connection.type,
+          note: connection.note ?? null,
           own: connection.curatorId === input.viewerDid,
           fromEnd,
           toEnd,

@@ -89,6 +89,9 @@ async function fetchConnections(url: string) {
         sourceUrl: source.url,
         targetUrl: target.url,
         curatorId: connection.curator.id,
+        note: connection.note
+          ? { text: connection.note, author: connection.curator }
+          : null,
       });
     }
     if (!response.pagination.hasMore) return connections;

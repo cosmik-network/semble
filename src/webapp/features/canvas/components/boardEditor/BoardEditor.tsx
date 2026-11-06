@@ -40,6 +40,7 @@ import { canvasStorage } from '../../storage/browserCanvasStorage';
 import BoardContextMenu from '../boardContextMenu/BoardContextMenu';
 import BoardHeader from '../boardHeader/BoardHeader';
 import BoardNavigation from '../boardNavigation/BoardNavigation';
+import SelectedArrowPill from '../arrowPill/SelectedArrowPill';
 import BoardToolbar from '../boardToolbar/BoardToolbar';
 import CardModals, { type CardModal } from '../cardModals/CardModals';
 import QuickAdd from '../quickAdd/QuickAdd';
@@ -164,6 +165,7 @@ export default function BoardEditor(props: Props) {
         />
       ),
       Toolbar: BoardToolbar,
+      Overlays: SelectedArrowPill,
       ContextMenu: BoardContextMenu,
       TopPanel: () => (
         <ReadOnlyBanner onTakeOver={async () => controller?.takeOver()} />
