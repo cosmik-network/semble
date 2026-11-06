@@ -1,16 +1,14 @@
-import { computed, type Editor, type JsonObject, type TLShapeId } from 'tldraw';
+import type { Editor, JsonObject, TLShapeId } from 'tldraw';
 import { getDomain } from '@/lib/utils/link';
-import { linkKey } from '../model/linkCards';
+import { LINK_CARD_TYPE, linkKey } from '../model/linkCards';
 import {
   connectedUrls,
-  FIRST_RING_SIZE,
   nextRing,
   ringAround,
-  ringSpacing,
   type Ring,
 } from '../model/linkSeed';
 import type { LinkInfo } from '../server/canvasServer';
-import { linkCardsOn } from '../shapes/linkCard/LinkCardShapeUtil';
+import type { LinkCardShape } from '../shapes/linkCard/LinkCardShapeUtil';
 import type { FetchOutcome, LinkPlacement } from './linkCards';
 
 // What starting a board from a link is waiting on: the link and its
@@ -28,6 +26,8 @@ export interface LinkSeedDeps {
   linkOf(url: string): LinkInfo | undefined;
   cardHeight(url: string): number;
   placeLinks(places: LinkPlacement[]): TLShapeId[];
+  // Every URL the board shows, as a link card or a collection frame
+  urlsOnBoard(): string[];
   // Leaves a name the user has given the board
   rename(name: string): Promise<void>;
   onFailed(): void;
@@ -37,62 +37,122 @@ export interface LinkSeedDeps {
   canPlace(): boolean;
 }
 
-// Kept in the document's meta, not the middle card's, which its copies would
-// share. Undo takes it back with the cards it placed.
-interface SeedState {
-  cardId: TLShapeId;
+// The rings of connected links placed round one card
+export interface CardRings {
   url: string;
-  // Every link a ring has placed, including ones deleted since
-  placed: string[];
   outermost: Ring;
 }
 
+// Kept in the document's meta, by card, rather than in the cards' own meta,
+// which their copies share. Undo takes them back with the cards they placed.
+const RINGS_META_KEY = 'connectedRings';
+// Boards started from a link before any card could place rings kept the
+// middle card's alone
 const SEED_META_KEY = 'linkSeed';
 
-// Starts a new board from a link's Semble page: the link in the middle and
-// the links it's connected to in a ring round it, and further rings when more
-// are asked for. Links are fetched before they're placed, so each ring is
-// spaced for its cards' real heights.
+type RingsByCard = Record<string, CardRings>;
+
+interface PlannedRing {
+  urls: string[];
+  ring: Ring;
+}
+
+// Places the links a card's link is connected to in rings round it, a ring at
+// a time, and starts a new board from a link's Semble page the same way. Links
+// are fetched before they're placed, so each ring is spaced for its cards'
+// real heights.
 export function attachLinkSeed(deps: LinkSeedDeps) {
   const { editor } = deps;
 
-  const stateOf = () =>
-    (editor.getDocumentSettings().meta[SEED_META_KEY] as
-      | SeedState
-      | undefined) ?? null;
-  // Not through updateDocumentSettings, which keeps it out of undo
-  const setState = (state: SeedState) => {
-    const settings = editor.getDocumentSettings();
-    editor.store.put([
-      {
-        ...settings,
-        meta: {
-          ...settings.meta,
-          [SEED_META_KEY]: state as unknown as JsonObject,
-        },
-      },
-    ]);
+  function ringsByCard(): RingsByCard {
+    const meta = editor.getDocumentSettings().meta;
+    const rings = { ...(meta[RINGS_META_KEY] as RingsByCard | undefined) };
+    const seed = meta[SEED_META_KEY] as
+      | (CardRings & { cardId: string })
+      | undefined;
+    if (seed && !rings[seed.cardId]) {
+      rings[seed.cardId] = { url: seed.url, outermost: seed.outermost };
+    }
+    return rings;
+  }
+
+  const linkCard = (cardId: TLShapeId) => {
+    const shape = editor.getShape(cardId);
+    return shape && editor.isShapeOfType<LinkCardShape>(shape, LINK_CARD_TYPE)
+      ? shape
+      : null;
   };
 
-  // Only while the middle card is on the board
-  const state = computed('link seed', () => {
-    const seed = stateOf();
-    return seed && editor.getShape(seed.cardId) ? seed : null;
-  });
-
-  // Connected links not yet placed by a ring nor put on the board otherwise
-  function unplaced(): string[] {
-    const seed = state.get();
-    if (!seed) return [];
-    const onBoard = new Set(linkCardsOn(editor).map((card) => card.props.url));
-    const connections = deps.linkOf(seed.url)?.connections ?? [];
-    return connectedUrls(seed.url, connections).filter(
-      (url) => !seed.placed.includes(url) && !onBoard.has(url),
+  // Rings of cards since deleted are dropped. Not through
+  // updateDocumentSettings, which keeps it out of undo.
+  function setRings(cardId: TLShapeId, rings: CardRings) {
+    const kept = Object.fromEntries(
+      Object.entries(ringsByCard()).filter(([id]) =>
+        editor.getShape(id as TLShapeId),
+      ),
     );
+    const settings = editor.getDocumentSettings();
+    const meta = { ...settings.meta };
+    delete meta[SEED_META_KEY];
+    meta[RINGS_META_KEY] = {
+      ...kept,
+      [cardId]: rings,
+    } as unknown as JsonObject;
+    editor.store.put([{ ...settings, meta }]);
+  }
+
+  // Null for a card that has placed none
+  function ringsOf(cardId: TLShapeId): CardRings | null {
+    const card = linkCard(cardId);
+    const rings = card && ringsByCard()[cardId];
+    return rings && rings.url === card.props.url ? rings : null;
+  }
+
+  // Connected links not on the board, including ones a ring placed and that
+  // were deleted since
+  function waiting(url: string): string[] {
+    const onBoard = new Set(deps.urlsOnBoard());
+    const connections = deps.linkOf(url)?.connections ?? [];
+    return connectedUrls(url, connections).filter(
+      (other) => !onBoard.has(other),
+    );
+  }
+
+  function unplaced(cardId: TLShapeId): string[] {
+    const card = linkCard(cardId);
+    return card ? waiting(card.props.url) : [];
   }
 
   const tallestOf = (urls: string[]) =>
     Math.max(0, ...urls.map(deps.cardHeight));
+
+  // The next ring out round url, fetched. A first ring is kept clear of the
+  // card in the middle too.
+  async function planRing(
+    url: string,
+    rings: () => CardRings | null,
+    onFetching?: (count: number) => void,
+  ): Promise<PlannedRing | null> {
+    const before = rings();
+    const waitingBefore = waiting(url);
+    const guess = nextRing(before?.outermost ?? null, waitingBefore.length, 0);
+    const candidates = waitingBefore.slice(0, guess.size);
+    if (candidates.length === 0) return null;
+    onFetching?.(candidates.length);
+    await deps.fetchLinks(candidates);
+    // Skips any put on the board while they were fetched
+    const after = rings();
+    const fetched = waiting(url).filter((other) => candidates.includes(other));
+    const inner = after?.outermost ?? null;
+    const ring = nextRing(
+      inner,
+      fetched.length,
+      tallestOf(inner ? fetched : [url, ...fetched]),
+    );
+    const urls = fetched.slice(0, ring.size);
+    if (urls.length === 0) return null;
+    return { urls, ring };
+  }
 
   async function seed(seedUrl: string) {
     try {
@@ -114,84 +174,67 @@ export function attachLinkSeed(deps: LinkSeedDeps) {
       deps.onFailed();
       return;
     }
-    const neighbours = connectedUrls(url, link.connections).slice(
-      0,
-      FIRST_RING_SIZE,
+    const planned = await planRing(
+      url,
+      () => null,
+      (count) => deps.onProgress({ step: 'ring', count }),
     );
-    if (neighbours.length > 0) {
-      deps.onProgress({ step: 'ring', count: neighbours.length });
-      await deps.fetchLinks(neighbours);
-    }
     if (!deps.canPlace()) return;
-    // Clear of the middle card too
-    const ring = nextRing(
-      null,
-      neighbours.length,
-      ringSpacing(tallestOf([url, ...neighbours])),
-    );
     const middle = editor.getViewportPageBounds().center;
-    const at = ringAround(middle, ring);
     // The board's starting point, which undo doesn't take back
+    let cardId: TLShapeId | null = null;
     editor.run(
       () => {
-        const [cardId] = deps.placeLinks([
+        const at = planned ? ringAround(middle, planned.ring) : [];
+        [cardId] = deps.placeLinks([
           { url, at: middle },
-          ...neighbours.map((neighbour, i) => ({ url: neighbour, at: at[i] })),
+          ...(planned?.urls ?? []).map((other, i) => ({
+            url: other,
+            at: at[i],
+          })),
         ]);
-        setState({
-          cardId,
-          url,
-          placed: neighbours,
-          outermost: ring,
-        });
+        if (planned) {
+          setRings(cardId, {
+            url,
+            outermost: planned.ring,
+          });
+        }
       },
       { history: 'ignore' },
     );
     const bounds = editor.getCurrentPageBounds();
     if (bounds) editor.zoomToBounds(bounds, { targetZoom: 1, immediate: true });
     // Its popup offers the rest
-    if (unplaced().length > 0) editor.select(stateOf()!.cardId);
+    if (cardId && unplaced(cardId).length > 0) editor.select(cardId);
     // The links are placed, so failing this isn't a failed seed
     await deps
       .rename(link.metadata.title?.trim() || getDomain(url))
       .catch(console.warn);
   }
 
-  // The next ring out from the outermost, however much room the rings
-  // inside it have, round the middle card where it is now. One step of undo.
-  async function placeMore() {
-    const before = state.get();
-    if (!before || !deps.canPlace()) return;
-    const waiting = unplaced();
-    const guess = nextRing(before.outermost, waiting.length, 0);
-    const candidates = waiting.slice(0, guess.size);
-    if (candidates.length === 0) return;
-    await deps.fetchLinks(candidates);
-    const seed = state.get();
-    if (!seed || !deps.canPlace()) return;
-    // Skips any put on the board while they were fetched
-    const fetched = unplaced().filter((url) => candidates.includes(url));
-    const ring = nextRing(
-      seed.outermost,
-      fetched.length,
-      ringSpacing(tallestOf(fetched)),
-    );
-    const urls = fetched.slice(0, ring.size);
-    if (urls.length === 0) return;
-    const middle = editor.getShapePageBounds(seed.cardId)!.center;
-    const at = ringAround(middle, ring);
-    editor.markHistoryStoppingPoint('place more connected links');
+  // The next ring out from the card's outermost, however much room the rings
+  // inside it have, round the card where it is now. One step of undo.
+  async function placeMore(cardId: TLShapeId) {
+    const card = linkCard(cardId);
+    if (!card || !deps.canPlace()) return;
+    const { url } = card.props;
+    const planned = await planRing(url, () => ringsOf(cardId));
+    if (!planned || !deps.canPlace() || !linkCard(cardId)) return;
+    const middle = editor.getShapePageBounds(cardId)!.center;
+    const at = ringAround(middle, planned.ring);
+    editor.markHistoryStoppingPoint('place connected links');
     editor.run(() => {
-      deps.placeLinks(urls.map((url, i) => ({ url, at: at[i] })));
-      setState({
-        ...seed,
-        placed: [...seed.placed, ...urls],
-        outermost: ring,
+      deps.placeLinks(
+        planned.urls.map((other, i) => ({ url: other, at: at[i] })),
+      );
+      setRings(cardId, {
+        url,
+        outermost: planned.ring,
       });
     });
   }
 
-  return { state, unplaced, seed, placeMore };
+  return { ringsOf, unplaced, seed, placeMore };
 }
 
 export type LinkSeed = ReturnType<typeof attachLinkSeed>;

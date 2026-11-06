@@ -3,16 +3,19 @@ import { useCallback, useEffect } from 'react';
 import {
   ArrangeMenuSubmenu,
   ClipboardMenuGroup,
+  CopyAsMenuGroup,
   FitFrameToContentMenuItem,
   RemoveFrameMenuItem,
   ReorderMenuSubmenu,
   SelectAllMenuItem,
+  TldrawUiMenuActionItem,
   TldrawUiMenuContextProvider,
   TldrawUiMenuGroup,
   TldrawUiMenuItem,
   TldrawUiMenuSubmenu,
   ToggleAutoSizeMenuItem,
   ToggleLockMenuItem,
+  ToggleTransparentBgMenuItem,
   UngroupMenuItem,
   preventDefault,
   useContainer,
@@ -121,9 +124,9 @@ export default function BoardContextMenu(props: TLUiContextMenuProps) {
   );
 }
 
-// tldraw's items without what a board can't do: flattening and exports need
-// an asset store, link and embed items need tldraw's bookmark shapes, and a
-// board has one page
+// tldraw's items without what a board can't do: flattening needs an asset
+// store, link and embed items need tldraw's bookmark shapes, and a board has
+// one page
 function BoardContextMenuContent() {
   const editor = useEditor();
   const isReadonly = useReadonly();
@@ -138,6 +141,11 @@ function BoardContextMenuContent() {
     [editor],
   );
   const actions = useActions();
+  const hasShapes = useValue(
+    'has shapes',
+    () => editor.getCurrentPageShapeIds().size > 0,
+    [editor],
+  );
   const cardsHideArrows = useValue(
     'selected cards hide arrows',
     () => selectedCardsHideArrows(editor),
@@ -172,6 +180,25 @@ function BoardContextMenuContent() {
         </TldrawUiMenuGroup>
       )}
       <ClipboardMenuGroup />
+      {hasShapes && (
+        // Exports the selection, or the whole board when nothing is selected
+        <TldrawUiMenuGroup id="conversions">
+          <CopyAsMenuGroup />
+          <TldrawUiMenuSubmenu
+            id="export-as"
+            label="context-menu.export-as"
+            size="small"
+          >
+            <TldrawUiMenuGroup id="export-as-group">
+              <TldrawUiMenuActionItem actionId="export-as-svg" />
+              <TldrawUiMenuActionItem actionId="export-as-png" />
+            </TldrawUiMenuGroup>
+            <TldrawUiMenuGroup id="export-as-bg">
+              <ToggleTransparentBgMenuItem />
+            </TldrawUiMenuGroup>
+          </TldrawUiMenuSubmenu>
+        </TldrawUiMenuGroup>
+      )}
       <TldrawUiMenuGroup id="select-all">
         <SelectAllMenuItem />
       </TldrawUiMenuGroup>

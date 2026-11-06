@@ -8,6 +8,7 @@ interface Props {
   onClose: () => void;
   canvasId: string;
   name: string;
+  onDeleted?: () => void;
 }
 
 export default function DeleteCanvasModal(props: Props) {
@@ -15,6 +16,7 @@ export default function DeleteCanvasModal(props: Props) {
 
   const handleDelete = () => {
     deleteCanvas.mutate(props.canvasId, {
+      onSuccess: props.onDeleted,
       onError: () => showCanvasError('Could not delete canvas'),
       onSettled: props.onClose,
     });

@@ -232,6 +232,7 @@ export function attachCanvasController(deps: CanvasControllerDeps) {
     linkOf: links.linkOf,
     cardHeight: links.cardHeight,
     placeLinks: links.placeLinks,
+    urlsOnBoard: ends.urls,
     rename: renameIfUnnamed,
     onFailed: seedFailed,
     onProgress: deps.onSeedProgress,

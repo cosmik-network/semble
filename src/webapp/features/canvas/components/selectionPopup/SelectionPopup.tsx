@@ -4,7 +4,7 @@ import { FiPlus } from 'react-icons/fi';
 import { IoMdCheckmark } from 'react-icons/io';
 import { LuEye, LuEyeOff } from 'react-icons/lu';
 import { MdOpenInNew } from 'react-icons/md';
-import { TbCirclePlus, TbPlugConnected } from 'react-icons/tb';
+import { TbPlugConnected, TbTopologyStar3 } from 'react-icons/tb';
 import { useState } from 'react';
 import { useEditor, useValue, type Computed } from 'tldraw';
 import { getSembleHref } from '@/lib/utils/link';
@@ -68,12 +68,14 @@ function Popup(props: PopupProps) {
   );
   const unplaced = useValue(
     'unplaced links',
-    () =>
-      props.linkSeed.state.get()?.cardId === props.card.id
-        ? props.linkSeed.unplaced().length
-        : 0,
+    () => props.linkSeed.unplaced(props.card.id).length,
     // Counted again when the link's connections refresh
     [props.linkSeed, props.card.id, link],
+  );
+  const hasRings = useValue(
+    'has rings',
+    () => props.linkSeed.ringsOf(props.card.id) !== null,
+    [props.linkSeed, props.card.id],
   );
   const [placingMore, setPlacingMore] = useState(false);
   if (!position) return null;
@@ -81,12 +83,14 @@ function Popup(props: PopupProps) {
   const placeMore = async () => {
     setPlacingMore(true);
     try {
-      await props.linkSeed.placeMore();
+      await props.linkSeed.placeMore(props.card.id);
     } finally {
       setPlacingMore(false);
     }
   };
-  const placeMoreLabel = `Place more connected links (${unplaced} left)`;
+  const placeMoreLabel = hasRings
+    ? `Place more connected links (${unplaced} left)`
+    : `Place connected links (${unplaced})`;
 
   const open = (kind: CardModalKind) => () =>
     props.onOpen(kind, props.card.url);
@@ -134,7 +138,7 @@ function Popup(props: PopupProps) {
             loading={placingMore}
             onClick={placeMore}
           >
-            <TbCirclePlus size={16} />
+            <TbTopologyStar3 size={16} />
           </ActionIcon>
         </Tooltip>
       )}

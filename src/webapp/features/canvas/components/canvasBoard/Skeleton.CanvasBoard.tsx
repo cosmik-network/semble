@@ -42,7 +42,7 @@ export default function CanvasBoardSkeleton(props: Props) {
         wrap="nowrap"
       >
         <Skeleton height={44} width={88} radius="xl" />
-        {[3, 2].map((buttons) => (
+        {[3, 2, 1].map((buttons) => (
           <Paper key={buttons} withBorder shadow="sm" radius="xl" p={4}>
             <Group gap={2} wrap="nowrap">
               {Array.from({ length: buttons }, (_, i) => (

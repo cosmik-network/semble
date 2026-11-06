@@ -1,4 +1,13 @@
-import { Button, Group, Modal, Stack, TextInput } from '@mantine/core';
+import {
+  ActionIcon,
+  Button,
+  Group,
+  Modal,
+  Stack,
+  TextInput,
+  Tooltip,
+} from '@mantine/core';
+import { BsTrash2Fill } from 'react-icons/bs';
 import { useForm } from '@mantine/form';
 import { UPDATE_OVERLAY_PROPS } from '@/styles/overlays';
 import useRenameCanvas from '../../lib/mutations/useRenameCanvas';
@@ -9,6 +18,8 @@ interface Props {
   onClose: () => void;
   canvasId: string;
   name: string;
+  // Offers deleting the canvas too
+  onDelete?: () => void;
 }
 
 export default function RenameCanvasModal(props: Props) {
@@ -59,6 +70,21 @@ export default function RenameCanvasModal(props: Props) {
           />
 
           <Group gap={'xs'} wrap="nowrap">
+            {props.onDelete && (
+              <Tooltip label="Delete canvas">
+                <ActionIcon
+                  size={42}
+                  radius="xl"
+                  variant="light"
+                  color="red"
+                  aria-label="Delete canvas"
+                  disabled={renameCanvas.isPending}
+                  onClick={props.onDelete}
+                >
+                  <BsTrash2Fill size={16} />
+                </ActionIcon>
+              </Tooltip>
+            )}
             <Button
               variant="light"
               size="md"
