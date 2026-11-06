@@ -1,0 +1,10 @@
+/* Selected by arrow keys, as hovered rather than in the primary colour */
+.action[data-selected] {
+  background-color: light-dark(
+    var(--mantine-color-gray-0),
+    var(--mantine-color-dark-6)
+  );
+  color: inherit;
+  --action-description-color: var(--mantine-color-dimmed);
+  --action-description-opacity: 1;
+}

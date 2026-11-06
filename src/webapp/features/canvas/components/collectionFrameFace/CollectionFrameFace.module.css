@@ -1,0 +1,42 @@
+/* A tray for the entries, under a header that reads as the collection page's */
+.root {
+  --tint: light-dark(
+    color-mix(in srgb, var(--mantine-color-grape-1) 40%, transparent),
+    color-mix(in srgb, var(--mantine-color-grape-9) 30%, transparent)
+  );
+
+  position: relative;
+  pointer-events: none;
+  border: 1px solid var(--mantine-color-default-border);
+  border-radius: var(--frame-radius);
+  background: light-dark(
+    var(--mantine-color-gray-1),
+    var(--mantine-color-dark-8)
+  );
+}
+
+.root[data-open] {
+  --tint: light-dark(
+    color-mix(in srgb, var(--mantine-color-green-1) 40%, transparent),
+    color-mix(in srgb, var(--mantine-color-green-9) 30%, transparent)
+  );
+}
+
+/* The page's gradient, fading from the top into the body colour */
+.header {
+  overflow: hidden;
+  border-bottom: 1px solid var(--mantine-color-default-border);
+  border-radius: var(--frame-radius) var(--frame-radius) 0 0;
+  background:
+    linear-gradient(to bottom, var(--tint), transparent 48px),
+    var(--mantine-color-body);
+}
+
+.root[data-collapsed] .header {
+  border-bottom: none;
+  border-radius: var(--frame-radius);
+}
+
+.control {
+  pointer-events: all;
+}

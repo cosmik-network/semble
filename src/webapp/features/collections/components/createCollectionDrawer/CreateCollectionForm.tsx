@@ -1,19 +1,11 @@
 'use client';
 
 import { Collection, CollectionAccessType } from '@semble/types';
-import {
-  Button,
-  Group,
-  Select,
-  Stack,
-  Textarea,
-  TextInput,
-  ThemeIcon,
-} from '@mantine/core';
+import { Button, Group, Stack, Textarea, TextInput } from '@mantine/core';
+import CollectionAccessControl from '@/features/collections/components/collectionAccessControl/CollectionAccessControl';
 import { useForm } from '@mantine/form';
 import useCreateCollection from '../../lib/mutations/useCreateCollection';
 import { notifications } from '@mantine/notifications';
-import { FaSeedling } from 'react-icons/fa6';
 import { useQueryClient } from '@tanstack/react-query';
 import { collectionKeys } from '../../lib/collectionKeys';
 import { BsExclamation } from 'react-icons/bs';
@@ -120,35 +112,9 @@ export default function CreateCollectionForm(props: Props) {
           onValueChange={(v) => form.setFieldValue('description', v)}
         />
 
-        <Select
-          variant="filled"
-          size="md"
-          label="Collaboration"
-          leftSection={
-            form.getValues().accessType === CollectionAccessType.OPEN ? (
-              <ThemeIcon
-                size={'md'}
-                variant="light"
-                color={'green'}
-                radius={'xl'}
-              >
-                <FaSeedling size={14} />
-              </ThemeIcon>
-            ) : null
-          }
-          allowDeselect={false}
-          defaultValue={CollectionAccessType.CLOSED}
-          data={[
-            {
-              value: CollectionAccessType.CLOSED,
-              label: 'Personal — Only you can add',
-            },
-            {
-              value: CollectionAccessType.OPEN,
-              label: 'Open — Anyone can add',
-            },
-          ]}
-          {...form.getInputProps('accessType')}
+        <CollectionAccessControl
+          value={form.values.accessType}
+          onChange={(v) => form.setFieldValue('accessType', v)}
         />
 
         <Group justify="space-between" gap={'xs'} grow>

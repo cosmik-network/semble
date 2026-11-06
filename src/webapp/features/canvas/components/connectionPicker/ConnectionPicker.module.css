@@ -1,0 +1,55 @@
+/* A rail from the source's dot down to the target's arrowhead, like the
+   arrow being published */
+.route {
+  --rail-x: 5px;
+  --rail-color: var(--mantine-color-green-filled);
+  /* The middle of a title's line */
+  --line-middle: calc(
+    var(--mantine-font-size-sm) * var(--mantine-line-height-sm) / 2
+  );
+
+  position: relative;
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding-left: 22px;
+}
+
+.route::before {
+  content: '';
+  position: absolute;
+  left: var(--rail-x);
+  top: var(--line-middle);
+  bottom: var(--line-middle);
+  border-left: 2px solid var(--rail-color);
+  transform: translateX(-50%);
+  opacity: 0.5;
+}
+
+.end {
+  position: relative;
+  min-width: 0;
+}
+
+.end::before {
+  content: '';
+  position: absolute;
+  left: calc(var(--rail-x) - 22px);
+  top: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.end:first-child::before {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--rail-color);
+}
+
+.end:last-child::before {
+  border-left: 5px solid transparent;
+  border-right: 5px solid transparent;
+  border-top: 7px solid var(--rail-color);
+}

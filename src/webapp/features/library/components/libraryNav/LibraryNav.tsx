@@ -4,6 +4,7 @@ import { Stack, Text } from '@mantine/core';
 import { useMounted } from '@mantine/hooks';
 import { useState } from 'react';
 import { BiCollection } from 'react-icons/bi';
+import { LuSquareDashedMousePointer } from 'react-icons/lu';
 import { FaRegNoteSticky } from 'react-icons/fa6';
 import StatDrawer from '@/components/statDrawer/StatDrawer';
 import FollowingCollectionsContainer from '@/features/follows/containers/followingCollectionsContainer/FollowingCollectionsContainer';
@@ -20,10 +21,13 @@ import {
   FollowingCollectionsNavItems,
   MyCollectionsNavItems,
 } from '@/features/collections/components/collectionsNavList/CollectionNavSectionItems';
+import { useFeatureFlags } from '@/lib/clientFeatureFlags';
+import CanvasNavItems from '@/features/canvas/components/canvasNavItems/CanvasNavItems';
 import LibraryNavSection from './LibraryNavSection';
 
 type ExpandedKey =
   | 'cardsNavExpanded'
+  | 'canvasesNavExpanded'
   | 'collectionsNavExpanded'
   | 'followingNavExpanded'
   | 'contributedToNavExpanded';
@@ -31,10 +35,12 @@ type ExpandedKey =
 export default function LibraryNav() {
   const { settings, updateSetting } = useSettings();
   const { data: profile } = useMyProfile();
+  const { data: featureFlags } = useFeatureFlags();
   const [followingDrawerOpen, setFollowingDrawerOpen] = useState(false);
 
   // Stored flags would mismatch the server's collapsed HTML during hydration;
-  // see useUserSettings.
+  // see useUserSettings. So would feature flags fetched before this hydrates,
+  // which the server never has.
   const mounted = useMounted();
   const expanded = (key: ExpandedKey) => ({
     opened: mounted ? settings[key] : defaultSettings[key],
@@ -90,6 +96,18 @@ export default function LibraryNav() {
         >
           <ContributedCollectionsNavItems identifier={handle} />
         </LibraryNavSection>
+
+        {mounted && featureFlags?.canvas && (
+          <LibraryNavSection
+            label="Canvases"
+            icon={<LuSquareDashedMousePointer size={20} />}
+            viewAllHref="/canvas"
+            errorMessage="Could not load canvases"
+            {...expanded('canvasesNavExpanded')}
+          >
+            <CanvasNavItems />
+          </LibraryNavSection>
+        )}
       </Stack>
 
       <StatDrawer

@@ -11,6 +11,7 @@ import styles from './NoteCardInline.module.css';
 interface Props {
   note: UrlCard['note'];
   cardAuthor?: User;
+  lineClamp?: number;
 }
 
 export default function NoteCardInline(props: Props) {
@@ -55,7 +56,13 @@ export default function NoteCardInline(props: Props) {
         {props.note && (
           <RichTextRenderer
             text={props.note.text}
-            textProps={{ fw: 500, fz: 'sm', fs: 'italic', c: 'gray' }}
+            textProps={{
+              fw: 500,
+              fz: 'sm',
+              fs: 'italic',
+              c: 'gray',
+              lineClamp: props.lineClamp,
+            }}
           />
         )}
       </Stack>

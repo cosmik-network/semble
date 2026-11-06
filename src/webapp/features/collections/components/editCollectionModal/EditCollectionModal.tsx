@@ -4,18 +4,16 @@ import {
   Container,
   Group,
   Modal,
-  Select,
   Stack,
   Textarea,
   Text,
   TextInput,
-  ThemeIcon,
 } from '@mantine/core';
+import CollectionAccessControl from '@/features/collections/components/collectionAccessControl/CollectionAccessControl';
 import { useForm } from '@mantine/form';
 import { notifications } from '@mantine/notifications';
 import useUpdateCollection from '../../lib/mutations/useUpdateCollection';
 import { UPDATE_OVERLAY_PROPS } from '@/styles/overlays';
-import { FaSeedling } from 'react-icons/fa6';
 import { isMarginUri, getMarginUrl } from '@/lib/utils/margin';
 import MarginLogo from '@/components/MarginLogo';
 import { BsExclamation } from 'react-icons/bs';
@@ -131,38 +129,10 @@ export default function EditCollectionModal(props: Props) {
               />
 
               <Stack gap={'xs'}>
-                <Select
-                  variant="filled"
-                  size="md"
-                  color="green"
-                  label="Collaboration"
+                <CollectionAccessControl
+                  value={form.values.accessType}
+                  onChange={(v) => form.setFieldValue('accessType', v)}
                   disabled={isMargin}
-                  leftSection={
-                    form.getValues().accessType ===
-                    CollectionAccessType.OPEN ? (
-                      <ThemeIcon
-                        size={'md'}
-                        variant="light"
-                        color={'green'}
-                        radius={'xl'}
-                      >
-                        <FaSeedling size={14} />
-                      </ThemeIcon>
-                    ) : null
-                  }
-                  allowDeselect={false}
-                  defaultValue={CollectionAccessType.CLOSED}
-                  data={[
-                    {
-                      value: CollectionAccessType.CLOSED,
-                      label: 'Personal — Only you can add',
-                    },
-                    {
-                      value: CollectionAccessType.OPEN,
-                      label: 'Open — Anyone can add',
-                    },
-                  ]}
-                  {...form.getInputProps('accessType')}
                 />
                 {isMargin && (
                   <Text size="sm" c="dimmed">

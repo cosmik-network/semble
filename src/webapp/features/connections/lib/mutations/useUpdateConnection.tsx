@@ -1,8 +1,6 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { updateConnection } from '../dal';
-import { connectionKeys } from '../connectionKeys';
-import { feedKeys } from '@/features/feeds/lib/feedKeys';
-import { tagKeys } from '@/features/tags/lib/tagKeys';
+import { invalidateAfterConnectionUpdated } from '../connectionInvalidation';
 import { UpdateConnectionRequest } from '@semble/types';
 import posthog from 'posthog-js';
 import { ConnectionUpdatedEventProperties } from '@/features/analytics/types';
@@ -25,27 +23,7 @@ export default function useUpdateConnection() {
       if (variables.analytics && shouldCaptureAnalytics()) {
         posthog.capture('connection_updated', variables.analytics);
       }
-
-      // Invalidate all connection queries to ensure updates appear everywhere
-      queryClient.invalidateQueries({ queryKey: connectionKeys.all() });
-      // Invalidate all feed queries to update connection items in feeds
-      queryClient.invalidateQueries({ queryKey: feedKeys.all() });
-      // Invalidate tag queries so tags typed in the connection note appear in autocomplete
-      queryClient.invalidateQueries({ queryKey: tagKeys.all() });
-      // Invalidate all URL metadata queries with stats to update tab counts
-      queryClient.invalidateQueries({
-        predicate: (query): boolean => {
-          const key = query.queryKey as unknown[];
-          return !!(
-            key[0] === 'cards' &&
-            key[1] === 'metadata' &&
-            key[3] &&
-            typeof key[3] === 'object' &&
-            'includeStats' in key[3] &&
-            key[3].includeStats === true
-          );
-        },
-      });
+      invalidateAfterConnectionUpdated(queryClient, variables);
     },
   });
 

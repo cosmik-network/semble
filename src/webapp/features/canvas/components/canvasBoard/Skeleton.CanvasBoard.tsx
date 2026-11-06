@@ -1,0 +1,62 @@
+import { Box, Group, Paper, Skeleton, Text } from '@mantine/core';
+import { BOARD_TOOLS } from '../../model/boardTools';
+import classes from './Skeleton.CanvasBoard.module.css';
+
+interface Props {
+  // What the board is loading, shown in its middle
+  progress?: string;
+}
+
+// The board's header, navigation and toolbar where tldraw puts them
+export default function CanvasBoardSkeleton(props: Props) {
+  return (
+    <Box pos="absolute" inset={0} className={classes.board}>
+      <Paper
+        withBorder
+        shadow="sm"
+        radius="xl"
+        p={4}
+        pr="xs"
+        m="xs"
+        pos="absolute"
+      >
+        <Group gap="xs" wrap="nowrap">
+          <Skeleton circle height={34} />
+          <Skeleton height={14} width={120} radius="xl" />
+        </Group>
+      </Paper>
+
+      {props.progress && (
+        <Text c="dimmed" fz="sm" className={classes.progress}>
+          {props.progress}
+        </Text>
+      )}
+
+      <Paper
+        withBorder
+        shadow="sm"
+        radius="xl"
+        p={4}
+        m="xs"
+        pos="absolute"
+        bottom={0}
+        left={0}
+        visibleFrom="md"
+      >
+        <Group gap={2} wrap="nowrap">
+          {Array.from({ length: 5 }, (_, i) => (
+            <Skeleton key={i} circle height={34} />
+          ))}
+        </Group>
+      </Paper>
+
+      <Paper shadow="sm" radius="md" p={4} m="xs" className={classes.toolbar}>
+        <Group gap={2} wrap="nowrap">
+          {BOARD_TOOLS.map((tool) => (
+            <Skeleton key={tool} height={36} width={36} radius="md" />
+          ))}
+        </Group>
+      </Paper>
+    </Box>
+  );
+}

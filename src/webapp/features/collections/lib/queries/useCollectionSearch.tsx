@@ -1,4 +1,4 @@
-import { useInfiniteQuery } from '@tanstack/react-query';
+import { keepPreviousData, useInfiniteQuery } from '@tanstack/react-query';
 import { getMyCollections } from '../dal';
 import { collectionKeys } from '../collectionKeys';
 import { CollectionSortField } from '@semble/types';
@@ -9,6 +9,7 @@ interface Props {
   params?: {
     limit?: number;
   };
+  keepPreviousData?: boolean;
 }
 
 export default function useCollectionSearch(props: Props) {
@@ -30,6 +31,7 @@ export default function useCollectionSearch(props: Props) {
         : undefined;
     },
     enabled: !!props.query,
+    placeholderData: props.keepPreviousData ? keepPreviousData : undefined,
   });
 
   return collections;
