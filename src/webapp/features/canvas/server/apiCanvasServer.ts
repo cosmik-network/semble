@@ -89,6 +89,9 @@ async function fetchConnections(url: string) {
         sourceUrl: source.url,
         targetUrl: target.url,
         curatorId: connection.curator.id,
+        note: connection.note
+          ? { text: connection.note, author: connection.curator }
+          : null,
       });
     }
     if (!response.pagination.hasMore) return connections;
@@ -221,18 +224,25 @@ export const apiCanvasServer: CanvasServer = {
       }),
       (error) => isNotFoundApiError(error) || isMalformedAddress(error),
     ),
-  async createConnection({ sourceUrl, targetUrl, type }) {
+  async createConnection({ sourceUrl, targetUrl, type, note }) {
     const response = await createConnection({
       sourceUrl,
       targetUrl,
       connectionType: type,
+      note,
     });
     // The webapp's call returns nothing when it fails
     if (!response) throw new Error("Couldn't create the connection");
     return response.connectionId;
   },
-  async updateConnection(connectionId, { type, swap }) {
-    await updateConnection({ connectionId, connectionType: type, swap });
+  async updateConnection(connectionId, { type, swap, note }) {
+    await updateConnection({
+      connectionId,
+      connectionType: type,
+      swap,
+      note: note ?? undefined,
+      removeNote: note === null || undefined,
+    });
   },
   async deleteConnection(connectionId) {
     await deleteConnection({ connectionId });

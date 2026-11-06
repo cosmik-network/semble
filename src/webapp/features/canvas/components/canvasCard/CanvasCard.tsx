@@ -11,7 +11,7 @@ import {
   Text,
 } from '@mantine/core';
 import Link from 'next/link';
-import { LuSquareDashedMousePointer } from 'react-icons/lu';
+import { TfiBlackboard } from 'react-icons/tfi';
 import { getRelativeTime } from '@/lib/utils/time';
 import { canvasHref } from '../../lib/constants';
 import type { CanvasSummary } from '../../storage/canvasStorage';
@@ -48,7 +48,7 @@ export default function CanvasCard(props: Props) {
               c="gray"
               style={{ borderRadius: 'var(--mantine-radius-md)' }}
             >
-              <LuSquareDashedMousePointer size={32} />
+              <TfiBlackboard size={32} />
             </Center>
           )}
         </AspectRatio>

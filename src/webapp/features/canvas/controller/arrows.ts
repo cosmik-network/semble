@@ -3,6 +3,7 @@ import {
   createShapeId,
   getArrowBindings,
   type Editor,
+  type JsonObject,
   type TLArrowBinding,
   type TLArrowShape,
   type TLBindingCreate,
@@ -74,6 +75,7 @@ const arrowStyle = (spec: BoardArrowSpec): Partial<TLArrowShape['props']> => ({
 const metaOf = (spec: BoardArrowSpec): ConnectionArrowMeta => ({
   connectionId: spec.connectionId,
   connectionType: spec.type,
+  note: spec.note,
   own: spec.own,
   from: createShapeId(spec.fromEnd),
   to: createShapeId(spec.toEnd),
@@ -180,7 +182,7 @@ export function attachArrows(deps: ArrowsDeps) {
           type: 'arrow',
           x: start.x,
           y: start.y,
-          meta: { ...meta },
+          meta: { ...meta } as unknown as JsonObject,
           props: {
             ...arrowStyle(spec),
             start: { x: 0, y: 0 },
@@ -191,7 +193,7 @@ export function attachArrows(deps: ArrowsDeps) {
         updated.push({
           id,
           type: 'arrow',
-          meta: { ...meta },
+          meta: { ...meta } as unknown as JsonObject,
           props: arrowStyle(spec),
         });
       }
@@ -344,7 +346,9 @@ export function attachArrows(deps: ArrowsDeps) {
   // published, which flashes its arrow, or null if it wasn't.
   function drawPending(connection: NewConnection) {
     const key = `pending-${++pendingCount}`;
-    pending.set(key, { ...connection, id: key, curatorId: deps.viewerDid });
+    // Its note shows once the connection is fetched, with its author
+    const { note: _note, ...drawn } = connection;
+    pending.set(key, { ...drawn, id: key, curatorId: deps.viewerDid });
     published.push(key);
     setPhases({ [key]: 'pending' });
     reconcile();

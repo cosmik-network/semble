@@ -4,7 +4,7 @@ import { ActionIcon, Tooltip } from '@mantine/core';
 import { useMounted } from '@mantine/hooks';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
-import { LuSquareDashedMousePointer } from 'react-icons/lu';
+import { TfiBlackboard } from 'react-icons/tfi';
 import { useFeatureFlags } from '@/lib/clientFeatureFlags';
 import { seededCanvasHref } from '../../lib/constants';
 
@@ -30,7 +30,7 @@ export default function OpenInCanvasHeaderButton() {
         radius="xl"
         aria-label="Open in canvas"
       >
-        <LuSquareDashedMousePointer />
+        <TfiBlackboard />
       </ActionIcon>
     </Tooltip>
   );

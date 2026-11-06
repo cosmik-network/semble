@@ -1,7 +1,13 @@
 import { ActionIcon, Button, Group, Paper, Tooltip } from '@mantine/core';
 import type { ReactNode } from 'react';
 import { FiPlus } from 'react-icons/fi';
-import { LuEyeOff, LuMinus, LuPlus, LuScan, LuSpline } from 'react-icons/lu';
+import {
+  LuEyeOff,
+  LuScan,
+  LuSpline,
+  LuZoomIn,
+  LuZoomOut,
+} from 'react-icons/lu';
 import { useEditor, useReadonly, useValue } from 'tldraw';
 import type { CanvasController } from '../../controller/canvasController';
 
@@ -81,13 +87,13 @@ export default function BoardNavigation(props: Props) {
       )}
       <NavPill>
         <NavButton label="Zoom out" onClick={() => editor.zoomOut()}>
-          <LuMinus size={16} />
+          <LuZoomOut size={16} />
         </NavButton>
         <NavButton label="Zoom to fit" onClick={() => editor.zoomToFit()}>
           <LuScan size={16} />
         </NavButton>
         <NavButton label="Zoom in" onClick={() => editor.zoomIn()}>
-          <LuPlus size={16} />
+          <LuZoomIn size={16} />
         </NavButton>
       </NavPill>
       <NavPill>

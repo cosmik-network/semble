@@ -41,7 +41,7 @@ export interface PickerState {
 
 // A server write the toast can reverse
 export interface UndoableWrite {
-  kind: 'published' | 'retyped' | 'flipped';
+  kind: 'published' | 'retyped' | 'flipped' | 'noted';
   connectionId: string;
   sourceUrl: string;
   targetUrl: string;
@@ -134,7 +134,7 @@ export function attachConnections(deps: ConnectionsDeps) {
   editor.on('before-event', onBeforeEvent);
   editor.on('event', onEvent);
 
-  async function publish(type?: ConnectionType) {
+  async function publish(type?: ConnectionType, note?: string) {
     const open = state.get();
     if (!open) return;
     close();
@@ -144,6 +144,7 @@ export function attachConnections(deps: ConnectionsDeps) {
       sourceUrl: open.sourceUrl,
       targetUrl: open.targetUrl,
       type: type ?? open.highlighted,
+      ...(note?.trim() && { note: note.trim() }),
     };
     // Replaces the last write's toast, as the published one would
     transact(() => {

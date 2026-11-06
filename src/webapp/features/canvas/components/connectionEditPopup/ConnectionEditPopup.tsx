@@ -1,9 +1,19 @@
-import { ActionIcon, Menu, Tooltip } from '@mantine/core';
+import {
+  ActionIcon,
+  Button,
+  Group,
+  Menu,
+  Popover,
+  Stack,
+  Tooltip,
+} from '@mantine/core';
 import { useEffect, useState } from 'react';
+import { MdOutlineStickyNote2 } from 'react-icons/md';
 import { LuArrowLeftRight } from 'react-icons/lu';
 import { MdDeleteOutline } from 'react-icons/md';
 import { TbSelector } from 'react-icons/tb';
 import { useEditor, useValue, type TLArrowShape } from 'tldraw';
+import NoteTextarea from '@/components/input/noteTextarea/NoteTextarea';
 import { CONNECTION_TYPES } from '@/features/connections/const/connectionTypes';
 import BoardPopup, {
   GAP,
@@ -11,6 +21,7 @@ import BoardPopup, {
   ROOM_ABOVE,
 } from '../boardPopup/BoardPopup';
 import {
+  CONNECTION_NOTE_MENU,
   CONNECTION_TYPE_MENU,
   type ConnectionEdits,
   type EditableConnection,
@@ -105,6 +116,7 @@ function Popup(props: PopupProps) {
           })}
         </Menu.Dropdown>
       </Menu>
+      <NoteEditor edits={props.edits} connection={props.connection} />
       <Tooltip label="Flip direction" withArrow withinPortal={false}>
         <ActionIcon
           {...ICON_PROPS}
@@ -125,5 +137,99 @@ function Popup(props: PopupProps) {
         </ActionIcon>
       </Tooltip>
     </BoardPopup>
+  );
+}
+
+function NoteEditor(props: PopupProps) {
+  const editor = useEditor();
+  const [isOpen, setIsOpen] = useState(false);
+  const [draft, setDraft] = useState('');
+  const [isSaving, setIsSaving] = useState(false);
+  const label = props.connection.note ? 'Edit note' : 'Add note';
+  const isUnchanged =
+    (draft.trim() || null) === (props.connection.note ?? null);
+
+  // Open as a tldraw menu, so the board's shortcuts leave its keys alone
+  useEffect(() => {
+    if (!isOpen) return;
+    editor.menus.addOpenMenu(CONNECTION_NOTE_MENU);
+    return () => editor.menus.deleteOpenMenu(CONNECTION_NOTE_MENU);
+  }, [editor, isOpen]);
+
+  function open() {
+    setDraft(props.connection.note ?? '');
+    setIsOpen(true);
+  }
+
+  async function save() {
+    if (isSaving) return;
+    setIsSaving(true);
+    const saved = await props.edits.editNote(props.connection, draft);
+    setIsSaving(false);
+    if (saved) setIsOpen(false);
+  }
+
+  return (
+    <Popover
+      position="bottom"
+      width={300}
+      shadow="md"
+      radius="md"
+      withinPortal={false}
+      trapFocus
+      opened={isOpen}
+      onChange={setIsOpen}
+    >
+      <Popover.Target>
+        <Tooltip label={label} withArrow withinPortal={false}>
+          <ActionIcon
+            {...ICON_PROPS}
+            aria-label={label}
+            onClick={() => (isOpen ? setIsOpen(false) : open())}
+          >
+            <MdOutlineStickyNote2 size={16} />
+          </ActionIcon>
+        </Tooltip>
+      </Popover.Target>
+      <Popover.Dropdown p="xs">
+        <Stack gap="xs">
+          <NoteTextarea
+            aria-label="Note"
+            placeholder="Add a note"
+            variant="filled"
+            autosize
+            minRows={3}
+            maxRows={8}
+            data-autofocus
+            value={draft}
+            onValueChange={setDraft}
+            onKeyDown={(event) => {
+              if (event.key === 'Enter' && (event.metaKey || event.ctrlKey)) {
+                event.preventDefault();
+                void save();
+              }
+            }}
+          />
+          <Group justify="flex-end" gap="xs">
+            <Button
+              variant="light"
+              color="gray"
+              size="xs"
+              onClick={() => setIsOpen(false)}
+            >
+              Cancel
+            </Button>
+            <Button
+              size="xs"
+              loading={isSaving}
+              disabled={isUnchanged}
+              onClick={() => void save()}
+            >
+              Save
+            </Button>
+          </Group>
+        </Stack>
+      </Popover.Dropdown>
+    </Popover>
   );
 }

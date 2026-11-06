@@ -4,7 +4,7 @@ import { Stack, Text } from '@mantine/core';
 import { useMounted } from '@mantine/hooks';
 import { useState } from 'react';
 import { BiCollection } from 'react-icons/bi';
-import { LuSquareDashedMousePointer } from 'react-icons/lu';
+import { TfiBlackboard } from 'react-icons/tfi';
 import { FaRegNoteSticky } from 'react-icons/fa6';
 import StatDrawer from '@/components/statDrawer/StatDrawer';
 import FollowingCollectionsContainer from '@/features/follows/containers/followingCollectionsContainer/FollowingCollectionsContainer';
@@ -100,7 +100,7 @@ export default function LibraryNav() {
         {mounted && featureFlags?.canvas && (
           <LibraryNavSection
             label="Canvases"
-            icon={<LuSquareDashedMousePointer size={20} />}
+            icon={<TfiBlackboard size={20} />}
             viewAllHref="/canvas"
             errorMessage="Could not load canvases"
             {...expanded('canvasesNavExpanded')}

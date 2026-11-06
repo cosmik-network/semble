@@ -3,12 +3,20 @@ import type { AppBskyFeedDefs } from '@atproto/api';
 import type { ConnectionType, UrlMetadata, User } from '@semble/types';
 import { canvasKeys } from '../lib/canvasKeys';
 
+export interface ConnectionNote {
+  text: string;
+  // The connection's curator
+  author: User;
+}
+
 export interface LinkConnection {
   id: string;
   type: ConnectionType | null;
   sourceUrl: string;
   targetUrl: string;
   curatorId: string;
+  // Missing from connections cached before notes were
+  note?: ConnectionNote | null;
 }
 
 // What a link card shows about its link, the same on every copy
@@ -30,6 +38,7 @@ export interface NewConnection {
   sourceUrl: string;
   targetUrl: string;
   type: ConnectionType;
+  note?: string;
 }
 
 // A collection as its card in the webapp shows it
@@ -72,6 +81,8 @@ export interface CollectionPage {
 export interface ConnectionChange {
   type?: ConnectionType;
   swap?: boolean;
+  // Null removes it
+  note?: string | null;
 }
 
 export interface CanvasServer {

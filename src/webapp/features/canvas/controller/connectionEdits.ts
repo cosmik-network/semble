@@ -21,12 +21,14 @@ export interface ConnectionEditsDeps {
 
 // The edit popup's type menu, which keeps the popup open
 export const CONNECTION_TYPE_MENU = 'canvas-connection-type-menu';
+export const CONNECTION_NOTE_MENU = 'canvas-connection-note-menu';
 
 // One of the viewer's own connections, as its arrow shows it
 export interface EditableConnection {
   arrowId: TLShapeId;
   connectionId: string;
   type: ConnectionType | null;
+  note: string | null;
   // The URLs of the ends the arrow joins
   sourceUrl: string;
   targetUrl: string;
@@ -60,6 +62,7 @@ export function attachConnectionEdits(deps: ConnectionEditsDeps) {
       arrowId: id,
       connectionId: connection.connectionId,
       type: connection.connectionType,
+      note: connection.note?.text ?? null,
       sourceUrl,
       targetUrl,
     };
@@ -75,7 +78,11 @@ export function attachConnectionEdits(deps: ConnectionEditsDeps) {
       // which tldraw's own isMenuOpen doesn't allow for
       const otherMenus = editor.menus
         .getOpenMenus()
-        .filter((id) => !id.startsWith(CONNECTION_TYPE_MENU));
+        .filter(
+          (id) =>
+            !id.startsWith(CONNECTION_TYPE_MENU) &&
+            !id.startsWith(CONNECTION_NOTE_MENU),
+        );
       if (otherMenus.length > 0 || editor.getIsReadonly()) return null;
       const shape = editor.getOnlySelectedShape();
       return shape ? editableOf(shape.id) : null;
@@ -145,6 +152,25 @@ export function attachConnectionEdits(deps: ConnectionEditsDeps) {
     });
   }
 
+  // An empty note removes it. Whether it was saved.
+  async function editNote(connection: EditableConnection, text: string) {
+    const { connectionId, note: before } = connection;
+    const note = text.trim() || null;
+    if (note === before) return true;
+    const failed = "Couldn't save the note.";
+    if (!(await update(connectionId, { note }, failed))) return false;
+    deps.undoToast.offer({
+      kind: 'noted',
+      connectionId,
+      sourceUrl: connection.sourceUrl,
+      targetUrl: connection.targetUrl,
+      type: connection.type,
+      undo: undoWith(connectionId, { note: before }),
+      undoFailed: failed,
+    });
+    return true;
+  }
+
   // Stands in for tldraw's delete when the selection holds connection arrows.
   // The viewer's own connections, and the other shapes selected with them,
   // wait for the confirmation; ghosts stay. Whether it handled the delete.
@@ -200,6 +226,7 @@ export function attachConnectionEdits(deps: ConnectionEditsDeps) {
     selected,
     changeType,
     flip,
+    editNote,
     deleting,
     requestDelete,
     confirmDelete,

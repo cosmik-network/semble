@@ -10,7 +10,7 @@ import {
   UnstyledButton,
 } from '@mantine/core';
 import { useWindowEvent } from '@mantine/hooks';
-import { useEffect, useRef, type KeyboardEvent } from 'react';
+import { useEffect, useRef, useState, type KeyboardEvent } from 'react';
 import { LuArrowUpDown } from 'react-icons/lu';
 import {
   stopEventPropagation,
@@ -18,6 +18,7 @@ import {
   useValue,
   type TLArrowShape,
 } from 'tldraw';
+import NoteTextarea from '@/components/input/noteTextarea/NoteTextarea';
 import { CONNECTION_TYPES } from '@/features/connections/const/connectionTypes';
 import type {
   ConnectionPicker as Picker,
@@ -51,6 +52,7 @@ function PickerPanel(props: PanelProps) {
   const editor = useEditor();
   const ref = useRef<HTMLDivElement>(null);
   const highlightedRef = useRef<HTMLButtonElement>(null);
+  const [note, setNote] = useState('');
   const position = useValue(
     'picker position',
     () => {
@@ -85,10 +87,15 @@ function PickerPanel(props: PanelProps) {
   }, [props.open.highlighted]);
 
   function onKeyDown(event: KeyboardEvent) {
+    // The note's suggestions take their own keys
+    if (event.defaultPrevented) return;
+    // In the note, only Enter publishes; Shift+Enter breaks the line
+    const inNote = event.target instanceof HTMLTextAreaElement;
+    if (inNote && (event.key !== 'Enter' || event.shiftKey)) return;
     const handlers: Record<string, () => void> = {
       ArrowDown: () => props.picker.moveHighlight(1),
       ArrowUp: () => props.picker.moveHighlight(-1),
-      Enter: () => void props.picker.publish(),
+      Enter: () => void props.picker.publish(undefined, note),
       Escape: () => props.picker.discard(),
     };
     const handler = handlers[event.key];
@@ -145,6 +152,19 @@ function PickerPanel(props: PanelProps) {
           </ActionIcon>
         </Tooltip>
       </Group>
+      <Box px={8} pb={8}>
+        <NoteTextarea
+          aria-label="Note"
+          placeholder="Add a note (optional)"
+          variant="filled"
+          size="sm"
+          autosize
+          minRows={1}
+          maxRows={4}
+          value={note}
+          onValueChange={setNote}
+        />
+      </Box>
       <ScrollArea.Autosize type="scroll" mah={300}>
         <Stack gap={0}>
           {CONNECTION_TYPES.map((type) => {
@@ -165,7 +185,7 @@ function PickerPanel(props: PanelProps) {
                 }
                 // Not on enter: keys scroll rows under a resting pointer
                 onPointerMove={() => props.picker.highlight(type.value)}
-                onClick={() => void props.picker.publish(type.value)}
+                onClick={() => void props.picker.publish(type.value, note)}
               >
                 <Group gap="sm" wrap="nowrap">
                   <Icon size={20} color="green" />
