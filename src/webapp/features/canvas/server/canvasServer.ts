@@ -38,6 +38,7 @@ export interface NewConnection {
   sourceUrl: string;
   targetUrl: string;
   type: ConnectionType;
+  note?: string;
 }
 
 // A collection as its card in the webapp shows it
@@ -80,6 +81,8 @@ export interface CollectionPage {
 export interface ConnectionChange {
   type?: ConnectionType;
   swap?: boolean;
+  // Null removes it
+  note?: string | null;
 }
 
 export interface CanvasServer {

@@ -14,6 +14,7 @@ const TITLES: Record<UndoableWrite['kind'], (label: string) => string> = {
   published: (label) => `Connected · ${label}`,
   retyped: (label) => `Changed to ${label}`,
   flipped: () => 'Direction flipped',
+  noted: () => 'Note saved',
 };
 
 interface Props {

@@ -346,7 +346,9 @@ export function attachArrows(deps: ArrowsDeps) {
   // published, which flashes its arrow, or null if it wasn't.
   function drawPending(connection: NewConnection) {
     const key = `pending-${++pendingCount}`;
-    pending.set(key, { ...connection, id: key, curatorId: deps.viewerDid });
+    // Its note shows once the connection is fetched, with its author
+    const { note: _note, ...drawn } = connection;
+    pending.set(key, { ...drawn, id: key, curatorId: deps.viewerDid });
     published.push(key);
     setPhases({ [key]: 'pending' });
     reconcile();
