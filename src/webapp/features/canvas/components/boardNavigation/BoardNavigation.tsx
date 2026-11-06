@@ -1,12 +1,14 @@
-import { ActionIcon, Divider, Group, Paper, Tooltip } from '@mantine/core';
+import { ActionIcon, Button, Group, Paper, Tooltip } from '@mantine/core';
 import type { ReactNode } from 'react';
+import { FiPlus } from 'react-icons/fi';
 import { LuEyeOff, LuMinus, LuPlus, LuScan, LuSpline } from 'react-icons/lu';
-import { useEditor, useValue } from 'tldraw';
+import { useEditor, useReadonly, useValue } from 'tldraw';
 import type { CanvasController } from '../../controller/canvasController';
 
 interface Props {
   // Null until the board has loaded
   arrowView: CanvasController['arrowView'] | null;
+  quickAdd: CanvasController['quickAdd'] | null;
 }
 
 interface ButtonProps {
@@ -36,8 +38,19 @@ function NavButton(props: ButtonProps) {
   );
 }
 
+function NavPill(props: { children: ReactNode }) {
+  return (
+    <Paper withBorder shadow="sm" radius="xl" p={4}>
+      <Group gap={2} wrap="nowrap">
+        {props.children}
+      </Group>
+    </Paper>
+  );
+}
+
 export default function BoardNavigation(props: Props) {
   const editor = useEditor();
+  const isReadonly = useReadonly();
   const focusOn = useValue('arrow focus', () => props.arrowView?.isFocusOn(), [
     props.arrowView,
   ]);
@@ -46,25 +59,38 @@ export default function BoardNavigation(props: Props) {
   ]);
 
   return (
-    <Paper
-      withBorder
-      shadow="sm"
-      radius="xl"
-      p={4}
-      m="xs"
-      style={{ pointerEvents: 'all' }}
-    >
-      <Group gap={2} wrap="nowrap">
+    <Group gap="xs" m="xs" wrap="nowrap" style={{ pointerEvents: 'all' }}>
+      {!isReadonly && (
+        <Tooltip
+          label="Search or paste a link to add (/)"
+          withArrow
+          withinPortal={false}
+        >
+          {/* As tall as the pills beside it */}
+          <Button
+            radius="xl"
+            h={44}
+            leftSection={<FiPlus size={18} />}
+            disabled={!props.quickAdd}
+            onClick={() => props.quickAdd?.open()}
+            style={{ boxShadow: 'var(--mantine-shadow-sm)' }}
+          >
+            Add
+          </Button>
+        </Tooltip>
+      )}
+      <NavPill>
         <NavButton label="Zoom out" onClick={() => editor.zoomOut()}>
           <LuMinus size={16} />
-        </NavButton>
-        <NavButton label="Zoom in" onClick={() => editor.zoomIn()}>
-          <LuPlus size={16} />
         </NavButton>
         <NavButton label="Zoom to fit" onClick={() => editor.zoomToFit()}>
           <LuScan size={16} />
         </NavButton>
-        <Divider orientation="vertical" mx={4} />
+        <NavButton label="Zoom in" onClick={() => editor.zoomIn()}>
+          <LuPlus size={16} />
+        </NavButton>
+      </NavPill>
+      <NavPill>
         <NavButton
           label={focusOn ? 'Show every arrow' : 'Focus arrows on hover'}
           active={!!focusOn}
@@ -81,7 +107,7 @@ export default function BoardNavigation(props: Props) {
         >
           <LuEyeOff size={16} />
         </NavButton>
-      </Group>
-    </Paper>
+      </NavPill>
+    </Group>
   );
 }

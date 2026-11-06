@@ -158,7 +158,10 @@ export default function BoardEditor(props: Props) {
         />
       ),
       NavigationPanel: () => (
-        <BoardNavigation arrowView={controller?.arrowView ?? null} />
+        <BoardNavigation
+          arrowView={controller?.arrowView ?? null}
+          quickAdd={controller?.quickAdd ?? null}
+        />
       ),
       Toolbar: BoardToolbar,
       ContextMenu: BoardContextMenu,
