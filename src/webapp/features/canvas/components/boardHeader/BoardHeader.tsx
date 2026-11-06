@@ -4,7 +4,7 @@ import { ActionIcon, Group, Paper, Text, Tooltip } from '@mantine/core';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { IoArrowBack } from 'react-icons/io5';
-import { LuPencil } from 'react-icons/lu';
+import { BsPencilFill } from 'react-icons/bs';
 import { useEditor, useValue } from 'tldraw';
 import type { CanvasController } from '../../controller/canvasController';
 import { useNavHistory } from '@/providers/navHistory';
@@ -84,7 +84,7 @@ export default function BoardHeader(props: Props) {
               radius="xl"
               aria-label="Rename canvas"
             >
-              <LuPencil size={14} />
+              <BsPencilFill size={14} />
             </ActionIcon>
           </Tooltip>
         )}
