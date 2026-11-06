@@ -12,6 +12,8 @@ export interface QuickAddDeps {
   placeCollection(target: CollectionToOpen, point: VecLike): void;
 }
 
+export type QuickAddKind = 'cards' | 'collections';
+
 // Quick-add places a pasted or searched link or collection where it was
 // opened: the double-click point, or the centre of the view for /
 export function attachQuickAdd(editor: Editor, deps: QuickAddDeps) {
@@ -19,6 +21,7 @@ export function attachQuickAdd(editor: Editor, deps: QuickAddDeps) {
   const placeAt = atom<VecLike | null>('quick-add', null);
   // Kept across openings while the board is open
   const scope = atom<SearchScope>('quick-add scope', 'mine');
+  const kind = atom<QuickAddKind>('quick-add kind', 'cards');
 
   function open(point?: VecLike) {
     if (editor.getIsReadonly()) return;
@@ -50,6 +53,8 @@ export function attachQuickAdd(editor: Editor, deps: QuickAddDeps) {
     close: () => placeAt.set(null),
     scope,
     setScope: (next: SearchScope) => scope.set(next),
+    kind,
+    setKind: (next: QuickAddKind) => kind.set(next),
     // Text that isn't a link is a search, and leaves quick-add open
     place(input: string) {
       const url = linkKey(input);
