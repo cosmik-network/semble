@@ -6,7 +6,6 @@ import {
   Container,
   Drawer,
   Group,
-  Select,
   Stack,
   SegmentedControl,
   Text,
@@ -18,6 +17,7 @@ import {
 import { useState, useEffect, Suspense } from 'react';
 import { Collection, CollectionAccessType } from '@semble/types';
 import { DEFAULT_OVERLAY_PROPS } from '@/styles/overlays';
+import CollectionAccessControl from '@/features/collections/components/collectionAccessControl/CollectionAccessControl';
 import { useForm } from '@mantine/form';
 import { notifications } from '@mantine/notifications';
 import useAddCard from '@/features/cards/lib/mutations/useAddCard';
@@ -474,36 +474,11 @@ export default function Composer(props: Props) {
                   }
                 />
 
-                <Select
-                  variant="filled"
-                  size="md"
-                  label="Collaboration"
-                  leftSection={
-                    collectionForm.getValues().accessType ===
-                    CollectionAccessType.OPEN ? (
-                      <ThemeIcon
-                        size={'md'}
-                        variant="light"
-                        color={'green'}
-                        radius={'xl'}
-                      >
-                        <FaSeedling size={14} />
-                      </ThemeIcon>
-                    ) : null
+                <CollectionAccessControl
+                  value={collectionForm.values.accessType}
+                  onChange={(v) =>
+                    collectionForm.setFieldValue('accessType', v)
                   }
-                  allowDeselect={false}
-                  defaultValue={CollectionAccessType.CLOSED}
-                  data={[
-                    {
-                      value: CollectionAccessType.CLOSED,
-                      label: 'Personal — Only you can add',
-                    },
-                    {
-                      value: CollectionAccessType.OPEN,
-                      label: 'Open — Anyone can add',
-                    },
-                  ]}
-                  {...collectionForm.getInputProps('accessType')}
                 />
 
                 <Group
