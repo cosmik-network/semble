@@ -10,9 +10,10 @@ import type { CanvasController } from '../../controller/canvasController';
 import { useNavHistory } from '@/providers/navHistory';
 import useCanvas from '../../lib/queries/useCanvas';
 import { DEFAULT_CANVAS_NAME } from '../../storage/canvasStorage';
+import DeleteCanvasModal from '../deleteCanvasModal/DeleteCanvasModal';
 import RenameCanvasModal from '../renameCanvasModal/RenameCanvasModal';
 
-const RENAME_MENU = 'canvas-rename-modal';
+const MODAL_MENU = 'canvas-header-modal';
 
 interface Props {
   canvasId: string;
@@ -25,6 +26,8 @@ export default function BoardHeader(props: Props) {
   const editor = useEditor();
   const { data: canvas } = useCanvas(props.canvasId);
   const [isRenaming, setIsRenaming] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const modalOpen = isRenaming || isDeleting;
   const refreshFailed = useValue(
     'refresh failed',
     () => props.refreshFailed?.get() ?? false,
@@ -37,12 +40,12 @@ export default function BoardHeader(props: Props) {
   const goBack = () => (canGoBack ? router.back() : router.replace('/home'));
 
   // Open as a tldraw menu, so the board's shortcuts don't act on key presses
-  // inside the modal
+  // inside the modals
   useEffect(() => {
-    if (!isRenaming) return;
-    editor.menus.addOpenMenu(RENAME_MENU);
-    return () => editor.menus.deleteOpenMenu(RENAME_MENU);
-  }, [editor, isRenaming]);
+    if (!modalOpen) return;
+    editor.menus.addOpenMenu(MODAL_MENU);
+    return () => editor.menus.deleteOpenMenu(MODAL_MENU);
+  }, [editor, modalOpen]);
 
   return (
     <Paper
@@ -92,14 +95,27 @@ export default function BoardHeader(props: Props) {
         )}
       </Group>
       {canvas && (
-        // Keyed so the form starts from a name changed elsewhere
-        <RenameCanvasModal
-          key={canvas.name}
-          isOpen={isRenaming}
-          onClose={() => setIsRenaming(false)}
-          canvasId={props.canvasId}
-          name={canvas.name}
-        />
+        <>
+          {/* Keyed so the form starts from a name changed elsewhere */}
+          <RenameCanvasModal
+            key={canvas.name}
+            isOpen={isRenaming}
+            onClose={() => setIsRenaming(false)}
+            canvasId={props.canvasId}
+            name={canvas.name}
+            onDelete={() => {
+              setIsRenaming(false);
+              setIsDeleting(true);
+            }}
+          />
+          <DeleteCanvasModal
+            isOpen={isDeleting}
+            onClose={() => setIsDeleting(false)}
+            canvasId={props.canvasId}
+            name={canvas.name}
+            onDeleted={() => router.replace('/canvas')}
+          />
+        </>
       )}
     </Paper>
   );
