@@ -1,10 +1,10 @@
 'use client';
 
-import '@mantine/core/styles.css';
-import '@mantine/notifications/styles.css';
-import '@mantine/code-highlight/styles.css';
-import '@mantine/lightbox/styles.css';
-import '@mantine/spotlight/styles.css';
+import '@mantine/core/styles.layer.css';
+import '@mantine/notifications/styles.layer.css';
+import '@mantine/code-highlight/styles.layer.css';
+import '@mantine/lightbox/styles.layer.css';
+import '@mantine/spotlight/styles.layer.css';
 import { theme } from '@/styles/theme';
 import {
   MantineProvider as BaseProvider,

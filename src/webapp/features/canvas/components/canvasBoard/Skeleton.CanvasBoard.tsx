@@ -32,23 +32,26 @@ export default function CanvasBoardSkeleton(props: Props) {
         </Text>
       )}
 
-      <Paper
-        withBorder
-        shadow="sm"
-        radius="xl"
-        p={4}
+      <Group
+        gap="xs"
         m="xs"
         pos="absolute"
         bottom={0}
         left={0}
         visibleFrom="md"
+        wrap="nowrap"
       >
-        <Group gap={2} wrap="nowrap">
-          {Array.from({ length: 5 }, (_, i) => (
-            <Skeleton key={i} circle height={34} />
-          ))}
-        </Group>
-      </Paper>
+        <Skeleton height={44} width={88} radius="xl" />
+        {[3, 2].map((buttons) => (
+          <Paper key={buttons} withBorder shadow="sm" radius="xl" p={4}>
+            <Group gap={2} wrap="nowrap">
+              {Array.from({ length: buttons }, (_, i) => (
+                <Skeleton key={i} circle height={34} />
+              ))}
+            </Group>
+          </Paper>
+        ))}
+      </Group>
 
       <Paper shadow="sm" radius="md" p={4} m="xs" className={classes.toolbar}>
         <Group gap={2} wrap="nowrap">

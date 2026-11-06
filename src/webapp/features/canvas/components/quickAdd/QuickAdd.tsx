@@ -6,7 +6,10 @@ import { BiLink, BiSearch } from 'react-icons/bi';
 import { useValue } from 'tldraw';
 import UrlOptionRow from '@/features/cards/components/urlOptionRow/UrlOptionRow';
 import { UPDATE_OVERLAY_PROPS } from '@/styles/overlays';
-import type { QuickAdd as QuickAddController } from '../../controller/quickAdd';
+import type {
+  QuickAdd as QuickAddController,
+  QuickAddKind,
+} from '../../controller/quickAdd';
 import useQuickAddCollections from '../../lib/queries/useQuickAddCollections';
 import useLinkSearch from '../../lib/queries/useLinkSearch';
 import type { SearchScope } from '../../server/canvasServer';
@@ -19,19 +22,34 @@ const SCOPES: { value: SearchScope; label: string }[] = [
   { value: 'everyone', label: 'Everyone' },
 ];
 
+const KINDS: { value: QuickAddKind; label: string }[] = [
+  { value: 'cards', label: 'Cards' },
+  { value: 'collections', label: 'Collections' },
+];
+
 const MESSAGES: Record<
   SearchScope,
-  { prompt: string; failed: string; noMatch: string }
+  {
+    prompt: string;
+    failed: string;
+    noMatch: Record<QuickAddKind, string>;
+  }
 > = {
   mine: {
     prompt: 'Paste a link or search your library',
     failed: "Couldn't search your library",
-    noMatch: 'Nothing in your library matches',
+    noMatch: {
+      cards: 'No cards in your library match',
+      collections: 'None of your collections match',
+    },
   },
   everyone: {
     prompt: 'Paste a link or search all of Semble',
     failed: "Couldn't search Semble",
-    noMatch: 'Nothing on Semble matches',
+    noMatch: {
+      cards: 'No cards on Semble match',
+      collections: 'No collections on Semble match',
+    },
   },
 };
 
@@ -45,18 +63,25 @@ export default function QuickAdd(props: Props) {
   const [input, setInput] = useState('');
   const [query] = useDebouncedValue(input.trim(), 200);
   const scope = useValue(props.quickAdd.scope);
+  const kind = useValue(props.quickAdd.kind);
   const isOpen = useValue(
     'quick-add open',
     () => props.quickAdd.placeAt.get() !== null,
     [props.quickAdd],
   );
   // Stays mounted with the board, so it only searches while open
-  const links = useLinkSearch(scope, query, isOpen);
-  const collections = useQuickAddCollections(scope, query, isOpen);
+  const links = useLinkSearch(scope, query, isOpen && kind === 'cards');
+  const collections = useQuickAddCollections(
+    scope,
+    query,
+    isOpen && kind === 'collections',
+  );
+  const active = kind === 'cards' ? links : collections;
   const url = linkKey(input);
   const messages = MESSAGES[scope];
-  const linkResults = url ? [] : (links.data ?? []);
-  const collectionResults = url ? [] : collections.collections;
+  const linkResults = url || kind !== 'cards' ? [] : (links.data ?? []);
+  const collectionResults =
+    url || kind !== 'collections' ? [] : collections.collections;
 
   // The controller opens quick-add; Spotlight keeps its own open state
   useEffect(() => {
@@ -75,9 +100,9 @@ export default function QuickAdd(props: Props) {
   }, [resultKeys, url, store]);
 
   const emptyMessage = () => {
-    if (links.isError && collections.isError) return messages.failed;
-    if (links.isPending || collections.isPending) return 'Searching…';
-    if (query) return messages.noMatch;
+    if (active.isError) return messages.failed;
+    if (active.isPending) return 'Searching…';
+    if (query) return messages.noMatch[kind];
     return messages.prompt;
   };
 
@@ -90,13 +115,17 @@ export default function QuickAdd(props: Props) {
       onSpotlightClose={props.quickAdd.close}
       overlayProps={UPDATE_OVERLAY_PROPS}
       yOffset="8dvh"
-      classNames={{ action: classes.action }}
+      classNames={{
+        action: classes.action,
+        actionsList: classes.actionsList,
+        footer: classes.footer,
+      }}
       styles={{
-        // Only the results shrink on a short screen; 7rem is the search and
-        // the footer
+        // Only the results shrink on a short screen; 9.5rem is the search,
+        // the kind control and the footer
         actionsList: {
           maxHeight:
-            'min(420px, calc(100dvh - 2 * var(--modal-y-offset) - 7rem))',
+            'min(420px, calc(100dvh - 2 * var(--modal-y-offset) - 9.5rem))',
         },
       }}
     >
@@ -105,10 +134,21 @@ export default function QuickAdd(props: Props) {
         aria-label={messages.prompt}
         placeholder={messages.prompt}
         leftSection={<BiSearch />}
-        rightSection={
-          (links.isFetching || collections.isFetching) && <Loader size="xs" />
-        }
+        rightSection={active.isFetching && <Loader size="xs" />}
       />
+      {!url && (
+        <div className={classes.kinds}>
+          <SegmentedControl
+            value={kind}
+            onChange={(value) => {
+              props.quickAdd.setKind(value);
+              searchRef.current?.focus();
+            }}
+            data={KINDS}
+            size="xs"
+          />
+        </div>
+      )}
       <Spotlight.ActionsList>
         {url && (
           <Spotlight.Action

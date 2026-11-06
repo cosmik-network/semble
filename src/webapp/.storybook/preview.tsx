@@ -1,6 +1,6 @@
 import type { Preview } from '@storybook/nextjs-vite';
-import '@mantine/core/styles.css';
-import '@mantine/lightbox/styles.css';
+import '@mantine/core/styles.layer.css';
+import '@mantine/lightbox/styles.layer.css';
 import { MantineProvider, v8CssVariablesResolver } from '@mantine/core';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { theme } from '../styles/theme';
