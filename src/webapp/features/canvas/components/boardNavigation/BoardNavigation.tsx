@@ -1,4 +1,5 @@
 import { ActionIcon, Button, Group, Paper, Tooltip } from '@mantine/core';
+import { notifications } from '@mantine/notifications';
 import type { ReactNode } from 'react';
 import { FiPlus } from 'react-icons/fi';
 import {
@@ -8,7 +9,14 @@ import {
   LuZoomIn,
   LuZoomOut,
 } from 'react-icons/lu';
-import { useEditor, useReadonly, useValue } from 'tldraw';
+import { RiScreenshot2Line } from 'react-icons/ri';
+import {
+  exportAs,
+  useEditor,
+  useReadonly,
+  useValue,
+  type Editor,
+} from 'tldraw';
 import type { CanvasController } from '../../controller/canvasController';
 
 interface Props {
@@ -54,9 +62,40 @@ function NavPill(props: { children: ReactNode }) {
   );
 }
 
+// The shapes in view, cropped to it, as a PNG download
+async function screenshotView(editor: Editor) {
+  const viewport = editor.getViewportPageBounds();
+  const ids = editor
+    .getCurrentPageShapes()
+    .filter((shape) => editor.getShapePageBounds(shape)?.collides(viewport))
+    .map((shape) => shape.id);
+  if (ids.length === 0) return;
+  try {
+    await exportAs(editor, ids, {
+      format: 'png',
+      bounds: viewport,
+      padding: 0,
+      background: true,
+    });
+  } catch (error) {
+    console.warn(error);
+    notifications.show({
+      id: 'canvas-screenshot-error',
+      title: "Couldn't take a screenshot",
+      message: 'Try again in a moment.',
+      position: 'top-center',
+    });
+  }
+}
+
 export default function BoardNavigation(props: Props) {
   const editor = useEditor();
   const isReadonly = useReadonly();
+  const hasShapes = useValue(
+    'has shapes',
+    () => editor.getCurrentPageShapeIds().size > 0,
+    [editor],
+  );
   const focusOn = useValue('arrow focus', () => props.arrowView?.isFocusOn(), [
     props.arrowView,
   ]);
@@ -112,6 +151,15 @@ export default function BoardNavigation(props: Props) {
           onClick={() => props.arrowView?.toggleHidden()}
         >
           <LuEyeOff size={16} />
+        </NavButton>
+      </NavPill>
+      <NavPill>
+        <NavButton
+          label="Screenshot the current view"
+          disabled={!hasShapes}
+          onClick={() => void screenshotView(editor)}
+        >
+          <RiScreenshot2Line size={16} />
         </NavButton>
       </NavPill>
     </Group>
