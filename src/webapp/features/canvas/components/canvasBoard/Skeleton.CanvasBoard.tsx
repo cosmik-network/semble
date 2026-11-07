@@ -1,5 +1,5 @@
 import { Box, Group, Paper, Skeleton, Text } from '@mantine/core';
-import { BOARD_TOOLS } from '../../model/boardTools';
+import { BOARD_TOOLS, TOOLBAR_VISIBLE_TOOLS } from '../../model/boardTools';
 import classes from './Skeleton.CanvasBoard.module.css';
 
 interface Props {
@@ -55,9 +55,12 @@ export default function CanvasBoardSkeleton(props: Props) {
 
       <Paper shadow="sm" radius="md" p={4} m="xs" className={classes.toolbar}>
         <Group gap={2} wrap="nowrap">
-          {BOARD_TOOLS.map((tool) => (
+          {BOARD_TOOLS.slice(0, TOOLBAR_VISIBLE_TOOLS).map((tool) => (
             <Skeleton key={tool} height={36} width={36} radius="md" />
           ))}
+          {BOARD_TOOLS.length > TOOLBAR_VISIBLE_TOOLS && (
+            <Skeleton height={36} width={24} radius="md" />
+          )}
         </Group>
       </Paper>
     </Box>
