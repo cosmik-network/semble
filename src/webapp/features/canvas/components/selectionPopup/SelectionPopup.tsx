@@ -33,8 +33,92 @@ interface Props {
 export default function SelectionPopup(props: Props) {
   const card = useValue(props.popupCard);
   if (!card) return null;
+  if (card.kind === 'collection') {
+    return <CollectionPopup card={card} onOpen={props.onOpen} />;
+  }
+  return (
+    <LinkPopup card={card} linkSeed={props.linkSeed} onOpen={props.onOpen} />
+  );
+}
 
-  return <Popup card={card} linkSeed={props.linkSeed} onOpen={props.onOpen} />;
+// Above the selection where there's room, else below it, clear by reach
+function usePopupPosition(reach: number) {
+  const editor = useEditor();
+  return useValue(
+    'popup position',
+    () => {
+      const bounds = editor.getSelectionPageBounds();
+      if (!bounds) return null;
+      const top = editor.pageToViewport(bounds.point);
+      const bottom = editor.pageToViewport({ x: bounds.maxX, y: bounds.maxY });
+      const above = top.y > ROOM_ABOVE;
+      const gap = GAP + reach * editor.getZoomLevel();
+      return {
+        left: (top.x + bottom.x) / 2,
+        top: above ? top.y - gap : bottom.y + gap,
+        transform: above ? 'translate(-50%, -100%)' : 'translate(-50%, 0)',
+      };
+    },
+    [editor, reach],
+  );
+}
+
+interface CollectionPopupProps {
+  card: PopupCard;
+  onOpen: Props['onOpen'];
+}
+
+function CollectionPopup(props: CollectionPopupProps) {
+  const { data: link } = useCanvasLink(props.card.url);
+  const position = usePopupPosition(0);
+  if (!position) return null;
+
+  return (
+    <BoardPopup position={position}>
+      <SaveButton
+        saved={!!link?.saved}
+        onClick={() => props.onOpen('save', props.card.url)}
+      />
+      <ConnectButton onClick={() => props.onOpen('connect', props.card.url)} />
+      <OpenPageButton href={new URL(props.card.url).pathname} />
+    </BoardPopup>
+  );
+}
+
+function SaveButton(props: { saved: boolean; onClick(): void }) {
+  const label = props.saved ? 'Update' : 'Save';
+  return (
+    <Tooltip label={label} withArrow withinPortal={false}>
+      <ActionIcon {...ICON_PROPS} aria-label={label} onClick={props.onClick}>
+        {props.saved ? <IoMdCheckmark size={16} /> : <FiPlus size={16} />}
+      </ActionIcon>
+    </Tooltip>
+  );
+}
+
+function ConnectButton(props: { onClick(): void }) {
+  return (
+    <Tooltip label="Connect" withArrow withinPortal={false}>
+      <ActionIcon {...ICON_PROPS} aria-label="Connect" onClick={props.onClick}>
+        <TbPlugConnected size={16} />
+      </ActionIcon>
+    </Tooltip>
+  );
+}
+
+function OpenPageButton(props: { href: string }) {
+  return (
+    <Tooltip label="Open page" withArrow withinPortal={false}>
+      <ActionIcon
+        {...ICON_PROPS}
+        component={Link}
+        href={props.href}
+        aria-label="Open page"
+      >
+        <MdOpenInNew size={16} />
+      </ActionIcon>
+    </Tooltip>
+  );
 }
 
 interface PopupProps {
@@ -43,29 +127,12 @@ interface PopupProps {
   onOpen: Props['onOpen'];
 }
 
-function Popup(props: PopupProps) {
-  const editor = useEditor();
+function LinkPopup(props: PopupProps) {
   const { data: link } = useCanvasLink(props.card.url);
   const mediaReveals = useMediaReveals();
   const mediaRevealed = useMediaRevealed(props.card.id);
-  const position = useValue(
-    'popup position',
-    () => {
-      const bounds = editor.getSelectionPageBounds();
-      if (!bounds) return null;
-      const top = editor.pageToViewport(bounds.point);
-      const bottom = editor.pageToViewport({ x: bounds.maxX, y: bounds.maxY });
-      const above = top.y > ROOM_ABOVE;
-      // Clear of the card's edge dots
-      const gap = GAP + EDGE_DOT_REACH * editor.getZoomLevel();
-      return {
-        left: (top.x + bottom.x) / 2,
-        top: above ? top.y - gap : bottom.y + gap,
-        transform: above ? 'translate(-50%, -100%)' : 'translate(-50%, 0)',
-      };
-    },
-    [editor],
-  );
+  // Clear of the card's edge dots
+  const position = usePopupPosition(EDGE_DOT_REACH);
   const unplaced = useValue(
     'unplaced links',
     () => props.linkSeed.unplaced(props.card.id).length,
@@ -94,31 +161,14 @@ function Popup(props: PopupProps) {
 
   const open = (kind: CardModalKind) => () =>
     props.onOpen(kind, props.card.url);
-  const saveLabel = link?.saved ? 'Update' : 'Save';
   const preview = linkCardPreview(link);
   const hidesMedia = preview.kind === 'post' && !!preview.mediaHiddenBecause;
   const mediaLabel = mediaRevealed ? 'Hide media' : 'Show media';
 
   return (
     <BoardPopup position={position}>
-      <Tooltip label={saveLabel} withArrow withinPortal={false}>
-        <ActionIcon
-          {...ICON_PROPS}
-          aria-label={saveLabel}
-          onClick={open('save')}
-        >
-          {link?.saved ? <IoMdCheckmark size={16} /> : <FiPlus size={16} />}
-        </ActionIcon>
-      </Tooltip>
-      <Tooltip label="Connect" withArrow withinPortal={false}>
-        <ActionIcon
-          {...ICON_PROPS}
-          aria-label="Connect"
-          onClick={open('connect')}
-        >
-          <TbPlugConnected size={16} />
-        </ActionIcon>
-      </Tooltip>
+      <SaveButton saved={!!link?.saved} onClick={open('save')} />
+      <ConnectButton onClick={open('connect')} />
       {hidesMedia && mediaReveals && (
         <Tooltip label={mediaLabel} withArrow withinPortal={false}>
           <ActionIcon
@@ -142,16 +192,7 @@ function Popup(props: PopupProps) {
           </ActionIcon>
         </Tooltip>
       )}
-      <Tooltip label="Open page" withArrow withinPortal={false}>
-        <ActionIcon
-          {...ICON_PROPS}
-          component={Link}
-          href={getSembleHref(props.card.url)}
-          aria-label="Open page"
-        >
-          <MdOpenInNew size={16} />
-        </ActionIcon>
-      </Tooltip>
+      <OpenPageButton href={getSembleHref(props.card.url)} />
     </BoardPopup>
   );
 }
