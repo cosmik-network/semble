@@ -318,8 +318,10 @@ export function attachArrows(deps: ArrowsDeps) {
   const view = {
     isFocusOn: () => settings.focus.get(),
     areHidden: () => settings.hidden.get(),
+    areLabelsOn: () => settings.labels.get(),
     toggleFocus: () => settings.focus.update((on) => !on),
     toggleHidden: () => settings.hidden.update((hidden) => !hidden),
+    toggleLabels: () => settings.labels.update((on) => !on),
     // Hides arrows on the selected cards, or shows them if all hide them
     toggleSelectedArrows() {
       const hideArrows = !selectedCardsHideArrows(editor);
@@ -388,11 +390,16 @@ export function attachArrows(deps: ArrowsDeps) {
     saveSettings: (): SavedArrowSettings => ({
       focus: settings.focus.get(),
       hidden: settings.hidden.get(),
+      labels: settings.labels.get(),
     }),
     restoreSettings(saved: SavedArrowSettings | undefined) {
-      const { focus, hidden } = saved ?? DEFAULT_ARROW_SETTINGS;
+      const { focus, hidden, labels } = {
+        ...DEFAULT_ARROW_SETTINGS,
+        ...saved,
+      };
       settings.focus.set(focus);
       settings.hidden.set(hidden);
+      settings.labels.set(labels);
     },
     detach() {
       detached = true;

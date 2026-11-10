@@ -1,8 +1,17 @@
-import { ActionIcon, Button, Group, Paper, Tooltip } from '@mantine/core';
+import {
+  ActionIcon,
+  Button,
+  Group,
+  Menu,
+  Paper,
+  Tooltip,
+} from '@mantine/core';
 import { notifications } from '@mantine/notifications';
 import type { ReactNode } from 'react';
 import { FiPlus } from 'react-icons/fi';
 import {
+  LuCaptions,
+  LuCheck,
   LuEyeOff,
   LuScan,
   LuSpline,
@@ -27,7 +36,6 @@ interface Props {
 
 interface ButtonProps {
   label: string;
-  active?: boolean;
   disabled?: boolean;
   onClick(): void;
   children: ReactNode;
@@ -37,12 +45,11 @@ function NavButton(props: ButtonProps) {
   return (
     <Tooltip label={props.label} withArrow withinPortal={false}>
       <ActionIcon
-        variant={props.active ? 'light' : 'subtle'}
-        color={props.active ? undefined : 'gray'}
+        variant="subtle"
+        color="gray"
         radius="xl"
         size="lg"
         aria-label={props.label}
-        aria-pressed={props.active}
         disabled={props.disabled}
         onClick={props.onClick}
       >
@@ -59,6 +66,31 @@ function NavPill(props: { children: ReactNode }) {
         {props.children}
       </Group>
     </Paper>
+  );
+}
+
+interface ArrowMenuItemProps {
+  label: string;
+  icon: ReactNode;
+  checked: boolean;
+  disabled?: boolean;
+  onClick(): void;
+}
+
+// Stays open, so several can be toggled in one go
+function ArrowMenuItem(props: ArrowMenuItemProps) {
+  return (
+    <Menu.Item
+      role="menuitemcheckbox"
+      aria-checked={props.checked}
+      leftSection={props.icon}
+      rightSection={props.checked ? <LuCheck size={14} /> : null}
+      disabled={props.disabled}
+      closeMenuOnClick={false}
+      onClick={props.onClick}
+    >
+      {props.label}
+    </Menu.Item>
   );
 }
 
@@ -102,6 +134,11 @@ export default function BoardNavigation(props: Props) {
   const hidden = useValue('arrows hidden', () => props.arrowView?.areHidden(), [
     props.arrowView,
   ]);
+  const labelsOn = useValue(
+    'arrow labels',
+    () => props.arrowView?.areLabelsOn(),
+    [props.arrowView],
+  );
 
   return (
     <Group gap="xs" m="xs" wrap="nowrap" style={{ pointerEvents: 'all' }}>
@@ -136,22 +173,44 @@ export default function BoardNavigation(props: Props) {
         </NavButton>
       </NavPill>
       <NavPill>
-        <NavButton
-          label={focusOn ? 'Show every arrow' : 'Focus arrows on hover'}
-          active={!!focusOn}
-          disabled={!props.arrowView || !!hidden}
-          onClick={() => props.arrowView?.toggleFocus()}
-        >
-          <LuSpline size={16} />
-        </NavButton>
-        <NavButton
-          label={hidden ? 'Show arrows' : 'Hide arrows'}
-          active={!!hidden}
-          disabled={!props.arrowView}
-          onClick={() => props.arrowView?.toggleHidden()}
-        >
-          <LuEyeOff size={16} />
-        </NavButton>
+        <Menu position="top-start" shadow="sm" withinPortal={false}>
+          <Menu.Target>
+            <Tooltip label="Arrows" withArrow withinPortal={false}>
+              <ActionIcon
+                variant="subtle"
+                color="gray"
+                radius="xl"
+                size="lg"
+                aria-label="Arrows"
+                disabled={!props.arrowView}
+              >
+                <LuSpline size={16} />
+              </ActionIcon>
+            </Tooltip>
+          </Menu.Target>
+          <Menu.Dropdown>
+            <ArrowMenuItem
+              label="Focus arrows on hover"
+              icon={<LuSpline size={16} />}
+              checked={!!focusOn}
+              disabled={!!hidden}
+              onClick={() => props.arrowView?.toggleFocus()}
+            />
+            <ArrowMenuItem
+              label="Show connection labels"
+              icon={<LuCaptions size={16} />}
+              checked={!!labelsOn}
+              disabled={!!hidden}
+              onClick={() => props.arrowView?.toggleLabels()}
+            />
+            <ArrowMenuItem
+              label="Hide arrows"
+              icon={<LuEyeOff size={16} />}
+              checked={!!hidden}
+              onClick={() => props.arrowView?.toggleHidden()}
+            />
+          </Menu.Dropdown>
+        </Menu>
       </NavPill>
       <NavPill>
         <NavButton
