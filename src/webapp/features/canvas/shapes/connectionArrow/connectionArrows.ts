@@ -44,7 +44,7 @@ export interface ArrowSettings {
   focus: Atom<boolean>;
   // Every arrow is hidden, drawn ones too
   hidden: Atom<boolean>;
-  // Your connections name their type without being hovered
+  // Every connection names its type without being hovered
   labels: Atom<boolean>;
 }
 
@@ -152,8 +152,7 @@ const displayCache = createComputedCache(
     );
     const settings = arrowSettings(editor);
     const strong = touched || !settings.focus.get();
-    // A ghost names its type only on hover or select
-    const pill = touched || (connection.own && settings.labels.get());
+    const pill = touched || settings.labels.get();
     return { strong, pill };
   },
   {
