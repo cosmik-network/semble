@@ -211,7 +211,7 @@ export function attachCanvasController(deps: CanvasControllerDeps) {
     placeLink: links.placeLink,
     placeCollection: (target, at) => void openCollection(target, { at }),
   });
-  const popupCard = createPopupCard(editor);
+  const popupCard = createPopupCard(editor, deps.collectionPageUrl);
   const renameIfUnnamed = async (name: string) => {
     const canvas = await deps.storage.getCanvas(deps.canvasId);
     if (canvas?.name !== DEFAULT_CANVAS_NAME) return;

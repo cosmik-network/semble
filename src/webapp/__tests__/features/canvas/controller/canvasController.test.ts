@@ -5882,6 +5882,21 @@ describe('connections to collection frames', () => {
     return [center.x, center.y];
   };
 
+  it("should show the popup for a selected collection frame, naming its page", async () => {
+    // Arrange
+    board = await createTestBoard({ server: withCollection(), ...OPENED });
+
+    // Act
+    board.editor.select(collectionFrame().id);
+
+    // Assert
+    expect(board.popupCard.get()).toEqual({
+      id: collectionFrame().id,
+      kind: 'collection',
+      url: PAGE,
+    });
+  });
+
   it("should draw an arrow from a link to its collection's frame", async () => {
     // Arrange
     const server = withCollection();

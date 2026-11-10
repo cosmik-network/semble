@@ -6,6 +6,7 @@ import {
 import AddCardToModal from '@/features/cards/components/addCardToModal/AddCardToModal';
 import { useUrlMetadataWithStats } from '@/features/cards/lib/queries/useUrlMetadata';
 import AddConnectionModal from '@/features/connections/components/addConnectionModal/AddConnectionModal';
+import { isCollectionPage } from '@/lib/utils/link';
 import useCanvasLink from '../../lib/queries/useCanvasLink';
 
 export type CardModalKind = 'save' | 'connect';
@@ -50,7 +51,11 @@ export default function CardModals(props: Props) {
         isOpen={props.modal?.kind === 'connect'}
         onClose={props.onClose}
         sourceUrl={url}
-        createSource={ConnectionCreateSource.CARD}
+        createSource={
+          isCollectionPage(url)
+            ? ConnectionCreateSource.COLLECTION_PAGE
+            : ConnectionCreateSource.CARD
+        }
         analyticsContext={analyticsContext}
       />
     </>
