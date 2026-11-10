@@ -5,12 +5,14 @@ import {
   SVGContainer,
   getArrowInfo,
   track,
+  type SvgExportContext,
   useEditor,
   useUniqueSafeId,
   type TLArrowShape,
   type VecLike,
 } from 'tldraw';
 import ArrowPill from '../../components/arrowPill/ArrowPill';
+import ConnectionTypePill from '../../components/connectionTypePill/ConnectionTypePill';
 import { detailLevel } from '../detailLevel';
 import {
   arrowDisplay,
@@ -23,6 +25,8 @@ import {
   type PillSize,
 } from './connectionArrows';
 import classes from './ConnectionArrowShapeUtil.module.css';
+
+const EXPORT_PILL_BOX = { w: 400, h: 80 };
 
 const OPACITY = {
   own: { strong: 1, faint: 0.35 },
@@ -86,6 +90,40 @@ export class ConnectionArrowShapeUtil extends ArrowShapeUtil {
               middle={middle}
             />
           )}
+      </>
+    );
+  }
+
+  // tldraw's export draws the arrow alone, so the pill is embedded as a card
+  // face is. Its export root has no live pill to measure, so it's centered
+  // in a box larger than any pill.
+  override toSvg(shape: TLArrowShape, ctx: SvgExportContext) {
+    const arrow = super.toSvg(shape, ctx);
+    const connection = connectionOf(shape);
+    if (!connection?.connectionType) return arrow;
+    const middle =
+      arrowDisplay(this.editor, shape).pill &&
+      detailLevel(this.editor) === 'full' &&
+      arrowMiddle(this.editor, shape);
+    if (!middle) return arrow;
+    return (
+      <>
+        {arrow}
+        <foreignObject
+          className="tl-export-embed-styles"
+          x={middle.x - EXPORT_PILL_BOX.w / 2}
+          y={middle.y - EXPORT_PILL_BOX.h / 2}
+          width={EXPORT_PILL_BOX.w}
+          height={EXPORT_PILL_BOX.h}
+        >
+          <div className={classes.exportPill}>
+            <ConnectionTypePill
+              type={connection.connectionType}
+              own={connection.own}
+              hasNote={!!connection.note}
+            />
+          </div>
+        </foreignObject>
       </>
     );
   }

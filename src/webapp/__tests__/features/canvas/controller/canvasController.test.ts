@@ -4650,8 +4650,9 @@ describe('arrows', () => {
   });
 
   describe('focus', () => {
-    // A -> B is the viewer's, B -> C a ghost, and C sits apart
-    async function boardWithMineAndGhost() {
+    // A -> B is the viewer's, B -> C a ghost, and C sits apart. Labels are
+    // off, so pills show only on focus.
+    async function boardWithMineAndGhost(options = { labels: false }) {
       const server = new FakeServer();
       server.connections = [
         connection('mine', A, B),
@@ -4666,6 +4667,7 @@ describe('arrows', () => {
         ],
         2,
       );
+      if (!options.labels) board.arrowView.toggleLabels();
     }
     const displayOf = (connectionId: string) => {
       const arrow = board
@@ -4732,7 +4734,7 @@ describe('arrows', () => {
       expect(displayOf('mine')).toBe(before);
     });
 
-    it('should draw every arrow at full strength once focus is turned off, naming ghosts only on focus', async () => {
+    it('should draw every arrow at full strength once focus is turned off, naming none while labels are off', async () => {
       // Arrange
       await boardWithMineAndGhost();
 
@@ -4741,8 +4743,37 @@ describe('arrows', () => {
 
       // Assert
       expect(board.arrowView.isFocusOn()).toBe(false);
-      expect(displayOf('mine')).toEqual({ strong: true, pill: true });
+      expect(displayOf('mine')).toEqual({ strong: true, pill: false });
       expect(displayOf('ghost')).toEqual({ strong: true, pill: false });
+    });
+
+    it('should name every arrow by default while leaving unfocused arrows faint', async () => {
+      // Arrange
+      await boardWithMineAndGhost({ labels: true });
+
+      // Act
+      board.hover([-500, 600]);
+      await settle();
+
+      // Assert
+      expect(board.arrowView.areLabelsOn()).toBe(true);
+      expect(displayOf('mine')).toEqual({ strong: false, pill: true });
+      expect(displayOf('ghost')).toEqual({ strong: false, pill: true });
+    });
+
+    it('should stop naming unfocused arrows once labels are turned off', async () => {
+      // Arrange
+      await boardWithMineAndGhost({ labels: true });
+      board.hover([-500, 600]);
+      await settle();
+
+      // Act
+      board.arrowView.toggleLabels();
+
+      // Assert
+      expect(board.arrowView.areLabelsOn()).toBe(false);
+      expect(displayOf('mine')).toEqual(FAINT);
+      expect(displayOf('ghost')).toEqual(FAINT);
     });
   });
 
