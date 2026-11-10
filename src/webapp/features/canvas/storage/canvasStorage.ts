@@ -32,6 +32,8 @@ export interface CanvasDocument {
 export interface SavedArrowSettings {
   focus: boolean;
   hidden: boolean;
+  // Missing from sessions saved before labels could be toggled
+  labels?: boolean;
 }
 
 export interface CanvasSession {

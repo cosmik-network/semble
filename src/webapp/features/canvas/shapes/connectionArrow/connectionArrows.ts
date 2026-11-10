@@ -44,10 +44,16 @@ export interface ArrowSettings {
   focus: Atom<boolean>;
   // Every arrow is hidden, drawn ones too
   hidden: Atom<boolean>;
+  // Your connections name their type without being hovered
+  labels: Atom<boolean>;
 }
 
 // A new board, or one saved before arrows could be toggled
-export const DEFAULT_ARROW_SETTINGS = { focus: true, hidden: false };
+export const DEFAULT_ARROW_SETTINGS = {
+  focus: true,
+  hidden: false,
+  labels: true,
+};
 
 const settingsOf = new WeakMap<Editor, ArrowSettings>();
 
@@ -57,6 +63,7 @@ export function arrowSettings(editor: Editor): ArrowSettings {
     settings = {
       focus: atom('arrow focus', DEFAULT_ARROW_SETTINGS.focus),
       hidden: atom('arrows hidden', DEFAULT_ARROW_SETTINGS.hidden),
+      labels: atom('arrow labels', DEFAULT_ARROW_SETTINGS.labels),
     };
     settingsOf.set(editor, settings);
   }
@@ -143,9 +150,11 @@ const displayCache = createComputedCache(
     const touched = [arrow.id, connection.from, connection.to].some(
       (id) => id === hovered || selected.includes(id),
     );
-    const strong = touched || !arrowSettings(editor).focus.get();
+    const settings = arrowSettings(editor);
+    const strong = touched || !settings.focus.get();
     // A ghost names its type only on hover or select
-    return { strong, pill: connection.own ? strong : touched };
+    const pill = touched || (connection.own && settings.labels.get());
+    return { strong, pill };
   },
   {
     areResultsEqual: (a, b) => a.strong === b.strong && a.pill === b.pill,
