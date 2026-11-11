@@ -54,7 +54,7 @@ function transactionDone(tx: IDBTransaction) {
 
 // A sequence the running code lacks, or one past its last migration, was
 // written by a newer app; tldraw can't migrate it down
-function isNewerSchema(saved: CanvasSchema, running: CanvasSchema) {
+export function isNewerSchema(saved: CanvasSchema, running: CanvasSchema) {
   return Object.entries(saved.sequences).some(
     ([id, version]) =>
       running.sequences[id] === undefined || version > running.sequences[id],
@@ -306,6 +306,50 @@ export class IndexedDbCanvasStorage implements CanvasStorage, BoardStorage {
     return openBoardSession(this, id, options, events);
   }
 
+  // The board's saved document, without opening it or checking its schema
+  async getDocument(id: string): Promise<CanvasDocument | null> {
+    const tx = (await this.openDb()).transaction(DOCUMENTS, 'readonly');
+    const doc = await request<CanvasDocument | undefined>(
+      tx.objectStore(DOCUMENTS).get(id),
+    );
+    return doc ?? null;
+  }
+
+  // Mirrors the server's view of a board without writer checks, and
+  // announces it like a save so reader tabs reload. The document is only
+  // touched when known: undefined leaves it, null removes it.
+  async applyRemoteRecord(
+    record: CanvasRecord,
+    document?: CanvasDocument | null,
+  ) {
+    const tx = (await this.openDb()).transaction(
+      [CANVASES, DOCUMENTS],
+      'readwrite',
+    );
+    const canvases = tx.objectStore(CANVASES);
+    const existing = await request<CanvasRecord | undefined>(
+      canvases.get(record.id),
+    );
+    if (existing) {
+      canvases.put({
+        ...existing,
+        name: record.name,
+        linkCount: record.linkCount,
+        tldrawVersion: record.tldrawVersion,
+        updatedAt: record.updatedAt,
+      });
+      if (document !== undefined) {
+        if (document) tx.objectStore(DOCUMENTS).put(document, record.id);
+        else tx.objectStore(DOCUMENTS).delete(record.id);
+      }
+    }
+    await transactionDone(tx);
+    this.changed();
+    const channel = new BroadcastChannel(boardKey(record.id));
+    channel.postMessage('saved');
+    channel.close();
+  }
+
   async claimCanvas(
     id: string,
     onLost: () => void,
@@ -405,6 +449,15 @@ export class IndexedDbCanvasStorage implements CanvasStorage, BoardStorage {
     claim: CanvasClaim,
     source: CanvasSource,
     onError: (error: unknown) => void,
+    // Called after each local write lands, so a syncing storage can mirror
+    // it remotely
+    hooks?: {
+      onDocumentWritten?(
+        document: CanvasDocument,
+        outcome: WriteOutcome,
+      ): Promise<void>;
+      onThumbnailWritten?(thumbnail: string | null): Promise<void>;
+    },
   ): CanvasSaver {
     const { id } = claim;
     const channel = new BroadcastChannel(boardKey(id));
@@ -430,8 +483,16 @@ export class IndexedDbCanvasStorage implements CanvasStorage, BoardStorage {
       if (!dirty) return;
       dirty = false;
       try {
-        const outcome = await this.writeDocument(claim, source.getDocument());
-        if (outcome === 'written') channel.postMessage('saved');
+        const document = source.getDocument();
+        const outcome = await this.writeDocument(claim, document);
+        if (outcome === 'written') {
+          channel.postMessage('saved');
+          try {
+            await hooks?.onDocumentWritten?.(document, outcome);
+          } catch (error) {
+            onError(error);
+          }
+        }
         // Still holding the lock, so nothing else will tell the user
         if (outcome === 'not-writer' && claim.isHeld()) {
           onError(
@@ -468,6 +529,7 @@ export class IndexedDbCanvasStorage implements CanvasStorage, BoardStorage {
           if (capture !== captures || !claim.isHeld()) return;
           try {
             await this.writeThumbnail(claim, thumbnail);
+            await hooks?.onThumbnailWritten?.(thumbnail);
           } catch (error) {
             onError(error);
           }

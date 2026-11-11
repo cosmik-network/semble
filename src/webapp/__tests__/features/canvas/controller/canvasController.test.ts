@@ -5882,7 +5882,7 @@ describe('connections to collection frames', () => {
     return [center.x, center.y];
   };
 
-  it("should show the popup for a selected collection frame, naming its page", async () => {
+  it('should show the popup for a selected collection frame, naming its page', async () => {
     // Arrange
     board = await createTestBoard({ server: withCollection(), ...OPENED });
 

@@ -7,6 +7,7 @@ import {
   FeedClient,
   NotificationClient,
   TagClient,
+  CanvasClient,
 } from './clients';
 import { createTsRestClient } from './tsRestClient';
 import type {
@@ -171,6 +172,7 @@ export class ApiClient {
   private feedClient: FeedClient;
   private notificationClient: NotificationClient;
   private tagClient: TagClient;
+  public canvas: CanvasClient;
 
   constructor(
     private baseUrl: string,
@@ -185,6 +187,7 @@ export class ApiClient {
     this.feedClient = new FeedClient(client);
     this.notificationClient = new NotificationClient(client);
     this.tagClient = new TagClient(client);
+    this.canvas = new CanvasClient(client);
   }
 
   // Query operations - delegate to QueryClient
