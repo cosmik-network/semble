@@ -107,6 +107,17 @@ export interface EnvironmentConfig {
   stats: {
     apiKey: string | undefined;
   };
+  objectStore: {
+    // S3-compatible store for canvas documents and thumbnails (Tigris in
+    // production, MinIO in development). Null → filesystem fallback.
+    bucket?: string;
+    region: string;
+    accessKeyId?: string;
+    secretAccessKey?: string;
+    endpoint?: string;
+    // Where FileCanvasObjectStore writes when the S3 config is absent
+    localDirectory: string;
+  };
   tunnel: {
     enabled: boolean;
     frontendUrl: string;
@@ -262,6 +273,14 @@ export class EnvironmentConfigService {
       stats: {
         apiKey: process.env.STATS_API_KEY,
       },
+      objectStore: {
+        bucket: process.env.S3_BUCKET || undefined,
+        region: process.env.S3_REGION || 'auto',
+        accessKeyId: process.env.S3_ACCESS_KEY || undefined,
+        secretAccessKey: process.env.S3_SECRET_ACCESS_KEY || undefined,
+        endpoint: process.env.S3_ENDPOINT || undefined,
+        localDirectory: process.env.CANVAS_STORAGE_DIR || '.canvas-objects',
+      },
       tunnel: {
         enabled: tunnelEnabled,
         frontendUrl: tunnelFrontendUrl,
@@ -384,6 +403,10 @@ export class EnvironmentConfigService {
 
   public getSentryConfig() {
     return this.config.sentry;
+  }
+
+  public getObjectStoreConfig() {
+    return this.config.objectStore;
   }
 
   public getStatsConfig() {

@@ -138,6 +138,17 @@ export const paths = {
   unsubscribeFromTarget: '/network.cosmik.graph.unsubscribe',
   updateSubscription: '/network.cosmik.graph.updateSubscription',
   getMySubscriptions: '/network.cosmik.graph.getSubscriptions',
+  // canvases
+  createCanvas: '/network.cosmik.canvas.create',
+  listCanvases: '/network.cosmik.canvas.list',
+  getCanvas: '/network.cosmik.canvas.get',
+  renameCanvas: '/network.cosmik.canvas.rename',
+  duplicateCanvas: '/network.cosmik.canvas.duplicate',
+  deleteCanvas: '/network.cosmik.canvas.delete',
+  openCanvas: '/network.cosmik.canvas.open',
+  saveCanvas: '/network.cosmik.canvas.save',
+  saveCanvasThumbnail: '/network.cosmik.canvas.saveThumbnail',
+  getCanvasThumbnail: '/network.cosmik.canvas.getThumbnail',
 } as const;
 
 export const routes = {
@@ -275,5 +286,17 @@ export const routes = {
     ),
     updateSubscription: defineRoute(paths.updateSubscription, 'POST', true),
     getMySubscriptions: defineRoute(paths.getMySubscriptions, 'GET', true),
+  },
+  canvases: {
+    create: defineRoute(paths.createCanvas, 'POST', true),
+    list: defineRoute(paths.listCanvases, 'GET', true),
+    get: defineRoute(paths.getCanvas, 'GET', true),
+    rename: defineRoute(paths.renameCanvas, 'POST', true),
+    duplicate: defineRoute(paths.duplicateCanvas, 'POST', true),
+    delete: defineRoute(paths.deleteCanvas, 'POST', true),
+    open: defineRoute(paths.openCanvas, 'GET', true),
+    save: defineRoute(paths.saveCanvas, 'POST', true),
+    saveThumbnail: defineRoute(paths.saveCanvasThumbnail, 'POST', true),
+    getThumbnail: defineRoute(paths.getCanvasThumbnail, 'GET', true),
   },
 } as const;

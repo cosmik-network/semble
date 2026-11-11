@@ -69,6 +69,13 @@ import { IProductAnalyticsQueryRepository } from '../../../../modules/analytics/
 import { DrizzleProductAnalyticsQueryRepository } from '../../../../modules/analytics/infrastructure/repositories/DrizzleProductAnalyticsQueryRepository';
 import { IApiRequestLogRepository } from '../../../../modules/analytics/domain/IApiRequestLogRepository';
 import { DrizzleApiRequestLogRepository } from '../../../../modules/analytics/infrastructure/repositories/DrizzleApiRequestLogRepository';
+import { ICanvasRepository } from 'src/modules/canvas/domain/ICanvasRepository';
+import { ICanvasObjectStore } from 'src/modules/canvas/domain/ICanvasObjectStore';
+import { DrizzleCanvasRepository } from 'src/modules/canvas/infrastructure/repositories/DrizzleCanvasRepository';
+import { S3CanvasObjectStore } from 'src/modules/canvas/infrastructure/storage/S3CanvasObjectStore';
+import { FileCanvasObjectStore } from 'src/modules/canvas/infrastructure/storage/FileCanvasObjectStore';
+import { InMemoryCanvasRepository } from 'src/modules/canvas/tests/utils/InMemoryCanvasRepository';
+import { InMemoryCanvasObjectStore } from 'src/modules/canvas/tests/utils/InMemoryCanvasObjectStore';
 
 export interface Repositories {
   userRepository: IUserRepository;
@@ -94,6 +101,8 @@ export interface Repositories {
   atUriResolutionService: IAtUriResolutionService;
   oauthStateStore: NodeSavedStateStore;
   oauthSessionStore: NodeSavedSessionStore;
+  canvasRepository: ICanvasRepository;
+  canvasObjectStore: ICanvasObjectStore;
 }
 
 export class RepositoryFactory {
@@ -147,6 +156,9 @@ export class RepositoryFactory {
       const syncStatusRepository = InMemorySyncStatusRepository.getInstance();
       const oauthStateStore = InMemoryStateStore.getInstance();
       const oauthSessionStore = InMemorySessionStore.getInstance();
+      const canvasObjectStore = new InMemoryCanvasObjectStore();
+      const canvasRepository =
+        InMemoryCanvasRepository.getInstance(canvasObjectStore);
 
       // For mock repos, we'll use a basic implementation of stats repository
       // Since it's read-only stats, we can create a simple instance
@@ -162,6 +174,8 @@ export class RepositoryFactory {
       const apiRequestLogRepository = new DrizzleApiRequestLogRepository(db);
 
       return {
+        canvasRepository,
+        canvasObjectStore,
         userRepository,
         userOnboardingRepository,
         userStatsRepository,
@@ -200,7 +214,25 @@ export class RepositoryFactory {
     const oauthStateStore = new DrizzleStateStore(db);
     const oauthSessionStore = new DrizzleSessionStore(db);
 
+    // Tigris (or MinIO) when S3_* is configured, bytes on disk otherwise
+    const objectStoreConfig = configService.getObjectStoreConfig();
+    const canvasObjectStore: ICanvasObjectStore =
+      objectStoreConfig.bucket &&
+      objectStoreConfig.accessKeyId &&
+      objectStoreConfig.secretAccessKey
+        ? new S3CanvasObjectStore({
+            bucket: objectStoreConfig.bucket,
+            region: objectStoreConfig.region,
+            accessKeyId: objectStoreConfig.accessKeyId,
+            secretAccessKey: objectStoreConfig.secretAccessKey,
+            endpoint: objectStoreConfig.endpoint,
+          })
+        : new FileCanvasObjectStore(objectStoreConfig.localDirectory);
+    const canvasRepository = new DrizzleCanvasRepository(db, canvasObjectStore);
+
     return {
+      canvasRepository,
+      canvasObjectStore,
       userRepository: new DrizzleUserRepository(db),
       userOnboardingRepository: new DrizzleUserOnboardingRepository(db),
       userStatsRepository: new DrizzleUserStatsRepository(statsDb),

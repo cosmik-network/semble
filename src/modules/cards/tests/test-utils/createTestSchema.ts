@@ -214,6 +214,21 @@ export async function createTestSchema(db: PostgresJsDatabase) {
       referral_source TEXT[],
       updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
     )`,
+
+    // Canvases table (canvas board metadata; documents live in object storage)
+    sql`CREATE TABLE IF NOT EXISTS canvases (
+      id UUID PRIMARY KEY,
+      owner_did TEXT NOT NULL,
+      name TEXT NOT NULL,
+      tldraw_version TEXT NOT NULL,
+      link_count INTEGER NOT NULL DEFAULT 0,
+      revision INTEGER NOT NULL DEFAULT 0,
+      schema_sequences JSONB NOT NULL DEFAULT '{}'::jsonb,
+      document_key TEXT,
+      has_thumbnail BOOLEAN NOT NULL DEFAULT false,
+      created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
+      updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
+    )`,
   ];
 
   // Execute table creation queries in order
@@ -469,5 +484,13 @@ export async function createTestSchema(db: PostgresJsDatabase) {
   `);
   await db.execute(sql`
     CREATE INDEX IF NOT EXISTS api_keys_token_hash_idx ON api_keys(token_hash);
+  `);
+
+  // Canvases table indexes
+  await db.execute(sql`
+    CREATE INDEX IF NOT EXISTS canvases_owner_idx ON canvases(owner_did);
+  `);
+  await db.execute(sql`
+    CREATE INDEX IF NOT EXISTS canvases_owner_updated_idx ON canvases(owner_did, updated_at DESC);
   `);
 }
