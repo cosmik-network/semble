@@ -8,6 +8,7 @@ import type {
 } from '../../domain/ICanvasRepository';
 import type { ICanvasObjectStore } from '../../domain/ICanvasObjectStore';
 import { canvases } from './schema/canvas.sql';
+import { publishedRecords } from 'src/modules/cards/infrastructure/repositories/schema/publishedRecord.sql';
 import { DEFAULT_CANVAS_NAME } from '@semble/types';
 
 export class CanvasNotFoundError extends Error {
@@ -227,6 +228,49 @@ export class DrizzleCanvasRepository implements ICanvasRepository {
     await this.db
       .update(canvases)
       .set({ hasThumbnail: thumbnail !== null })
+      .where(eq(canvases.id, id));
+  }
+
+  async getPublishedRecord(ownerDid: string, id: string) {
+    const [row] = await this.db
+      .select({ uri: publishedRecords.uri, cid: publishedRecords.cid })
+      .from(canvases)
+      .innerJoin(
+        publishedRecords,
+        eq(canvases.publishedRecordId, publishedRecords.id),
+      )
+      .where(and(eq(canvases.id, id), eq(canvases.ownerDid, ownerDid)));
+    return row ?? null;
+  }
+
+  async setPublishedRecord(id: string, record: { uri: string; cid: string }) {
+    // putRecord mints a new cid on every update, so each publish is a new
+    // published_records row; the board points at the latest
+    const [inserted] = await this.db
+      .insert(publishedRecords)
+      .values({ id: randomUUID(), uri: record.uri, cid: record.cid })
+      .onConflictDoNothing({
+        target: [publishedRecords.uri, publishedRecords.cid],
+      })
+      .returning({ id: publishedRecords.id });
+
+    let publishedRecordId = inserted?.id;
+    if (!publishedRecordId) {
+      const [existing] = await this.db
+        .select({ id: publishedRecords.id })
+        .from(publishedRecords)
+        .where(
+          and(
+            eq(publishedRecords.uri, record.uri),
+            eq(publishedRecords.cid, record.cid),
+          ),
+        );
+      publishedRecordId = existing?.id;
+    }
+
+    await this.db
+      .update(canvases)
+      .set({ publishedRecordId })
       .where(eq(canvases.id, id));
   }
 }

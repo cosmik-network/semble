@@ -2,6 +2,7 @@ import { CanvasService } from '../../application/CanvasService';
 import { CanvasNotOwnedError } from '../../application/CanvasService';
 import { InMemoryCanvasRepository } from '../utils/InMemoryCanvasRepository';
 import { InMemoryCanvasObjectStore } from '../utils/InMemoryCanvasObjectStore';
+import { FakeCanvasPublisher } from '../utils/FakeCanvasPublisher';
 
 const document = (seed: string) => ({
   schema: { schemaVersion: 2 as const, sequences: { comp: 1 } },
@@ -12,12 +13,17 @@ const jpeg = 'data:image/jpeg;base64,amVwZy1ieXRlcw==';
 
 describe('CanvasService', () => {
   let service: CanvasService;
+  let publisher: FakeCanvasPublisher;
   const alice = 'did:plc:alice';
   const bob = 'did:plc:bob';
 
   beforeEach(() => {
     const objects = new InMemoryCanvasObjectStore();
-    service = new CanvasService(InMemoryCanvasRepository.getInstance(objects));
+    publisher = new FakeCanvasPublisher();
+    service = new CanvasService(
+      InMemoryCanvasRepository.getInstance(objects),
+      publisher,
+    );
   });
 
   it('scopes every operation to its owner', async () => {
@@ -93,5 +99,22 @@ describe('CanvasService', () => {
       summaries.find((summary) => summary.id === canvas.id);
     expect(of(await service.list(alice, false))?.thumbnail).toBeNull();
     expect(of(await service.list(alice, true))?.thumbnail).toBe(jpeg);
+  });
+
+  it('publishes a PDS record per board and removes it on delete', async () => {
+    const canvas = await service.create(alice);
+    expect(publisher.getPublished()).toHaveLength(1);
+
+    // A retried create is the same board and must not publish again
+    await service.create(alice, canvas.id, canvas.name);
+    expect(publisher.getPublished()).toHaveLength(1);
+
+    await service.delete(alice, canvas.id);
+    expect(publisher.getUnpublished()).toHaveLength(1);
+  });
+
+  it('fails board creation when publishing fails', async () => {
+    publisher.setShouldFail(true);
+    await expect(service.create(alice)).rejects.toThrow(/publish/i);
   });
 });

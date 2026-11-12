@@ -23,14 +23,17 @@ import { ATProtoCollectionPublisher } from '../../../../modules/atproto/infrastr
 import { ATProtoCardPublisher } from '../../../../modules/atproto/infrastructure/publishers/ATProtoCardPublisher';
 import { ATProtoConnectionPublisher } from '../../../../modules/atproto/infrastructure/publishers/ATProtoConnectionPublisher';
 import { ATProtoFollowPublisher } from '../../../../modules/atproto/infrastructure/publishers/ATProtoFollowPublisher';
+import { ATProtoCanvasPublisher } from '../../../../modules/atproto/infrastructure/publishers/ATProtoCanvasPublisher';
 import { FakeCollectionPublisher } from '../../../../modules/cards/tests/utils/FakeCollectionPublisher';
 import { FakeCardPublisher } from '../../../../modules/cards/tests/utils/FakeCardPublisher';
 import { FakeConnectionPublisher } from '../../../../modules/cards/tests/utils/FakeConnectionPublisher';
+import { FakeCanvasPublisher } from '../../../../modules/canvas/tests/utils/FakeCanvasPublisher';
 import { FakeFollowPublisher } from '../../../../modules/atproto/infrastructure/publishers/FakeFollowPublisher';
 import {
   DisabledCardPublisher,
   DisabledCollectionPublisher,
   DisabledConnectionPublisher,
+  DisabledCanvasPublisher,
   DisabledFollowPublisher,
 } from '../../../../modules/atproto/infrastructure/publishers/DisabledPublishers';
 import { CardLibraryService } from '../../../../modules/cards/domain/services/CardLibraryService';
@@ -550,6 +553,16 @@ export class ServiceFactory {
             collections.connection,
           );
 
+    const canvasPublisher = disablePdsPublishing
+      ? new DisabledCanvasPublisher()
+      : useFakePublishers
+        ? new FakeCanvasPublisher()
+        : new ATProtoCanvasPublisher(
+            atProtoAgentService,
+            collections.canvas,
+            configService.getAppConfig().appUrl,
+          );
+
     const followPublisher = disablePdsPublishing
       ? new DisabledFollowPublisher()
       : useFakePublishers
@@ -617,7 +630,10 @@ export class ServiceFactory {
       collectionPublisher,
       connectionPublisher,
       followPublisher,
-      canvasService: new CanvasService(repositories.canvasRepository),
+      canvasService: new CanvasService(
+        repositories.canvasRepository,
+        canvasPublisher,
+      ),
     };
   }
 }

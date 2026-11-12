@@ -51,4 +51,14 @@ export interface ICanvasRepository {
   // A JPEG's bytes, null when none was captured
   getThumbnail(id: string): Promise<Buffer | null>;
   saveThumbnail(id: string, thumbnail: Buffer | null): Promise<void>;
+  // The board's published PDS record, null when it has none
+  getPublishedRecord(
+    ownerDid: string,
+    id: string,
+  ): Promise<{ uri: string; cid: string } | null>;
+  // Records the PDS record published for the board (created or updated)
+  setPublishedRecord(
+    id: string,
+    record: { uri: string; cid: string },
+  ): Promise<void>;
 }

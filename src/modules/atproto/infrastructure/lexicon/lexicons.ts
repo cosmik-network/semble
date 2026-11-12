@@ -10,6 +10,46 @@ import {
 import { type $Typed, is$typed, maybe$typed } from './util.js';
 
 export const schemaDict = {
+  NetworkCosmikCanvas: {
+    lexicon: 1,
+    id: 'network.cosmik.canvas',
+    description:
+      "A canvas board. Metadata only: the tldraw document lives in Semble storage and is reachable at the record's URL.",
+    defs: {
+      main: {
+        type: 'record',
+        description: 'A canvas board.',
+        key: 'tid',
+        record: {
+          type: 'object',
+          required: ['name', 'url'],
+          properties: {
+            name: {
+              type: 'string',
+              maxLength: 1000,
+              maxGraphemes: 100,
+              description: 'Name of the canvas.',
+            },
+            url: {
+              type: 'string',
+              format: 'uri',
+              description: 'URL where the canvas can be opened.',
+            },
+            createdAt: {
+              type: 'string',
+              format: 'datetime',
+              description: 'Timestamp when this canvas was created.',
+            },
+            updatedAt: {
+              type: 'string',
+              format: 'datetime',
+              description: 'Timestamp when this canvas was last updated.',
+            },
+          },
+        },
+      },
+    },
+  },
   NetworkCosmikCard: {
     lexicon: 1,
     id: 'network.cosmik.card',
@@ -1033,6 +1073,7 @@ export function validate(
 }
 
 export const ids = {
+  NetworkCosmikCanvas: 'network.cosmik.canvas',
   NetworkCosmikCard: 'network.cosmik.card',
   NetworkCosmikCollection: 'network.cosmik.collection',
   NetworkCosmikCollectionLink: 'network.cosmik.collectionLink',

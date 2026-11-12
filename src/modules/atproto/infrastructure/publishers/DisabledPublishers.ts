@@ -4,6 +4,7 @@ import { ICardPublisher } from 'src/modules/cards/application/ports/ICardPublish
 import { ICollectionPublisher } from 'src/modules/cards/application/ports/ICollectionPublisher';
 import { IConnectionPublisher } from 'src/modules/cards/application/ports/IConnectionPublisher';
 import { IFollowPublisher } from 'src/modules/user/application/ports/IFollowPublisher';
+import { ICanvasPublisher } from 'src/modules/canvas/application/ports/ICanvasPublisher';
 
 /**
  * Publishers for processes that must never write to a user's PDS (e.g. the
@@ -55,6 +56,15 @@ export class DisabledConnectionPublisher implements IConnectionPublisher {
   }
   async unpublish(): Promise<Result<never, UseCaseError>> {
     return disabled('unpublish (connection)');
+  }
+}
+
+export class DisabledCanvasPublisher implements ICanvasPublisher {
+  async publish(): Promise<Result<never, UseCaseError>> {
+    return disabled('publish (canvas)');
+  }
+  async unpublish(): Promise<Result<never, UseCaseError>> {
+    return disabled('unpublish (canvas)');
   }
 }
 

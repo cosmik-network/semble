@@ -21,6 +21,7 @@ export class InMemoryCanvasRepository implements ICanvasRepository {
     string,
     CanvasRecord & { documentKey: string | null }
   >();
+  private published = new Map<string, { uri: string; cid: string }>();
 
   static getInstance(
     objects: ICanvasObjectStore = new InMemoryCanvasObjectStore(),
@@ -111,6 +112,7 @@ export class InMemoryCanvasRepository implements ICanvasRepository {
     const record = this.records.get(id);
     if (!record || record.ownerDid !== ownerDid) return false;
     this.records.delete(id);
+    this.published.delete(id);
     await this.objects.deletePrefix(`canvases/${id}/`);
     return true;
   }
@@ -169,6 +171,17 @@ export class InMemoryCanvasRepository implements ICanvasRepository {
     }
     const record = this.records.get(id);
     if (record) record.hasThumbnail = thumbnail !== null;
+  }
+
+  async getPublishedRecord(ownerDid: string, id: string) {
+    const record = this.records.get(id);
+    return record && record.ownerDid === ownerDid
+      ? (this.published.get(id) ?? null)
+      : null;
+  }
+
+  async setPublishedRecord(id: string, record: { uri: string; cid: string }) {
+    this.published.set(id, record);
   }
 
   private strip(record: CanvasRecord & { documentKey: string | null }) {

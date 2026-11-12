@@ -8,6 +8,8 @@ import {
   boolean,
   index,
 } from 'drizzle-orm/pg-core';
+import { sql } from 'drizzle-orm';
+import { publishedRecords } from 'src/modules/cards/infrastructure/repositories/schema/publishedRecord.sql';
 
 // One row per canvas board. The tldraw document and its thumbnail live in
 // object storage; this row is the indexable metadata plus the current
@@ -35,6 +37,10 @@ export const canvases = pgTable(
     // Set once a thumbnail has been uploaded. Thumbnails live at a fixed key
     // and are overwritten in place, so presence is all the row needs.
     hasThumbnail: boolean('has_thumbnail').notNull().default(false),
+    // The board's PDS record, published on create and updated on rename
+    publishedRecordId: uuid('published_record_id').references(
+      () => publishedRecords.id,
+    ),
     createdAt: timestamp('created_at').notNull().defaultNow(),
     updatedAt: timestamp('updated_at').notNull().defaultNow(),
   },
@@ -45,6 +51,9 @@ export const canvases = pgTable(
         table.ownerDid,
         table.updatedAt.desc(),
       ),
+      publishedRecordIdIdx: index('idx_canvases_published_record_id')
+        .on(table.publishedRecordId)
+        .where(sql`${table.publishedRecordId} IS NOT NULL`),
     };
   },
 );

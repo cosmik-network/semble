@@ -30,6 +30,7 @@ export class OAuthClientFactory {
       collections.follow,
       collections.collectionLinkRemoval,
       collections.connection,
+      collections.canvas,
     ]
       .map((c) => `collection=${c}`)
       .join('&');
