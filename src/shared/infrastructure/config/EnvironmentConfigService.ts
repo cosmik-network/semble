@@ -110,7 +110,7 @@ export interface EnvironmentConfig {
   };
   objectStore: {
     // S3-compatible store for canvas documents and thumbnails (Tigris in
-    // production, MinIO in development). Null → filesystem fallback.
+    // production). Null → filesystem fallback.
     bucket?: string;
     region: string;
     accessKeyId?: string;

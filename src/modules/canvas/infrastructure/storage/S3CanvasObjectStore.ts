@@ -14,17 +14,18 @@ export interface S3ObjectStoreOptions {
   region: string;
   accessKeyId: string;
   secretAccessKey: string;
-  // MinIO and other self-hosted S3 services; unset for Tigris
+  // Self-hosted S3 services (e.g. s3mock in tests); unset for Tigris
   endpoint?: string;
 }
 
-// One store per process. Tigris in production, MinIO in development — both
-// speak S3, so the same client serves both.
+// One store per process. Tigris in production; local development defaults to
+// FileCanvasObjectStore, with this store taking over whenever S3_* is
+// configured against a real S3 endpoint.
 export class S3CanvasObjectStore implements ICanvasObjectStore {
   private client: S3Client;
   private bucket: string;
-  // Buckets aren't created for us (MinIO never, Tigris only from the
-  // command line), so make sure one exists before the first request. A bad
+  // Buckets aren't created for us (Tigris only from the command line), so
+  // make sure one exists before the first request. A bad
   // config surfaces as request errors, not a crash loop.
   private ensureBucket: Promise<void>;
 
@@ -38,7 +39,7 @@ export class S3CanvasObjectStore implements ICanvasObjectStore {
       },
       ...(options.endpoint && {
         endpoint: options.endpoint,
-        // MinIO addresses buckets by path, not subdomain
+        // Self-hosted S3 services address buckets by path, not subdomain
         forcePathStyle: true,
       }),
     });

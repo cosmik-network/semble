@@ -214,7 +214,7 @@ export class RepositoryFactory {
     const oauthStateStore = new DrizzleStateStore(db);
     const oauthSessionStore = new DrizzleSessionStore(db);
 
-    // Tigris (or MinIO) when S3_* is configured, bytes on disk otherwise
+    // Tigris (or any S3 endpoint) when S3_* is configured, bytes on disk otherwise
     const objectStoreConfig = configService.getObjectStoreConfig();
     const canvasObjectStore: ICanvasObjectStore =
       objectStoreConfig.bucket &&

@@ -1,5 +1,5 @@
-// Where canvas documents and thumbnails live: Tigris in production, MinIO or
-// the filesystem in development. Documents are opaque JSON blobs; the
+// Where canvas documents and thumbnails live: Tigris in production, the
+// filesystem in local development. Documents are opaque JSON blobs; the
 // repository names the keys, the store only moves bytes.
 export interface ICanvasObjectStore {
   put(key: string, body: Buffer, contentType: string): Promise<void>;

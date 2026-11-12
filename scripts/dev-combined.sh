@@ -3,14 +3,12 @@
 # Source both setup scripts
 source ./scripts/setup-postgres.sh
 source ./scripts/setup-redis.sh
-source ./scripts/setup-minio.sh
 
 # Function to handle cleanup for both services
 cleanup_and_exit() {
     echo "Cleaning up services..."
     cleanup_postgres
     cleanup_redis
-    cleanup_minio
     exit 0
 }
 
