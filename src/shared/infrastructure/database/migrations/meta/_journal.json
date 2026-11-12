@@ -232,6 +232,13 @@
       "when": 1793645148724,
       "tag": "0032_large_wrecker",
       "breakpoints": true
+    },
+    {
+      "idx": 33,
+      "version": "7",
+      "when": 1794384128994,
+      "tag": "0033_lively_pet_avengers",
+      "breakpoints": true
     }
   ]
 }
