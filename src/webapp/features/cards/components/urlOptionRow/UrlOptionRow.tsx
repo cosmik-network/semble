@@ -1,4 +1,5 @@
 import { Card, Group, Image, Stack, Text } from '@mantine/core';
+import { useState } from 'react';
 import { getDomain } from '@/lib/utils/link';
 
 interface Props {
@@ -9,9 +10,13 @@ interface Props {
 
 // A link as one row of a search or picker list
 export default function UrlOptionRow(props: Props) {
+  // Remember which src failed, so a new imageUrl gets its own try
+  const [failedSrc, setFailedSrc] = useState<string | null>(null);
+  const showImage = !!props.imageUrl && failedSrc !== props.imageUrl;
+
   return (
     <Group gap={'xs'} align="center" wrap="nowrap">
-      {props.imageUrl && (
+      {showImage && (
         <Card
           p={0}
           radius="md"
@@ -26,6 +31,7 @@ export default function UrlOptionRow(props: Props) {
             w={'100%'}
             h={'100%'}
             fit="cover"
+            onError={() => setFailedSrc(props.imageUrl ?? null)}
           />
         </Card>
       )}
