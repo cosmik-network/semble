@@ -79,7 +79,8 @@ export class SyncedCanvasStorage implements CanvasStorage {
       this.revisions.set(record.id, record.revision);
       await this.ensureLocal(record);
       return this.toRecord(record);
-    } catch {
+    } catch (error) {
+      console.warn('[canvas] server create failed, staying local', error);
       // Offline or signed out: a local-only board, pushed by migration once
       // the server is reachable again
       return this.local.createCanvas(ownerDid, id);
@@ -98,8 +99,13 @@ export class SyncedCanvasStorage implements CanvasStorage {
       const localOnly = (await this.local.listCanvases(ownerDid)).filter(
         (canvas) => !remoteIds.has(canvas.id),
       );
-      return [...remote.map(this.toSummary), ...localOnly];
-    } catch {
+      // Bind explicitly: passing this.toSummary bare loses `this`, and the
+      // TypeError lands in this method's catch as a phantom "server failed"
+      return [...remote.map((record) => this.toSummary(record)), ...localOnly];
+    } catch (error) {
+      // A silent fallback here reads as "my boards vanished" on any other
+      // device, so always say why the local list is being shown
+      console.warn('[canvas] server list failed, showing local only', error);
       return this.local.listCanvases(ownerDid);
     }
   }
@@ -107,7 +113,8 @@ export class SyncedCanvasStorage implements CanvasStorage {
   async getCanvas(id: string): Promise<CanvasRecord | null> {
     try {
       return this.toRecord(await this.client().get(id));
-    } catch {
+    } catch (error) {
+      console.warn('[canvas] server get failed, using local', error);
       return this.local.getCanvas(id);
     }
   }
