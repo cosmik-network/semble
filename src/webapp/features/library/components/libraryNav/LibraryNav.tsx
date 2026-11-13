@@ -21,6 +21,7 @@ import {
   FollowingCollectionsNavItems,
   MyCollectionsNavItems,
 } from '@/features/collections/components/collectionsNavList/CollectionNavSectionItems';
+import { useFeatureFlags } from '@/lib/clientFeatureFlags';
 import CanvasNavItems from '@/features/canvas/components/canvasNavItems/CanvasNavItems';
 import LibraryNavSection from './LibraryNavSection';
 
@@ -34,10 +35,12 @@ type ExpandedKey =
 export default function LibraryNav() {
   const { settings, updateSetting } = useSettings();
   const { data: profile } = useMyProfile();
+  const { data: featureFlags } = useFeatureFlags();
   const [followingDrawerOpen, setFollowingDrawerOpen] = useState(false);
 
   // Stored flags would mismatch the server's collapsed HTML during hydration;
-  // see useUserSettings.
+  // see useUserSettings. So would feature flags fetched before this hydrates,
+  // which the server never has.
   const mounted = useMounted();
   const expanded = (key: ExpandedKey) => ({
     opened: mounted ? settings[key] : defaultSettings[key],
@@ -94,15 +97,17 @@ export default function LibraryNav() {
           <ContributedCollectionsNavItems identifier={handle} />
         </LibraryNavSection>
 
-        <LibraryNavSection
-          label="Canvases"
-          icon={<TfiBlackboard size={20} />}
-          viewAllHref="/canvas"
-          errorMessage="Could not load canvases"
-          {...expanded('canvasesNavExpanded')}
-        >
-          <CanvasNavItems />
-        </LibraryNavSection>
+        {mounted && featureFlags?.canvas && (
+          <LibraryNavSection
+            label="Canvases"
+            icon={<TfiBlackboard size={20} />}
+            viewAllHref="/canvas"
+            errorMessage="Could not load canvases"
+            {...expanded('canvasesNavExpanded')}
+          >
+            <CanvasNavItems />
+          </LibraryNavSection>
+        )}
       </Stack>
 
       <StatDrawer
