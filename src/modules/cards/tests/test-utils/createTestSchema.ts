@@ -226,7 +226,6 @@ export async function createTestSchema(db: PostgresJsDatabase) {
       schema_sequences JSONB NOT NULL DEFAULT '{}'::jsonb,
       document_key TEXT,
       has_thumbnail BOOLEAN NOT NULL DEFAULT false,
-      published_record_id UUID REFERENCES published_records(id),
       created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
       updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
     )`,
@@ -493,8 +492,5 @@ export async function createTestSchema(db: PostgresJsDatabase) {
   `);
   await db.execute(sql`
     CREATE INDEX IF NOT EXISTS canvases_owner_updated_idx ON canvases(owner_did, updated_at DESC);
-  `);
-  await db.execute(sql`
-    CREATE INDEX IF NOT EXISTS idx_canvases_published_record_id ON canvases(published_record_id) WHERE published_record_id IS NOT NULL;
   `);
 }
