@@ -20,6 +20,7 @@ import {
   type Editor,
 } from 'tldraw';
 import type { CanvasController } from '../../controller/canvasController';
+import { withProxiedExportImages } from '../../lib/proxiedExportImages';
 
 interface Props {
   // Null until the board has loaded
@@ -96,12 +97,14 @@ async function screenshotView(editor: Editor) {
     .map((shape) => shape.id);
   if (ids.length === 0) return;
   try {
-    await exportAs(editor, ids, {
-      format: 'png',
-      bounds: viewport,
-      padding: 0,
-      background: true,
-    });
+    await withProxiedExportImages(() =>
+      exportAs(editor, ids, {
+        format: 'png',
+        bounds: viewport,
+        padding: 0,
+        background: true,
+      }),
+    );
   } catch (error) {
     console.warn(error);
     notifications.show({

@@ -28,6 +28,7 @@ import { useCopyState } from '../../lib/canvasCopiesContext';
 import { useMediaRevealed } from '../../lib/canvasMediaRevealsContext';
 import useCanvasLink from '../../lib/queries/useCanvasLink';
 import EdgeDots from '../edgeDots/EdgeDots';
+import ExportLineClamp from '../exportLineClamp/ExportLineClamp';
 import LinkCardPreviewContent from './LinkCardPreviewContent';
 
 interface Props {
@@ -58,6 +59,7 @@ export default function LinkCardFace(props: Props) {
 
   return (
     <Box pos="relative">
+      <ExportLineClamp />
       <Card
         withBorder
         radius="lg"
