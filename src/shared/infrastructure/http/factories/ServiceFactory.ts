@@ -97,6 +97,7 @@ import { BskyFollowsService } from '../../../../modules/user/application/service
 import { IBskyFollowsService } from '../../../../modules/user/application/services/IBskyFollowsService';
 import { CachedBskyFollowsService } from '../../../../modules/user/infrastructure/services/CachedBskyFollowsService';
 import { FakeBskyFollowsService } from '../../../../modules/user/infrastructure/services/FakeBskyFollowsService';
+import { CanvasService } from '../../../../modules/canvas/application/CanvasService';
 
 // Shared services needed by both web app and workers
 export interface SharedServices {
@@ -124,6 +125,7 @@ export interface SharedServices {
   collectionPublisher: ICollectionPublisher;
   connectionPublisher: IConnectionPublisher;
   followPublisher: IFollowPublisher;
+  canvasService: CanvasService;
 }
 
 // Web app specific services (includes publishers, auth middleware)
@@ -615,6 +617,7 @@ export class ServiceFactory {
       collectionPublisher,
       connectionPublisher,
       followPublisher,
+      canvasService: new CanvasService(repositories.canvasRepository),
     };
   }
 }

@@ -1,11 +1,4 @@
-import {
-  ActionIcon,
-  Button,
-  Group,
-  Menu,
-  Paper,
-  Tooltip,
-} from '@mantine/core';
+import { ActionIcon, Button, Group, Menu, Paper, Tooltip } from '@mantine/core';
 import { notifications } from '@mantine/notifications';
 import type { ReactNode } from 'react';
 import { FiPlus } from 'react-icons/fi';

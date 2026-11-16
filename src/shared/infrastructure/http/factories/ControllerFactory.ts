@@ -59,6 +59,7 @@ import { GetMyNotificationsController } from '../../../../modules/notifications/
 import { GetUnreadNotificationCountController } from '../../../../modules/notifications/infrastructure/http/controllers/GetUnreadNotificationCountController';
 import { MarkNotificationsAsReadController } from '../../../../modules/notifications/infrastructure/http/controllers/MarkNotificationsAsReadController';
 import { MarkAllNotificationsAsReadController } from '../../../../modules/notifications/infrastructure/http/controllers/MarkAllNotificationsAsReadController';
+import { CanvasController } from '../../../../modules/canvas/infrastructure/http/controllers/CanvasController';
 import { FollowTargetController } from '../../../../modules/user/infrastructure/http/controllers/FollowTargetController';
 import { FollowManyUsersController } from '../../../../modules/user/infrastructure/http/controllers/FollowManyUsersController';
 import { GetBskyFollowedSembleUsersController } from '../../../../modules/user/infrastructure/http/controllers/GetBskyFollowedSembleUsersController';
@@ -186,6 +187,8 @@ export interface Controllers {
   getUnreadNotificationCountController: GetUnreadNotificationCountController;
   markNotificationsAsReadController: MarkNotificationsAsReadController;
   markAllNotificationsAsReadController: MarkAllNotificationsAsReadController;
+  // Canvas controllers
+  canvasController: CanvasController;
 }
 
 export class ControllerFactory {
@@ -509,6 +512,7 @@ export class ControllerFactory {
         new MarkAllNotificationsAsReadController(
           useCases.markAllNotificationsAsReadUseCase,
         ),
+      canvasController: new CanvasController(services.canvasService),
     };
   }
 }

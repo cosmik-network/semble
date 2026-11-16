@@ -4,6 +4,7 @@ export const canvasKeys = {
   all: () => ['canvases'] as const,
   list: (ownerDid: string) => [...canvasKeys.all(), 'list', ownerDid] as const,
   canvas: (id: string) => [...canvasKeys.all(), 'canvas', id] as const,
+  shareToken: (id: string) => [...canvasKeys.all(), 'shareToken', id] as const,
   // Under cardKeys so the webapp's save and remove mutations, which invalidate
   // all of them, refresh the board's links too
   links: () => [...cardKeys.all(), 'canvas-link'] as const,
