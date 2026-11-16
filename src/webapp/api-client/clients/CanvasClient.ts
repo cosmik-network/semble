@@ -113,4 +113,11 @@ export class CanvasClient extends BaseClient {
     }>(res);
     return { record: opened.canvas, document: opened.document };
   }
+
+  async getSharedThumbnail(shareToken: string): Promise<string | null> {
+    const res = await this.client.canvases.getSharedThumbnail({
+      query: { shareToken },
+    });
+    return unwrap<{ thumbnail: string | null }>(res).thumbnail;
+  }
 }

@@ -23,6 +23,8 @@ import {
 } from 'tldraw';
 import { createSembleClient } from '@/services/client.apiClient';
 import { getCollectionPageUrl } from '@/lib/utils/link';
+import type { User } from '@semble/types';
+import CardAuthorRow from '@/features/cards/components/cardAuthorRow/CardAuthorRow';
 import { attachArrows } from '../../controller/arrows';
 import type { ConnectionEnd, FetchedConnections } from '../../model/arrows';
 import { collectionFrameOf } from '../../model/collectionFrames';
@@ -73,26 +75,28 @@ function connectionEndsOf(editor: Editor): ConnectionEnd[] {
   return Array.from(byUrl, ([url, shapeIds]) => ({ url, shapeIds }));
 }
 
-function SharedHeader(props: { name: string }) {
+function SharedHeader(props: { name: string; author: User | null }) {
   return (
     <Paper
       withBorder
       shadow="sm"
-      radius="xl"
-      p={4}
-      pr="xs"
-      pl="md"
+      radius="lg"
+      p={'xs'}
+      pr="sm"
       m="xs"
       style={{ pointerEvents: 'all' }}
     >
-      <Group gap="xs" wrap="nowrap">
-        <Text fw={700} truncate maw={320}>
-          {props.name}
-        </Text>
-        <Badge variant="light" size="sm" radius="xl">
-          View only
-        </Badge>
-      </Group>
+      <Stack gap={4}>
+        <Group gap="xs" wrap="nowrap">
+          <Text fw={700} truncate maw={320}>
+            {props.name}
+          </Text>
+          <Badge variant="light" size="sm" radius="xl">
+            View only
+          </Badge>
+        </Group>
+        {props.author && <CardAuthorRow author={props.author} />}
+      </Stack>
     </Paper>
   );
 }
@@ -110,13 +114,31 @@ export default function SharedBoardEditor(props: { shareToken: string }) {
     queryFn: () => createSembleClient().canvas.openShared(props.shareToken),
   });
 
+  // The board's owner, resolved through the public profile route. A failure
+  // just leaves the row out
+  const author = useQuery({
+    queryKey: ['canvas', 'shared-author', opened.data?.record.ownerDid],
+    queryFn: () =>
+      createSembleClient().getProfile({
+        identifier: opened.data!.record.ownerDid,
+      }),
+    enabled: !!opened.data,
+    retry: false,
+    staleTime: Infinity,
+  });
+
   const components = useMemo<TLComponents>(
     () => ({
-      MenuPanel: () => <SharedHeader name={name ?? DEFAULT_CANVAS_NAME} />,
+      MenuPanel: () => (
+        <SharedHeader
+          name={name ?? DEFAULT_CANVAS_NAME}
+          author={author.data ?? null}
+        />
+      ),
       // A shared board has one page and no quick add
       NavigationPanel: () => null,
     }),
-    [name],
+    [name, author.data],
   );
 
   useEffect(() => {

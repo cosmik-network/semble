@@ -203,3 +203,17 @@ export const OpenSharedCanvasResponseSchema = z.object({
 export type OpenSharedCanvasResponse = z.infer<
   typeof OpenSharedCanvasResponseSchema
 >;
+
+export const GetSharedThumbnailQuerySchema = z.object({
+  shareToken: z.string().regex(SHARE_TOKEN_PATTERN),
+});
+export type GetSharedThumbnailQuery = z.infer<
+  typeof GetSharedThumbnailQuerySchema
+>;
+
+export const GetSharedThumbnailResponseSchema = z.object({
+  thumbnail: z.string().nullable(),
+});
+export type GetSharedThumbnailResponse = z.infer<
+  typeof GetSharedThumbnailResponseSchema
+>;

@@ -152,6 +152,14 @@ export class CanvasService {
     return { record: opened.record, document };
   }
 
+  async sharedThumbnail(shareToken: string) {
+    const opened = await this.repository.openShared(shareToken);
+    if (!opened) throw new CanvasNotOwnedError(shareToken);
+    if (!opened.record.hasThumbnail) return null;
+    const bytes = await this.repository.getThumbnail(opened.record.id);
+    return bytes ? `data:image/jpeg;base64,${bytes.toString('base64')}` : null;
+  }
+
   private async owned(ownerDid: string, id: string) {
     const record = await this.repository.get(ownerDid, id);
     if (!record) throw new CanvasNotOwnedError(id);

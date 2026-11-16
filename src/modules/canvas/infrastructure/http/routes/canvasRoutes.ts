@@ -103,4 +103,10 @@ export function registerCanvasRoutes(
     validateQuery(canvasContract.openShared.query),
     (req, res) => canvasController.openShared(req, res),
   );
+
+  app.get(
+    routes.canvases.getSharedThumbnail.path,
+    validateQuery(canvasContract.getSharedThumbnail.query),
+    (req, res) => canvasController.sharedThumbnail(req, res),
+  );
 }

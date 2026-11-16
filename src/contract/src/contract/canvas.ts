@@ -29,6 +29,8 @@ import {
   UnshareCanvasResponseSchema,
   OpenSharedCanvasQuerySchema,
   OpenSharedCanvasResponseSchema,
+  GetSharedThumbnailQuerySchema,
+  GetSharedThumbnailResponseSchema,
 } from '@semble/types';
 
 const c = initContract();
@@ -168,6 +170,16 @@ export const canvasContract = c.router(
       metadata: { internal: true } as const,
       description:
         'Returns the shared board’s record and its saved tldraw document. Public: no authentication, the share token is the credential.',
+    },
+    getSharedThumbnail: {
+      method: 'GET',
+      path: paths.getSharedCanvasThumbnail,
+      query: GetSharedThumbnailQuerySchema,
+      responses: { 200: GetSharedThumbnailResponseSchema },
+      summary: "Get a shared canvas's thumbnail",
+      metadata: { internal: true } as const,
+      description:
+        "Returns the shared board's thumbnail as an image data URL, or null when none was captured. Public: the share token is the credential.",
     },
   },
   { strictStatusCodes: true },

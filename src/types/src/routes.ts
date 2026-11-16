@@ -152,6 +152,7 @@ export const paths = {
   shareCanvas: '/network.cosmik.canvas.share',
   unshareCanvas: '/network.cosmik.canvas.unshare',
   openSharedCanvas: '/network.cosmik.canvas.openShared',
+  getSharedCanvasThumbnail: '/network.cosmik.canvas.getSharedThumbnail',
 } as const;
 
 export const routes = {
@@ -305,5 +306,10 @@ export const routes = {
     unshare: defineRoute(paths.unshareCanvas, 'POST', true),
     // Public: anyone holding the token can view the board
     openShared: defineRoute(paths.openSharedCanvas, 'GET', false),
+    getSharedThumbnail: defineRoute(
+      paths.getSharedCanvasThumbnail,
+      'GET',
+      false,
+    ),
   },
 } as const;

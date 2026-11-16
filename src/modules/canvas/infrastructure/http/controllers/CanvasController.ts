@@ -202,6 +202,18 @@ export class CanvasController extends Controller {
     }
   }
 
+  // Public: the share token is the credential, so no owner
+  async sharedThumbnail(req: AuthenticatedRequest, res: Response) {
+    try {
+      const thumbnail = await this.canvasService.sharedThumbnail(
+        String(req.query.shareToken),
+      );
+      return this.ok(res, { thumbnail });
+    } catch (error) {
+      return this.mapError(res, error);
+    }
+  }
+
   private owner(res: Response, req: AuthenticatedRequest) {
     const ownerDid = req.did;
     if (!ownerDid) {

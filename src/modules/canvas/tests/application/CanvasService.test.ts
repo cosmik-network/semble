@@ -121,6 +121,21 @@ describe('CanvasService', () => {
     );
   });
 
+  it('serves a shared thumbnail through the token', async () => {
+    const canvas = await service.create(alice);
+    const shared = await service.share(alice, canvas.id);
+
+    // Null when none was captured, rather than a miss
+    expect(await service.sharedThumbnail(shared.shareToken)).toBeNull();
+    await service.saveThumbnail(alice, canvas.id, jpeg);
+    expect(await service.sharedThumbnail(shared.shareToken)).toBe(jpeg);
+
+    await service.unshare(alice, canvas.id);
+    await expect(service.sharedThumbnail(shared.shareToken)).rejects.toThrow(
+      CanvasNotOwnedError,
+    );
+  });
+
   it('keeps sharing scoped to the owner', async () => {
     const canvas = await service.create(alice);
     await expect(service.share(bob, canvas.id)).rejects.toThrow(
