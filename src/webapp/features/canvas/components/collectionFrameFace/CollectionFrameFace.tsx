@@ -37,6 +37,7 @@ import {
   type CollectionFrameMeta,
 } from '../../model/collectionFrames';
 import { useCollectionFrames } from '../../lib/canvasCollectionFramesContext';
+import ExportLineClamp from '../exportLineClamp/ExportLineClamp';
 import classes from './CollectionFrameFace.module.css';
 
 interface Props {
@@ -73,6 +74,7 @@ export default function CollectionFrameFace(props: Props) {
       h={props.h}
       style={{ '--frame-radius': `${props.radius}px` }}
     >
+      <ExportLineClamp />
       <Stack
         className={classes.header}
         gap={0}
