@@ -11,6 +11,7 @@ import {
   Text,
 } from '@mantine/core';
 import Link from 'next/link';
+import { MdOutlinePeopleAlt } from 'react-icons/md';
 import { TfiBlackboard } from 'react-icons/tfi';
 import { getRelativeTime } from '@/lib/utils/time';
 import { canvasHref } from '../../lib/constants';
@@ -57,11 +58,24 @@ export default function CanvasCard(props: Props) {
             <Text fw={500} lineClamp={1}>
               {props.canvas.name}
             </Text>
-            <Text c="gray" fz="sm" lineClamp={1}>
-              {linkCount} {linkCount === 1 ? 'link' : 'links'}
-              {' · '}
-              {getRelativeTime(props.canvas.updatedAt)}
-            </Text>
+            <Group gap={6} wrap="nowrap">
+              {props.canvas.sharedAt && (
+                <Group gap={4} wrap="nowrap" c="blue" style={{ flexShrink: 0 }}>
+                  <MdOutlinePeopleAlt size={14} aria-hidden />
+                  <Text fz="sm" fw={500} c="blue">
+                    Shared
+                  </Text>
+                  <Text fz="sm" c="gray" aria-hidden>
+                    ·
+                  </Text>
+                </Group>
+              )}
+              <Text c="gray" fz="sm" lineClamp={1}>
+                {linkCount} {linkCount === 1 ? 'link' : 'links'}
+                {' · '}
+                {getRelativeTime(props.canvas.updatedAt)}
+              </Text>
+            </Group>
           </Box>
           <CanvasCardActions canvas={props.canvas} />
         </Group>

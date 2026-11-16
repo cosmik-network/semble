@@ -11,20 +11,18 @@ interface Props {
 export default function CanvasBoardSkeleton(props: Props) {
   return (
     <Box pos="absolute" inset={0} className={classes.board}>
-      <Paper
-        withBorder
-        shadow="sm"
-        radius="xl"
-        p={4}
-        pr="xs"
-        m="xs"
-        pos="absolute"
-      >
-        <Group gap="xs" wrap="nowrap">
-          <Skeleton circle height={34} />
-          <Skeleton height={14} width={120} radius="xl" />
-        </Group>
-      </Paper>
+      <Group gap={6} wrap="nowrap" m="xs" pos="absolute" top={0} left={0}>
+        <Paper withBorder shadow="sm" radius={13} p={4}>
+          <Group gap={6} wrap="nowrap">
+            <Skeleton height={34} width={34} radius="md" />
+            <Skeleton height={14} width={120} radius="sm" />
+            <Skeleton height={34} width={34} radius="md" />
+          </Group>
+        </Paper>
+        <Paper withBorder shadow="sm" radius={13} p={4}>
+          <Skeleton height={34} width={82} radius="md" />
+        </Paper>
+      </Group>
 
       {props.progress && (
         <Text c="dimmed" fz="sm" className={classes.progress}>

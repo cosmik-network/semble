@@ -37,7 +37,7 @@ export default function RenameCanvasModal(props: Props) {
     renameCanvas.mutate(
       { id: props.canvasId, name: form.values.name.trim() },
       {
-        onError: () => showCanvasError('Could not rename canvas'),
+        onError: () => showCanvasError('Could not rename canvas. Try again.'),
         onSettled: () => {
           props.onClose();
         },

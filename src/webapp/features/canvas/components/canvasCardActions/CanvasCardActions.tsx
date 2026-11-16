@@ -8,11 +8,13 @@ import {
   BsThreeDots,
   BsTrash2Fill,
 } from 'react-icons/bs';
+import { MdOutlinePeopleAlt } from 'react-icons/md';
 import type { CanvasSummary } from '../../storage/canvasStorage';
 import useDuplicateCanvas from '../../lib/mutations/useDuplicateCanvas';
 import { showCanvasError } from '../../lib/showCanvasError';
 import RenameCanvasModal from '../renameCanvasModal/RenameCanvasModal';
 import DeleteCanvasModal from '../deleteCanvasModal/DeleteCanvasModal';
+import ShareCanvasModal from '../shareCanvasModal/ShareCanvasModal';
 
 interface Props {
   canvas: CanvasSummary;
@@ -22,6 +24,7 @@ export default function CanvasCardActions(props: Props) {
   const duplicateCanvas = useDuplicateCanvas();
   const [showRenameModal, setShowRenameModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [showShareModal, setShowShareModal] = useState(false);
 
   return (
     <Fragment>
@@ -47,11 +50,18 @@ export default function CanvasCardActions(props: Props) {
             leftSection={<BsFiles />}
             onClick={() =>
               duplicateCanvas.mutate(props.canvas.id, {
-                onError: () => showCanvasError('Could not duplicate canvas'),
+                onError: () =>
+                  showCanvasError('Could not duplicate canvas. Try again.'),
               })
             }
           >
             Duplicate canvas
+          </Menu.Item>
+          <Menu.Item
+            leftSection={<MdOutlinePeopleAlt />}
+            onClick={() => setShowShareModal(true)}
+          >
+            {props.canvas.sharedAt ? 'Manage share link' : 'Share canvas'}
           </Menu.Item>
           <Menu.Item
             color="red"
@@ -68,6 +78,13 @@ export default function CanvasCardActions(props: Props) {
         onClose={() => setShowRenameModal(false)}
         canvasId={props.canvas.id}
         name={props.canvas.name}
+      />
+      {/* Keyed so the modal starts from a share changed elsewhere */}
+      <ShareCanvasModal
+        key={String(props.canvas.sharedAt)}
+        isOpen={showShareModal}
+        onClose={() => setShowShareModal(false)}
+        canvas={props.canvas}
       />
       <DeleteCanvasModal
         isOpen={showDeleteModal}

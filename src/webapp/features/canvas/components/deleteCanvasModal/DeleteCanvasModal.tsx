@@ -17,7 +17,7 @@ export default function DeleteCanvasModal(props: Props) {
   const handleDelete = () => {
     deleteCanvas.mutate(props.canvasId, {
       onSuccess: props.onDeleted,
-      onError: () => showCanvasError('Could not delete canvas'),
+      onError: () => showCanvasError('Could not delete canvas. Try again.'),
       onSettled: props.onClose,
     });
   };
