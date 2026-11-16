@@ -20,7 +20,7 @@ export default function CanvasBoardSkeleton(props: Props) {
           </Group>
         </Paper>
         <Paper withBorder shadow="sm" radius={13} p={4}>
-          <Skeleton height={34} width={34} radius="md" />
+          <Skeleton height={34} width={82} radius="md" />
         </Paper>
       </Group>
 

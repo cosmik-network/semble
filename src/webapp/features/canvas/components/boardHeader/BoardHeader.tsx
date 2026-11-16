@@ -1,10 +1,10 @@
 'use client';
 
-import { ActionIcon, Group, Paper, Text, Tooltip } from '@mantine/core';
+import { ActionIcon, Button, Group, Paper, Text, Tooltip } from '@mantine/core';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState, type ReactNode } from 'react';
 import { IoArrowBack } from 'react-icons/io5';
-import { MdIosShare } from 'react-icons/md';
+import { MdOutlinePeopleAlt } from 'react-icons/md';
 import { BsPencilFill } from 'react-icons/bs';
 import { useEditor, useValue } from 'tldraw';
 import type { CanvasController } from '../../controller/canvasController';
@@ -117,19 +117,23 @@ export default function BoardHeader(props: Props) {
         {canvas && (
           <Surface>
             <Tooltip
-              label={shared ? 'Shared · manage link' : 'Share'}
+              label="Shared · manage link"
               withArrow
               withinPortal={false}
+              disabled={!shared}
             >
-              <ActionIcon
+              <Button
                 onClick={() => setIsSharing(true)}
                 variant={shared ? 'light' : 'subtle'}
-                size="lg"
                 color={shared ? 'blue' : 'gray'}
-                aria-label={shared ? 'Shared, manage link' : 'Share canvas'}
+                radius="md"
+                h={34}
+                px={10}
+                leftSection={<MdOutlinePeopleAlt size={18} />}
+                aria-label={shared ? 'Share, currently shared' : undefined}
               >
-                <MdIosShare size={18} />
-              </ActionIcon>
+                Share
+              </Button>
             </Tooltip>
           </Surface>
         )}
