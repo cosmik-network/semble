@@ -158,5 +158,8 @@
     "ioredis": "$ioredis",
     "react": "19.2.5",
     "react-dom": "19.2.5"
+  },
+  "optionalDependencies": {
+    "@oxc-parser/binding-darwin-arm64": "^0.127.0"
   }
 }

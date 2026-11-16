@@ -100,7 +100,9 @@ export class CanvasController extends Controller {
         ownerDid,
         String(req.query.canvasId),
       );
-      return this.ok(res, opened);
+      // The service names it record; the contract's wire shape says canvas
+      const { record, document } = opened;
+      return this.ok(res, { canvas: record, document });
     } catch (error) {
       return this.mapError(res, error);
     }
@@ -157,6 +159,44 @@ export class CanvasController extends Controller {
         String(req.query.canvasId),
       );
       return this.ok(res, { thumbnail });
+    } catch (error) {
+      return this.mapError(res, error);
+    }
+  }
+
+  async share(req: AuthenticatedRequest, res: Response) {
+    const ownerDid = this.owner(res, req);
+    if (!ownerDid) return;
+    const { canvasId } = req.body;
+    try {
+      const shared = await this.canvasService.share(ownerDid, canvasId);
+      const { record, shareToken } = shared;
+      return this.ok(res, { canvas: record, shareToken });
+    } catch (error) {
+      return this.mapError(res, error);
+    }
+  }
+
+  async unshare(req: AuthenticatedRequest, res: Response) {
+    const ownerDid = this.owner(res, req);
+    if (!ownerDid) return;
+    const { canvasId } = req.body;
+    try {
+      const canvas = await this.canvasService.unshare(ownerDid, canvasId);
+      return this.ok(res, { canvas });
+    } catch (error) {
+      return this.mapError(res, error);
+    }
+  }
+
+  // Public: the share token is the credential, so no owner
+  async openShared(req: AuthenticatedRequest, res: Response) {
+    try {
+      const opened = await this.canvasService.openShared(
+        String(req.query.shareToken),
+      );
+      const { record, document } = opened;
+      return this.ok(res, { canvas: record, document });
     } catch (error) {
       return this.mapError(res, error);
     }

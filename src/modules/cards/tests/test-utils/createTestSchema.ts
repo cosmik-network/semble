@@ -226,6 +226,8 @@ export async function createTestSchema(db: PostgresJsDatabase) {
       schema_sequences JSONB NOT NULL DEFAULT '{}'::jsonb,
       document_key TEXT,
       has_thumbnail BOOLEAN NOT NULL DEFAULT false,
+      share_token TEXT,
+      shared_at TIMESTAMP WITH TIME ZONE,
       created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
       updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
     )`,
@@ -492,5 +494,8 @@ export async function createTestSchema(db: PostgresJsDatabase) {
   `);
   await db.execute(sql`
     CREATE INDEX IF NOT EXISTS canvases_owner_updated_idx ON canvases(owner_did, updated_at DESC);
+  `);
+  await db.execute(sql`
+    CREATE UNIQUE INDEX IF NOT EXISTS canvases_share_token_idx ON canvases(share_token);
   `);
 }

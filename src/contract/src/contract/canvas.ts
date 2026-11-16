@@ -23,6 +23,12 @@ import {
   SaveThumbnailResponseSchema,
   GetThumbnailQuerySchema,
   GetThumbnailResponseSchema,
+  ShareCanvasRequestSchema,
+  ShareCanvasResponseSchema,
+  UnshareCanvasRequestSchema,
+  UnshareCanvasResponseSchema,
+  OpenSharedCanvasQuerySchema,
+  OpenSharedCanvasResponseSchema,
 } from '@semble/types';
 
 const c = initContract();
@@ -132,6 +138,36 @@ export const canvasContract = c.router(
       metadata: { internal: true } as const,
       description:
         "Returns the canvas's thumbnail as an image data URL, or null when none was captured.",
+    },
+    share: {
+      method: 'POST',
+      path: paths.shareCanvas,
+      body: ShareCanvasRequestSchema,
+      responses: { 200: ShareCanvasResponseSchema },
+      summary: 'Share a canvas with a view-only link',
+      metadata: { internal: true } as const,
+      description:
+        'Creates the board’s share token and returns it, or returns the existing token when the board is already shared. Anyone holding the token can view the board.',
+    },
+    unshare: {
+      method: 'POST',
+      path: paths.unshareCanvas,
+      body: UnshareCanvasRequestSchema,
+      responses: { 200: UnshareCanvasResponseSchema },
+      summary: 'Revoke a canvas’s view-only link',
+      metadata: { internal: true } as const,
+      description:
+        'Clears the board’s share token. Links already handed out stop working; sharing again mints a new token.',
+    },
+    openShared: {
+      method: 'GET',
+      path: paths.openSharedCanvas,
+      query: OpenSharedCanvasQuerySchema,
+      responses: { 200: OpenSharedCanvasResponseSchema },
+      summary: 'Open a shared canvas',
+      metadata: { internal: true } as const,
+      description:
+        'Returns the shared board’s record and its saved tldraw document. Public: no authentication, the share token is the credential.',
     },
   },
   { strictStatusCodes: true },

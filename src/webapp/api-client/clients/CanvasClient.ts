@@ -11,6 +11,8 @@ import type {
   SaveCanvasRequest,
   SaveCanvasResponse,
   SaveThumbnailRequest,
+  ShareCanvasRequest,
+  UnshareCanvasRequest,
 } from '@semble/types';
 
 // Canvas board sync: whole-snapshot saves, one writer at a time. The
@@ -82,5 +84,33 @@ export class CanvasClient extends BaseClient {
       query: { canvasId },
     });
     return unwrap<{ thumbnail: string | null }>(res).thumbnail;
+  }
+
+  // Idempotent: a shared board keeps the token it already has
+  async share(
+    body: ShareCanvasRequest,
+  ): Promise<{ record: CanvasRecord; shareToken: string }> {
+    const res = await this.client.canvases.share({ body });
+    const shared = unwrap<{ canvas: CanvasRecord; shareToken: string }>(res);
+    return { record: shared.canvas, shareToken: shared.shareToken };
+  }
+
+  async unshare(body: UnshareCanvasRequest): Promise<CanvasRecord> {
+    const res = await this.client.canvases.unshare({ body });
+    return unwrap<{ canvas: CanvasRecord }>(res).canvas;
+  }
+
+  // Public: no session needed, the share token is the credential
+  async openShared(
+    shareToken: string,
+  ): Promise<{ record: CanvasRecord; document: CanvasDocument | null }> {
+    const res = await this.client.canvases.openShared({
+      query: { shareToken },
+    });
+    const opened = unwrap<{
+      canvas: CanvasRecord;
+      document: CanvasDocument | null;
+    }>(res);
+    return { record: opened.canvas, document: opened.document };
   }
 }

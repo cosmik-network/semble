@@ -51,4 +51,16 @@ export interface ICanvasRepository {
   // A JPEG's bytes, null when none was captured
   getThumbnail(id: string): Promise<Buffer | null>;
   saveThumbnail(id: string, thumbnail: Buffer | null): Promise<void>;
+  // Mints the board's share token, keeping the existing one while shared
+  share(
+    ownerDid: string,
+    id: string,
+  ): Promise<{ record: CanvasRecord; shareToken: string } | null>;
+  // Clears the board's share token; the record it returns, or null when the
+  // board isn't the owner's
+  unshare(ownerDid: string, id: string): Promise<CanvasRecord | null>;
+  // The shared board, addressed by the secret its link carries
+  openShared(
+    shareToken: string,
+  ): Promise<{ record: CanvasRecord; document: Buffer | null } | null>;
 }

@@ -131,6 +131,27 @@ export class CanvasService {
     return bytes ? `data:image/jpeg;base64,${bytes.toString('base64')}` : null;
   }
 
+  async share(ownerDid: string, id: string) {
+    const shared = await this.repository.share(ownerDid, id);
+    if (!shared) throw new CanvasNotOwnedError(id);
+    return shared;
+  }
+
+  async unshare(ownerDid: string, id: string) {
+    const record = await this.repository.unshare(ownerDid, id);
+    if (!record) throw new CanvasNotOwnedError(id);
+    return record;
+  }
+
+  async openShared(shareToken: string) {
+    const opened = await this.repository.openShared(shareToken);
+    if (!opened) throw new CanvasNotOwnedError(shareToken);
+    const document: CanvasDocument | null = opened.document
+      ? (JSON.parse(opened.document.toString('utf8')) as CanvasDocument)
+      : null;
+    return { record: opened.record, document };
+  }
+
   private async owned(ownerDid: string, id: string) {
     const record = await this.repository.get(ownerDid, id);
     if (!record) throw new CanvasNotOwnedError(id);

@@ -94,4 +94,45 @@ describe('CanvasService', () => {
     expect(of(await service.list(alice, false))?.thumbnail).toBeNull();
     expect(of(await service.list(alice, true))?.thumbnail).toBe(jpeg);
   });
+
+  it('shares a canvas by token and revokes it', async () => {
+    const canvas = await service.create(alice);
+    await service.save(alice, canvas.id, 0, document('a'), 0, '3.15.6');
+
+    const shared = await service.share(alice, canvas.id);
+    // Sharing again keeps the token, so links already handed out stay stable
+    expect((await service.share(alice, canvas.id)).shareToken).toBe(
+      shared.shareToken,
+    );
+    expect(shared.record.sharedAt).not.toBeNull();
+
+    const opened = await service.openShared(shared.shareToken);
+    expect(opened.record.id).toBe(canvas.id);
+    expect(opened.document).toEqual(document('a'));
+
+    const unshared = await service.unshare(alice, canvas.id);
+    expect(unshared.sharedAt).toBeNull();
+    await expect(service.openShared(shared.shareToken)).rejects.toThrow(
+      CanvasNotOwnedError,
+    );
+    // Sharing again mints a fresh token
+    expect((await service.share(alice, canvas.id)).shareToken).not.toBe(
+      shared.shareToken,
+    );
+  });
+
+  it('keeps sharing scoped to the owner', async () => {
+    const canvas = await service.create(alice);
+    await expect(service.share(bob, canvas.id)).rejects.toThrow(
+      CanvasNotOwnedError,
+    );
+    const shared = await service.share(alice, canvas.id);
+    await expect(service.unshare(bob, canvas.id)).rejects.toThrow(
+      CanvasNotOwnedError,
+    );
+    // Bob couldn't revoke it
+    expect((await service.openShared(shared.shareToken)).record.id).toBe(
+      canvas.id,
+    );
+  });
 });

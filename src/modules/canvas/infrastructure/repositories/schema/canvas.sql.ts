@@ -7,6 +7,7 @@ import {
   integer,
   boolean,
   index,
+  uniqueIndex,
 } from 'drizzle-orm/pg-core';
 
 // One row per canvas board. The tldraw document and its thumbnail live in
@@ -35,6 +36,10 @@ export const canvases = pgTable(
     // Set once a thumbnail has been uploaded. Thumbnails live at a fixed key
     // and are overwritten in place, so presence is all the row needs.
     hasThumbnail: boolean('has_thumbnail').notNull().default(false),
+    // The secret a view-only link carries, null while the board is unshared.
+    // High-entropy and unique, so it is looked up directly.
+    shareToken: text('share_token'),
+    sharedAt: timestamp('shared_at'),
     createdAt: timestamp('created_at').notNull().defaultNow(),
     updatedAt: timestamp('updated_at').notNull().defaultNow(),
   },
@@ -44,6 +49,9 @@ export const canvases = pgTable(
       ownerUpdatedIdx: index('canvases_owner_updated_idx').on(
         table.ownerDid,
         table.updatedAt.desc(),
+      ),
+      shareTokenIdx: uniqueIndex('canvases_share_token_idx').on(
+        table.shareToken,
       ),
     };
   },

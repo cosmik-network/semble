@@ -15,6 +15,9 @@ cleanup_and_exit() {
 # Trap SIGINT and SIGTERM to cleanup on exit
 trap cleanup_and_exit SIGINT SIGTERM
 
+# Local-only canvas object store: start each run clean
+rm -rf .canvas-objects
+
 echo "Starting development with separate processes (BullMQ + Redis)..."
 
 if [ "$TUNNEL" = "true" ]; then

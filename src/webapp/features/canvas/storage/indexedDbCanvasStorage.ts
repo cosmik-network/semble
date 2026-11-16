@@ -173,6 +173,7 @@ export class IndexedDbCanvasStorage implements CanvasStorage, BoardStorage {
       name: DEFAULT_CANVAS_NAME,
       tldrawVersion: this.options.tldrawVersion,
       linkCount: 0,
+      sharedAt: null,
       createdAt: now,
       updatedAt: now,
     };
@@ -336,6 +337,7 @@ export class IndexedDbCanvasStorage implements CanvasStorage, BoardStorage {
         name: record.name,
         linkCount: record.linkCount,
         tldrawVersion: record.tldrawVersion,
+        sharedAt: record.sharedAt ?? null,
         updatedAt: record.updatedAt,
       });
       if (document !== undefined) {

@@ -29,6 +29,8 @@ export const CanvasRecordSchema = z.object({
   revision: z.number().int(),
   schemaSequences: CanvasSchemaSequencesSchema,
   hasThumbnail: z.boolean(),
+  // When a view-only link was last made; null while the board is unshared
+  sharedAt: z.string().nullable(),
   createdAt: z.string(),
   updatedAt: z.string(),
 });
@@ -160,3 +162,44 @@ export const GetThumbnailResponseSchema = z.object({
   thumbnail: z.string().nullable(),
 });
 export type GetThumbnailResponse = z.infer<typeof GetThumbnailResponseSchema>;
+
+// A view-only link's secret. 24 base64url characters from 18 random bytes.
+export const SHARE_TOKEN_PATTERN = /^[A-Za-z0-9_-]{24}$/;
+
+export const ShareCanvasRequestSchema = z.object({
+  canvasId: z.string().uuid(),
+});
+export type ShareCanvasRequest = z.infer<typeof ShareCanvasRequestSchema>;
+
+export const ShareCanvasResponseSchema = z.object({
+  canvas: CanvasRecordSchema,
+  // The token the share link carries. Returned only here: revoking and
+  // sharing again rotates it
+  shareToken: z.string().regex(SHARE_TOKEN_PATTERN),
+});
+export type ShareCanvasResponse = z.infer<typeof ShareCanvasResponseSchema>;
+
+export const UnshareCanvasRequestSchema = z.object({
+  canvasId: z.string().uuid(),
+});
+export type UnshareCanvasRequest = z.infer<typeof UnshareCanvasRequestSchema>;
+
+export const UnshareCanvasResponseSchema = z.object({
+  canvas: CanvasRecordSchema,
+});
+export type UnshareCanvasResponse = z.infer<typeof UnshareCanvasResponseSchema>;
+
+export const OpenSharedCanvasQuerySchema = z.object({
+  // No z.uuid: the token is the address, and a wrong one is a 404
+  shareToken: z.string().regex(SHARE_TOKEN_PATTERN),
+});
+export type OpenSharedCanvasQuery = z.infer<typeof OpenSharedCanvasQuerySchema>;
+
+export const OpenSharedCanvasResponseSchema = z.object({
+  canvas: CanvasRecordSchema,
+  // Null when the board has never been saved
+  document: CanvasDocumentSchema.nullable(),
+});
+export type OpenSharedCanvasResponse = z.infer<
+  typeof OpenSharedCanvasResponseSchema
+>;

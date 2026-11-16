@@ -239,6 +239,13 @@
       "when": 1794384128994,
       "tag": "0033_lively_pet_avengers",
       "breakpoints": true
+    },
+    {
+      "idx": 34,
+      "version": "7",
+      "when": 1794798858904,
+      "tag": "0034_past_silver_fox",
+      "breakpoints": true
     }
   ]
 }

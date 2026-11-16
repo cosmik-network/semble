@@ -1,6 +1,6 @@
-import { and, desc, eq } from 'drizzle-orm';
+import { and, desc, eq, sql } from 'drizzle-orm';
 import { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
-import { randomUUID } from 'crypto';
+import { randomBytes, randomUUID } from 'crypto';
 import type {
   CanvasRecord,
   ICanvasRepository,
@@ -27,6 +27,7 @@ const toRecord = (row: Row): CanvasRecord => ({
   revision: row.revision,
   schemaSequences: row.schemaSequences,
   hasThumbnail: row.hasThumbnail,
+  sharedAt: row.sharedAt ? row.sharedAt.toISOString() : null,
   createdAt: row.createdAt.toISOString(),
   updatedAt: row.updatedAt.toISOString(),
 });
@@ -247,5 +248,55 @@ export class DrizzleCanvasRepository implements ICanvasRepository {
       .update(canvases)
       .set({ hasThumbnail: thumbnail !== null })
       .where(eq(canvases.id, id));
+  }
+
+  async share(ownerDid: string, id: string) {
+    // A shared board keeps its token, so links already handed out stay
+    // stable across repeated shares
+    const token = randomBytes(18).toString('base64url');
+    const [row] = await this.db
+      .update(canvases)
+      .set({ shareToken: token, sharedAt: new Date() })
+      .where(
+        and(
+          eq(canvases.id, id),
+          eq(canvases.ownerDid, ownerDid),
+          // Only mints when unshared
+          sql`${canvases.shareToken} IS NULL`,
+        ),
+      )
+      .returning();
+    if (row) return { record: toRecord(row), shareToken: token };
+    // Either another owner's board or already shared
+    const [existing] = await this.db
+      .select()
+      .from(canvases)
+      .where(and(eq(canvases.id, id), eq(canvases.ownerDid, ownerDid)));
+    if (!existing?.shareToken) return null;
+    return {
+      record: toRecord(existing),
+      shareToken: existing.shareToken,
+    };
+  }
+
+  async unshare(ownerDid: string, id: string) {
+    const [row] = await this.db
+      .update(canvases)
+      .set({ shareToken: null, sharedAt: null })
+      .where(and(eq(canvases.id, id), eq(canvases.ownerDid, ownerDid)))
+      .returning();
+    return row ? toRecord(row) : null;
+  }
+
+  async openShared(shareToken: string) {
+    const [row] = await this.db
+      .select()
+      .from(canvases)
+      .where(eq(canvases.shareToken, shareToken));
+    if (!row) return null;
+    const document = row.documentKey
+      ? await this.objects.get(row.documentKey)
+      : null;
+    return { record: toRecord(row), document };
   }
 }

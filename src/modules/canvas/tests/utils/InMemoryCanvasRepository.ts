@@ -1,4 +1,4 @@
-import { randomUUID } from 'crypto';
+import { randomBytes, randomUUID } from 'crypto';
 import type {
   CanvasRecord,
   ICanvasRepository,
@@ -19,7 +19,7 @@ export class InMemoryCanvasRepository implements ICanvasRepository {
 
   private records = new Map<
     string,
-    CanvasRecord & { documentKey: string | null }
+    CanvasRecord & { documentKey: string | null; shareToken: string | null }
   >();
 
   static getInstance(
@@ -42,9 +42,11 @@ export class InMemoryCanvasRepository implements ICanvasRepository {
       revision: 0,
       schemaSequences: {} as Record<string, number>,
       hasThumbnail: false,
+      sharedAt: null,
       createdAt: now,
       updatedAt: now,
       documentKey: null,
+      shareToken: null,
     };
     const existing = this.records.get(id);
     if (!existing) this.records.set(id, record);
@@ -99,9 +101,11 @@ export class InMemoryCanvasRepository implements ICanvasRepository {
       id: copyId,
       name: `Copy of ${source.name}`,
       revision: 0,
+      sharedAt: null,
       createdAt: now,
       updatedAt: now,
       documentKey: copyDocumentKey,
+      shareToken: null,
     };
     this.records.set(copyId, copy);
     return this.strip(copy);
@@ -171,8 +175,42 @@ export class InMemoryCanvasRepository implements ICanvasRepository {
     if (record) record.hasThumbnail = thumbnail !== null;
   }
 
-  private strip(record: CanvasRecord & { documentKey: string | null }) {
-    const { documentKey: _ignored, ...out } = record;
+  async share(ownerDid: string, id: string) {
+    const record = this.records.get(id);
+    if (!record || record.ownerDid !== ownerDid) return null;
+    if (!record.shareToken) {
+      record.shareToken = randomBytes(18).toString('base64url');
+      record.sharedAt = new Date().toISOString();
+    }
+    return { record: this.strip(record), shareToken: record.shareToken };
+  }
+
+  async unshare(ownerDid: string, id: string) {
+    const record = this.records.get(id);
+    if (!record || record.ownerDid !== ownerDid) return null;
+    record.shareToken = null;
+    record.sharedAt = null;
+    return this.strip(record);
+  }
+
+  async openShared(shareToken: string) {
+    const record = [...this.records.values()].find(
+      ({ shareToken: token }) => token === shareToken,
+    );
+    if (!record) return null;
+    const document = record.documentKey
+      ? await this.objects.get(record.documentKey)
+      : null;
+    return { record: this.strip(record), document };
+  }
+
+  private strip(
+    record: CanvasRecord & {
+      documentKey: string | null;
+      shareToken: string | null;
+    },
+  ) {
+    const { documentKey: _ignored, shareToken: _secret, ...out } = record;
     return out;
   }
 }

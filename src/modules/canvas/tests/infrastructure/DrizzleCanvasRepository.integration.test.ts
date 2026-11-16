@@ -180,4 +180,46 @@ describe('DrizzleCanvasRepository', () => {
     // The same id under another owner is not the same board
     await expect(repository.create(bob, id)).rejects.toThrow();
   });
+
+  it('shares by token, and revoking breaks the link', async () => {
+    const canvas = await repository.create(alice);
+    await repository.save(alice, canvas.id, 0, document('a'), {
+      tldrawVersion: '3.15.6',
+      linkCount: 0,
+      schemaSequences: {},
+    });
+
+    const shared = await repository.share(alice, canvas.id);
+    if (!shared) throw new Error('Share returned null');
+    expect(shared.shareToken).toMatch(/^[A-Za-z0-9_-]{24}$/);
+    // A repeated share keeps the token
+    expect((await repository.share(alice, canvas.id))?.shareToken).toBe(
+      shared.shareToken,
+    );
+
+    const opened = await repository.openShared(shared.shareToken);
+    expect(opened?.record.id).toBe(canvas.id);
+    expect(opened?.document?.toString('utf8')).toContain('"shape":"a"');
+
+    const unshared = await repository.unshare(alice, canvas.id);
+    expect(unshared?.sharedAt).toBeNull();
+    expect(await repository.openShared(shared.shareToken)).toBeNull();
+
+    // Another owner can neither share nor revoke
+    expect(await repository.share(bob, canvas.id)).toBeNull();
+    expect(await repository.unshare(bob, canvas.id)).toBeNull();
+  });
+
+  it('shares a duplicate separately from its source', async () => {
+    const canvas = await repository.create(alice);
+    const shared = await repository.share(alice, canvas.id);
+    if (!shared) throw new Error('Share returned null');
+
+    const copy = await repository.duplicate(alice, canvas.id);
+    if (!copy) throw new Error('Duplicate returned null');
+    expect(copy.sharedAt).toBeNull();
+    // The copy starts unshared: the source's token doesn't open it
+    const byToken = await repository.openShared(shared.shareToken);
+    expect(byToken?.record.id).toBe(canvas.id);
+  });
 });

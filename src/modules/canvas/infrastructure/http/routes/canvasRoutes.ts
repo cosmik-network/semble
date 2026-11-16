@@ -82,4 +82,25 @@ export function registerCanvasRoutes(
     validateQuery(canvasContract.getThumbnail.query),
     (req, res) => canvasController.getThumbnail(req, res),
   );
+
+  app.post(
+    routes.canvases.share.path,
+    authMiddleware.ensureAuthenticated(),
+    validateBody(canvasContract.share.body),
+    (req, res) => canvasController.share(req, res),
+  );
+
+  app.post(
+    routes.canvases.unshare.path,
+    authMiddleware.ensureAuthenticated(),
+    validateBody(canvasContract.unshare.body),
+    (req, res) => canvasController.unshare(req, res),
+  );
+
+  // Public: the share token is the credential
+  app.get(
+    routes.canvases.openShared.path,
+    validateQuery(canvasContract.openShared.query),
+    (req, res) => canvasController.openShared(req, res),
+  );
 }
