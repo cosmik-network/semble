@@ -1,15 +1,7 @@
 'use client';
 
 import 'tldraw/tldraw.css';
-import {
-  Badge,
-  Button,
-  Center,
-  Group,
-  Paper,
-  Stack,
-  Text,
-} from '@mantine/core';
+import { Button, Center, Stack, Text } from '@mantine/core';
 import { useComputedColorScheme } from '@mantine/core';
 import { useQuery } from '@tanstack/react-query';
 import { useEffect, useMemo, useState } from 'react';
@@ -23,8 +15,6 @@ import {
 } from 'tldraw';
 import { createSembleClient } from '@/services/client.apiClient';
 import { getCollectionPageUrl } from '@/lib/utils/link';
-import type { User } from '@semble/types';
-import CardAuthorRow from '@/features/cards/components/cardAuthorRow/CardAuthorRow';
 import { attachArrows } from '../../controller/arrows';
 import type { ConnectionEnd, FetchedConnections } from '../../model/arrows';
 import { collectionFrameOf } from '../../model/collectionFrames';
@@ -42,8 +32,10 @@ import {
   type LinkCardShape,
 } from '../../shapes/linkCard/LinkCardShapeUtil';
 import { isNewerSchema } from '../../storage/indexedDbCanvasStorage';
-import CanvasBoardSkeleton from '../canvasBoard/Skeleton.CanvasBoard';
+import SharedCanvasBoardSkeleton from './Skeleton.SharedCanvasBoard';
 import { DEFAULT_CANVAS_NAME } from '../../storage/canvasStorage';
+import SharedHeader from '../sharedHeader/SharedHeader';
+import SharedLogoCard from '../sharedHeader/SharedLogoCard';
 
 // tldraw's licence forbids hiding, covering or restyling the "Made with
 // tldraw" watermark, or interfering with licence key validation, which decides
@@ -73,32 +65,6 @@ function connectionEndsOf(editor: Editor): ConnectionEnd[] {
     if (frame) add(getCollectionPageUrl(frame.collection), shape.id);
   }
   return Array.from(byUrl, ([url, shapeIds]) => ({ url, shapeIds }));
-}
-
-function SharedHeader(props: { name: string; author: User | null }) {
-  return (
-    <Paper
-      withBorder
-      shadow="sm"
-      radius="lg"
-      p={'xs'}
-      pr="sm"
-      m="xs"
-      style={{ pointerEvents: 'all' }}
-    >
-      <Stack gap={4}>
-        <Group gap="xs" wrap="nowrap">
-          <Text fw={700} truncate maw={320}>
-            {props.name}
-          </Text>
-          <Badge variant="light" size="sm" radius="xl">
-            View only
-          </Badge>
-        </Group>
-        {props.author && <CardAuthorRow author={props.author} />}
-      </Stack>
-    </Paper>
-  );
 }
 
 type Status = 'loading' | 'ready' | 'newer-version' | 'missing' | 'failed';
@@ -135,6 +101,7 @@ export default function SharedBoardEditor(props: { shareToken: string }) {
           author={author.data ?? null}
         />
       ),
+      SharePanel: SharedLogoCard,
       // A shared board has one page and no quick add
       NavigationPanel: () => null,
     }),
@@ -225,7 +192,7 @@ export default function SharedBoardEditor(props: { shareToken: string }) {
           </CanvasCopiesProvider>
         </CanvasServerProvider>
       </div>
-      {status === 'loading' && <CanvasBoardSkeleton />}
+      {status === 'loading' && <SharedCanvasBoardSkeleton />}
       {status !== 'ready' && status !== 'loading' && (
         <Center pos="absolute" inset={0} bg="var(--mantine-color-body)">
           <Stack align="center" gap="sm">
