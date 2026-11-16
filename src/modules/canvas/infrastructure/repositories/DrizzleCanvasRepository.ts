@@ -170,6 +170,20 @@ export class DrizzleCanvasRepository implements ICanvasRepository {
     // Per-save keys, so a writer whose claim fails can never have its bytes
     // under the key another revision points at
     const key = documentKey(id, randomUUID());
+    // The document this save replaces. documentKey only ever changes in the
+    // same statement as revision, so the key stored at baseRevision is
+    // exactly what this CAS-winning save supersedes; a concurrent save can
+    // at worst leave an orphan behind, never delete a live one
+    const [current] = await this.db
+      .select({ documentKey: canvases.documentKey })
+      .from(canvases)
+      .where(
+        and(
+          eq(canvases.id, id),
+          eq(canvases.ownerDid, ownerDid),
+          eq(canvases.revision, baseRevision),
+        ),
+      );
     await this.objects.put(key, document, 'application/json');
 
     const rows = await this.db
@@ -206,6 +220,11 @@ export class DrizzleCanvasRepository implements ICanvasRepository {
     }
     const saved = rows[0];
     if (!saved) throw new CanvasNotFoundError(id);
+    // Nothing ever reads a superseded document, so drop the one replaced;
+    // failing to delete it is an orphan, not a lost save
+    if (current?.documentKey && current.documentKey !== key) {
+      await this.objects.delete(current.documentKey).catch(() => {});
+    }
     return {
       conflict: false,
       revision: saved.revision,

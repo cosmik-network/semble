@@ -5,7 +5,7 @@ import {
 import postgres from 'postgres';
 import { drizzle, PostgresJsDatabase } from 'drizzle-orm/postgres-js';
 import { randomUUID } from 'crypto';
-import { mkdtempSync, rmSync } from 'fs';
+import { mkdtempSync, readdirSync, rmSync } from 'fs';
 import { tmpdir } from 'os';
 import * as path from 'path';
 import { DrizzleCanvasRepository } from '../../infrastructure/repositories/DrizzleCanvasRepository';
@@ -112,6 +112,29 @@ describe('DrizzleCanvasRepository', () => {
     expect(
       (await repository.open(alice, canvas.id))?.document?.toString(),
     ).toContain('"shape":"a"');
+  });
+
+  it('keeps only the latest document after repeated saves', async () => {
+    const canvas = await repository.create(alice);
+    await repository.save(alice, canvas.id, 0, document('a'), {
+      tldrawVersion: '3.15.6',
+      linkCount: 0,
+      schemaSequences: {},
+    });
+    await repository.save(alice, canvas.id, 1, document('b'), {
+      tldrawVersion: '3.15.6',
+      linkCount: 0,
+      schemaSequences: {},
+    });
+
+    // The revision-0 object is deleted, not left to accumulate per save
+    const files = readdirSync(
+      path.join(storageDir, 'canvases', canvas.id, 'documents'),
+    );
+    expect(files).toHaveLength(1);
+    expect(
+      (await repository.open(alice, canvas.id))?.document?.toString(),
+    ).toContain('"shape":"b"');
   });
 
   it('duplicates the document and thumbnail under a fresh id', async () => {
