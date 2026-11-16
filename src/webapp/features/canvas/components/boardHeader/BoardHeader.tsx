@@ -2,8 +2,9 @@
 
 import { ActionIcon, Group, Paper, Text, Tooltip } from '@mantine/core';
 import { useRouter } from 'next/navigation';
-import { useEffect, useState } from 'react';
-import { IoArrowBack, IoShareSocialOutline } from 'react-icons/io5';
+import { useEffect, useState, type ReactNode } from 'react';
+import { IoArrowBack } from 'react-icons/io5';
+import { MdIosShare } from 'react-icons/md';
 import { BsPencilFill } from 'react-icons/bs';
 import { useEditor, useValue } from 'tldraw';
 import type { CanvasController } from '../../controller/canvasController';
@@ -15,6 +16,26 @@ import RenameCanvasModal from '../renameCanvasModal/RenameCanvasModal';
 import ShareCanvasModal from '../shareCanvasModal/ShareCanvasModal';
 
 const MODAL_MENU = 'canvas-header-modal';
+const PADDING = 4;
+// The 8px control radius plus padding and border, so corners stay concentric
+const RADIUS = 8 + PADDING + 1;
+
+function Surface(props: { children: ReactNode }) {
+  return (
+    <Paper
+      withBorder
+      shadow="sm"
+      radius={RADIUS}
+      p={PADDING}
+      miw={0}
+      style={{ pointerEvents: 'all' }}
+    >
+      <Group gap={6} wrap="nowrap">
+        {props.children}
+      </Group>
+    </Paper>
+  );
+}
 
 interface Props {
   canvasId: string;
@@ -37,6 +58,7 @@ export default function BoardHeader(props: Props) {
   );
 
   const name = canvas?.name ?? DEFAULT_CANVAS_NAME;
+  const shared = !!canvas?.sharedAt;
 
   // A board opened from a link has no history to go back to
   const goBack = () => (canGoBack ? router.back() : router.replace('/home'));
@@ -50,64 +72,66 @@ export default function BoardHeader(props: Props) {
   }, [editor, modalOpen]);
 
   return (
-    <Paper
-      withBorder
-      shadow="sm"
-      radius="xl"
-      p={4}
-      pr="xs"
-      m="xs"
-      style={{ pointerEvents: 'all' }}
-    >
-      <Group gap="xs" wrap="nowrap">
-        <Tooltip label="Go back" withArrow withinPortal={false}>
-          <ActionIcon
-            onClick={goBack}
-            variant="subtle"
-            size="lg"
-            color="gray"
-            radius="xl"
-            aria-label="Go back"
-          >
-            <IoArrowBack />
-          </ActionIcon>
-        </Tooltip>
-        <Text fw={700} truncate maw={320}>
-          {name}
-        </Text>
-        {/* Renaming before the name loads would start from the default */}
-        {canvas && (
-          <Tooltip label="Rename" withArrow withinPortal={false}>
+    <>
+      <Group
+        gap={6}
+        wrap="nowrap"
+        m="xs"
+        maw="calc(100vw - 2 * var(--mantine-spacing-xs))"
+      >
+        <Surface>
+          <Tooltip label="Go back" withArrow withinPortal={false}>
             <ActionIcon
-              onClick={() => setIsRenaming(true)}
+              onClick={goBack}
               variant="subtle"
-              size="md"
+              size="lg"
               color="gray"
-              radius="xl"
-              aria-label="Rename canvas"
+              aria-label="Go back"
             >
-              <BsPencilFill size={14} />
+              <IoArrowBack />
             </ActionIcon>
           </Tooltip>
-        )}
-        {canvas && (
-          <Tooltip label="Share" withArrow withinPortal={false}>
-            <ActionIcon
-              onClick={() => setIsSharing(true)}
-              variant="subtle"
-              size="md"
-              color={canvas.sharedAt ? 'blue' : 'gray'}
-              radius="xl"
-              aria-label="Share canvas"
-            >
-              <IoShareSocialOutline size={16} />
-            </ActionIcon>
-          </Tooltip>
-        )}
-        {refreshFailed && (
-          <Text size="xs" c="dimmed" style={{ whiteSpace: 'nowrap' }}>
-            Couldn&apos;t refresh
+          <Text fw={700} truncate maw={320} miw={0} px={2} title={name}>
+            {name}
           </Text>
+          {/* Renaming before the name loads would start from the default */}
+          {canvas && (
+            <Tooltip label="Rename" withArrow withinPortal={false}>
+              <ActionIcon
+                onClick={() => setIsRenaming(true)}
+                variant="subtle"
+                size="lg"
+                color="gray"
+                aria-label="Rename canvas"
+              >
+                <BsPencilFill size={14} />
+              </ActionIcon>
+            </Tooltip>
+          )}
+          {refreshFailed && (
+            <Text size="xs" c="dimmed" pr={6} style={{ whiteSpace: 'nowrap' }}>
+              Couldn&apos;t refresh
+            </Text>
+          )}
+        </Surface>
+        {canvas && (
+          <Surface>
+            <Tooltip
+              label={shared ? 'Shared · manage link' : 'Share'}
+              withArrow
+              withinPortal={false}
+            >
+              <ActionIcon
+                onClick={() => setIsSharing(true)}
+                variant={shared ? 'light' : 'subtle'}
+                size="lg"
+                color={shared ? 'blue' : 'gray'}
+                aria-label={shared ? 'Shared, manage link' : 'Share canvas'}
+              >
+                <MdIosShare size={18} />
+              </ActionIcon>
+            </Tooltip>
+          </Surface>
         )}
       </Group>
       {canvas && (
@@ -139,6 +163,6 @@ export default function BoardHeader(props: Props) {
           />
         </>
       )}
-    </Paper>
+    </>
   );
 }
