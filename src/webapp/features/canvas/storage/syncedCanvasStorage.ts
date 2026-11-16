@@ -36,6 +36,7 @@ type ServerRecord = {
   revision: number;
   schemaSequences: Record<string, number>;
   hasThumbnail: boolean;
+  sharedAt: string | null;
   createdAt: string;
   updatedAt: string;
 };
@@ -368,6 +369,7 @@ export class SyncedCanvasStorage implements CanvasStorage {
       // The server row carries '' until the first save
       tldrawVersion: record.tldrawVersion || this.options.tldrawVersion,
       linkCount: record.linkCount,
+      sharedAt: record.sharedAt,
       createdAt: record.createdAt,
       updatedAt: record.updatedAt,
     };
