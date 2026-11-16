@@ -10,6 +10,9 @@ export interface CanvasRecord {
   name: string;
   tldrawVersion: string;
   linkCount: number;
+  // When a view-only link was last made. Missing from records saved before
+  // sharing existed, and null while the board is unshared.
+  sharedAt?: string | null;
   createdAt: string;
   updatedAt: string;
 }

@@ -8,6 +8,7 @@ import { connectionsContract } from './contract/connections';
 import { searchContract } from './contract/search';
 import { tagsContract } from './contract/tags';
 import { graphContract } from './contract/graph';
+import { canvasContract } from './contract/canvas';
 import { filterPublicRoutes } from './filter';
 
 const c = initContract();
@@ -22,6 +23,7 @@ export type ContractType = {
   search: typeof searchContract;
   tags: typeof tagsContract;
   graph: typeof graphContract;
+  canvases: typeof canvasContract;
 };
 
 export const contract: ContractType = c.router({
@@ -34,6 +36,7 @@ export const contract: ContractType = c.router({
   search: searchContract,
   tags: tagsContract,
   graph: graphContract,
+  canvases: canvasContract,
 } satisfies AppRouter);
 
 export const publicContract = filterPublicRoutes(contract);
@@ -52,4 +55,5 @@ export {
   searchContract,
   tagsContract,
   graphContract,
+  canvasContract,
 };

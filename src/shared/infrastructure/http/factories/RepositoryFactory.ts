@@ -1,5 +1,8 @@
 import { DatabaseFactory } from '../../database/DatabaseFactory';
-import { EnvironmentConfigService } from '../../config/EnvironmentConfigService';
+import {
+  Environment,
+  EnvironmentConfigService,
+} from '../../config/EnvironmentConfigService';
 import { RedisFactory } from '../../redis/RedisFactory';
 import { DrizzleUserRepository } from '../../../../modules/user/infrastructure/repositories/DrizzleUserRepository';
 import { DrizzleUserOnboardingRepository } from '../../../../modules/user/infrastructure/repositories/DrizzleUserOnboardingRepository';
@@ -69,6 +72,14 @@ import { IProductAnalyticsQueryRepository } from '../../../../modules/analytics/
 import { DrizzleProductAnalyticsQueryRepository } from '../../../../modules/analytics/infrastructure/repositories/DrizzleProductAnalyticsQueryRepository';
 import { IApiRequestLogRepository } from '../../../../modules/analytics/domain/IApiRequestLogRepository';
 import { DrizzleApiRequestLogRepository } from '../../../../modules/analytics/infrastructure/repositories/DrizzleApiRequestLogRepository';
+import { ICanvasRepository } from 'src/modules/canvas/domain/ICanvasRepository';
+import { ICanvasObjectStore } from 'src/modules/canvas/domain/ICanvasObjectStore';
+import { DrizzleCanvasRepository } from 'src/modules/canvas/infrastructure/repositories/DrizzleCanvasRepository';
+import { S3CanvasObjectStore } from 'src/modules/canvas/infrastructure/storage/S3CanvasObjectStore';
+import { FileCanvasObjectStore } from 'src/modules/canvas/infrastructure/storage/FileCanvasObjectStore';
+import { UnavailableCanvasObjectStore } from 'src/modules/canvas/infrastructure/storage/UnavailableCanvasObjectStore';
+import { InMemoryCanvasRepository } from 'src/modules/canvas/tests/utils/InMemoryCanvasRepository';
+import { InMemoryCanvasObjectStore } from 'src/modules/canvas/tests/utils/InMemoryCanvasObjectStore';
 
 export interface Repositories {
   userRepository: IUserRepository;
@@ -94,6 +105,8 @@ export interface Repositories {
   atUriResolutionService: IAtUriResolutionService;
   oauthStateStore: NodeSavedStateStore;
   oauthSessionStore: NodeSavedSessionStore;
+  canvasRepository: ICanvasRepository;
+  canvasObjectStore: ICanvasObjectStore;
 }
 
 export class RepositoryFactory {
@@ -147,6 +160,9 @@ export class RepositoryFactory {
       const syncStatusRepository = InMemorySyncStatusRepository.getInstance();
       const oauthStateStore = InMemoryStateStore.getInstance();
       const oauthSessionStore = InMemorySessionStore.getInstance();
+      const canvasObjectStore = new InMemoryCanvasObjectStore();
+      const canvasRepository =
+        InMemoryCanvasRepository.getInstance(canvasObjectStore);
 
       // For mock repos, we'll use a basic implementation of stats repository
       // Since it's read-only stats, we can create a simple instance
@@ -162,6 +178,8 @@ export class RepositoryFactory {
       const apiRequestLogRepository = new DrizzleApiRequestLogRepository(db);
 
       return {
+        canvasRepository,
+        canvasObjectStore,
         userRepository,
         userOnboardingRepository,
         userStatsRepository,
@@ -200,7 +218,38 @@ export class RepositoryFactory {
     const oauthStateStore = new DrizzleStateStore(db);
     const oauthSessionStore = new DrizzleSessionStore(db);
 
+    // Tigris (or any S3 endpoint) when S3_* is configured. Local development
+    // falls back to bytes on disk; dev/prod have no fallback — canvas routes
+    // fail loudly instead of writing to ephemeral machine disks.
+    const objectStoreConfig = configService.getObjectStoreConfig();
+    const s3Configured =
+      objectStoreConfig.bucket &&
+      objectStoreConfig.accessKeyId &&
+      objectStoreConfig.secretAccessKey;
+    let canvasObjectStore: ICanvasObjectStore;
+    if (s3Configured) {
+      canvasObjectStore = new S3CanvasObjectStore({
+        bucket: objectStoreConfig.bucket!,
+        region: objectStoreConfig.region,
+        accessKeyId: objectStoreConfig.accessKeyId!,
+        secretAccessKey: objectStoreConfig.secretAccessKey!,
+        endpoint: objectStoreConfig.endpoint,
+      });
+    } else if (configService.get().environment === Environment.LOCAL) {
+      canvasObjectStore = new FileCanvasObjectStore(
+        objectStoreConfig.localDirectory,
+      );
+    } else {
+      console.error(
+        '[canvas] S3 object storage is not configured (S3_BUCKET/S3_ACCESS_KEY/S3_SECRET_ACCESS_KEY/S3_ENDPOINT); canvas routes will fail until the secrets are set',
+      );
+      canvasObjectStore = new UnavailableCanvasObjectStore();
+    }
+    const canvasRepository = new DrizzleCanvasRepository(db, canvasObjectStore);
+
     return {
+      canvasRepository,
+      canvasObjectStore,
       userRepository: new DrizzleUserRepository(db),
       userOnboardingRepository: new DrizzleUserOnboardingRepository(db),
       userStatsRepository: new DrizzleUserStatsRepository(statsDb),

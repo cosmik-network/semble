@@ -12,3 +12,4 @@ storybook-static
 src/webapp/tsconfig.tsbuildinfo
 src/webapp/next-env.d.ts
 .agent/
+.canvas-objects/

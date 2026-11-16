@@ -17,6 +17,7 @@ import { registerGraphRoutes } from '../../../modules/cards/infrastructure/http/
 import { registerFeedRoutes } from '../../../modules/feeds/infrastructure/http/routes/feedRoutes';
 import { registerSearchRoutes } from '../../../modules/search/infrastructure/http/routes/searchRoutes';
 import { registerNotificationRoutes } from '../../../modules/notifications/infrastructure/http/routes/notificationRoutes';
+import { registerCanvasRoutes } from '../../../modules/canvas/infrastructure/http/routes/canvasRoutes';
 import { createTestRoutes } from './routes/testRoutes';
 import { createMcpRoutes } from '../../../modules/mcp/infrastructure/http/mcpRoutes';
 import {
@@ -78,7 +79,8 @@ export const createExpressApp = async (
     next();
   });
   app.use(cookieParser()); // Parse cookies from incoming requests
-  app.use(express.json());
+  // Canvas document snapshots run to several MB, so the default 100kb won't do
+  app.use(express.json({ limit: '30mb' }));
   app.use(express.urlencoded({ extended: true }));
 
   // Create all dependencies using factories
@@ -412,6 +414,12 @@ export const createExpressApp = async (
       controllers.getUnreadNotificationCountController,
       controllers.markNotificationsAsReadController,
       controllers.markAllNotificationsAsReadController,
+    );
+
+    registerCanvasRoutes(
+      router,
+      services.authMiddleware,
+      controllers.canvasController,
     );
   };
 

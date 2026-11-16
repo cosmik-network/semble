@@ -3,7 +3,7 @@
 import { ActionIcon, Group, Paper, Text, Tooltip } from '@mantine/core';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
-import { IoArrowBack } from 'react-icons/io5';
+import { IoArrowBack, IoShareSocialOutline } from 'react-icons/io5';
 import { BsPencilFill } from 'react-icons/bs';
 import { useEditor, useValue } from 'tldraw';
 import type { CanvasController } from '../../controller/canvasController';
@@ -12,6 +12,7 @@ import useCanvas from '../../lib/queries/useCanvas';
 import { DEFAULT_CANVAS_NAME } from '../../storage/canvasStorage';
 import DeleteCanvasModal from '../deleteCanvasModal/DeleteCanvasModal';
 import RenameCanvasModal from '../renameCanvasModal/RenameCanvasModal';
+import ShareCanvasModal from '../shareCanvasModal/ShareCanvasModal';
 
 const MODAL_MENU = 'canvas-header-modal';
 
@@ -27,7 +28,8 @@ export default function BoardHeader(props: Props) {
   const { data: canvas } = useCanvas(props.canvasId);
   const [isRenaming, setIsRenaming] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
-  const modalOpen = isRenaming || isDeleting;
+  const [isSharing, setIsSharing] = useState(false);
+  const modalOpen = isRenaming || isDeleting || isSharing;
   const refreshFailed = useValue(
     'refresh failed',
     () => props.refreshFailed?.get() ?? false,
@@ -88,6 +90,20 @@ export default function BoardHeader(props: Props) {
             </ActionIcon>
           </Tooltip>
         )}
+        {canvas && (
+          <Tooltip label="Share" withArrow withinPortal={false}>
+            <ActionIcon
+              onClick={() => setIsSharing(true)}
+              variant="subtle"
+              size="md"
+              color={canvas.sharedAt ? 'blue' : 'gray'}
+              radius="xl"
+              aria-label="Share canvas"
+            >
+              <IoShareSocialOutline size={16} />
+            </ActionIcon>
+          </Tooltip>
+        )}
         {refreshFailed && (
           <Text size="xs" c="dimmed" style={{ whiteSpace: 'nowrap' }}>
             Couldn&apos;t refresh
@@ -114,6 +130,12 @@ export default function BoardHeader(props: Props) {
             canvasId={props.canvasId}
             name={canvas.name}
             onDeleted={() => router.replace('/canvas')}
+          />
+          <ShareCanvasModal
+            key={String(canvas.sharedAt)}
+            isOpen={isSharing}
+            onClose={() => setIsSharing(false)}
+            canvas={canvas}
           />
         </>
       )}

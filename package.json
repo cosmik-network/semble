@@ -90,6 +90,7 @@
     "@atproto/sync": "^0.1.36",
     "@atproto/syntax": "^0.4.0",
     "@atproto/xrpc-server": "^0.7.15",
+    "@aws-sdk/client-s3": "^3.1166.0",
     "@modelcontextprotocol/sdk": "^1.29.0",
     "@semble/contract": "*",
     "@semble/types": "*",
@@ -157,5 +158,8 @@
     "ioredis": "$ioredis",
     "react": "19.2.5",
     "react-dom": "19.2.5"
+  },
+  "optionalDependencies": {
+    "@oxc-parser/binding-darwin-arm64": "^0.127.0"
   }
 }
