@@ -4,6 +4,12 @@ import createMDX from '@next/mdx';
 const nextConfig = {
   reactCompiler: true,
   reactStrictMode: false,
+  // Lets canvas exports inline link images from hosts without CORS headers,
+  // through the same-origin /_next/image (local IPs stay blocked by default)
+  images: {
+    remotePatterns: [{ protocol: 'https', hostname: '**' }],
+    maximumResponseBody: 10_000_000,
+  },
   serverExternalPackages: ['jsdom', '@mozilla/readability', 'dompurify'],
   // Configure `pageExtensions` to include markdown and MDX files
   pageExtensions: ['js', 'jsx', 'md', 'mdx', 'ts', 'tsx'],

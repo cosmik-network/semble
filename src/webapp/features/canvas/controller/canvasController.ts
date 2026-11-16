@@ -13,6 +13,7 @@ import {
   type CanvasDocument,
 } from '../storage/canvasStorage';
 import type { CollectionPageUrl } from '../model/collectionFrames';
+import { withProxiedExportImages } from '../lib/proxiedExportImages';
 import { attachArrows, isDerivedArrowRecord } from './arrows';
 import { isConnectionArrow } from '../shapes/connectionArrow/connectionArrows';
 import {
@@ -100,14 +101,16 @@ async function captureThumbnail(editor: Editor) {
     document.body.append(container);
   }
   try {
-    const { blob } = await editor.toImage(
-      shapes.map((shape) => shape.id),
-      {
-        format: 'jpeg',
-        quality: 0.8,
-        background: true,
-        scale: Math.min(1, THUMBNAIL_WIDTH / bounds.w),
-      },
+    const { blob } = await withProxiedExportImages(() =>
+      editor.toImage(
+        shapes.map((shape) => shape.id),
+        {
+          format: 'jpeg',
+          quality: 0.8,
+          background: true,
+          scale: Math.min(1, THUMBNAIL_WIDTH / bounds.w),
+        },
+      ),
     );
     return await readAsDataUrl(blob);
   } finally {
