@@ -13,6 +13,7 @@ import { countLinks } from '../model/linkCards';
 import type {
   BoardEvents,
   BoardOptions,
+  BoardRole,
   BoardSession,
   CanvasDocument,
   CanvasRecord,
@@ -46,6 +47,10 @@ export interface SyncedCanvasStorageOptions {
   // Lazy, so a session started after this module loads is picked up
   createClient: () => CanvasClient;
 }
+
+// How often an open board checks the server for a newer revision. Lists poll
+// separately, from their queries' refetchInterval
+const BOARD_POLL_MS = 15_000;
 
 // Server-authoritative storage on top of the local one. The local
 // IndexedDB keeps governing which tab writes (Web Locks) and holds the
@@ -214,14 +219,68 @@ export class SyncedCanvasStorage implements CanvasStorage {
     // Saves started by this board carry its events, so a lost race can be
     // recovered by adopting the winner's document
     this.boardEvents.set(id, events);
-    const session = openBoardSession(this, id, options, events);
+    // The poll needs to know whether this tab writes the board
+    let role: BoardRole | null = null;
+    const tracked: BoardEvents = {
+      ...events,
+      onRoleChange: (next) => {
+        role = next;
+        events.onRoleChange(next);
+      },
+    };
+    const session = openBoardSession(this, id, options, tracked);
+    const stopPolling = this.watchRemoteBoard(
+      id,
+      options.runningSchema,
+      () => role,
+    );
     return {
       ...session,
       close: async () => {
+        stopPolling();
         await session.close();
         this.boardEvents.delete(id);
       },
     };
+  }
+
+  // While a board is open, a reader tab (this device's writer is another tab,
+  // or the board is being read without editing) adopts documents other
+  // devices save. A writer tab doesn't: its next save conflicts and adopts
+  // then, rather than the poll discarding edits waiting to be saved.
+  private watchRemoteBoard(
+    id: string,
+    runningSchema: CanvasSchema,
+    role: () => BoardRole | null,
+  ) {
+    const timer = setInterval(() => {
+      if (document.hidden) return;
+      void (async () => {
+        if (role() !== 'reader') return;
+        const record = await this.client()
+          .get(id)
+          .catch(() => null);
+        const known = this.revisions.get(id);
+        if (!record || known === undefined || record.revision <= known) return;
+        const opened = await this.client()
+          .open(id)
+          .catch(() => null);
+        if (!opened) return;
+        const savedSchema: CanvasSchema = {
+          schemaVersion: 2,
+          sequences: opened.record.schemaSequences,
+        };
+        // A newer app's document is left for a reload to gate, not adopted
+        if (opened.document && isNewerSchema(savedSchema, runningSchema))
+          return;
+        this.revisions.set(id, opened.record.revision);
+        if (opened.document) {
+          await this.ensureLocal(opened.record, opened.document);
+          this.boardEvents.get(id)?.onRemoteSave(opened.document);
+        }
+      })();
+    }, BOARD_POLL_MS);
+    return () => clearInterval(timer);
   }
 
   // BoardStorage: tab arbitration stays local; document saves mirror to the
