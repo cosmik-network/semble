@@ -102,7 +102,7 @@ export default function SharedHeader(props: Props) {
                 variant="subtle"
                 size="md"
                 color={copied ? 'green' : 'gray'}
-                aria-label={copied ? 'Link copied' : 'Copy canvas link'}
+                aria-label={copied ? 'Link copied' : 'Copy link'}
               >
                 {copied ? <IoMdCheckmark size={18} /> : <BiCopy size={16} />}
               </ActionIcon>

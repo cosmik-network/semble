@@ -15,7 +15,8 @@ export default function ReadOnlyBanner(props: Props) {
 
   const handleTakeOver = () => {
     takeOverCanvas.mutate(undefined, {
-      onError: () => showCanvasError('Could not take over this canvas'),
+      onError: () =>
+        showCanvasError('Could not take over this canvas. Try again.'),
     });
   };
 

@@ -47,7 +47,8 @@ export default function CanvasCardActions(props: Props) {
             leftSection={<BsFiles />}
             onClick={() =>
               duplicateCanvas.mutate(props.canvas.id, {
-                onError: () => showCanvasError('Could not duplicate canvas'),
+                onError: () =>
+                  showCanvasError('Could not duplicate canvas. Try again.'),
               })
             }
           >

@@ -1,4 +1,5 @@
 import {
+  ActionIcon,
   Button,
   CopyButton,
   Group,
@@ -7,9 +8,13 @@ import {
   Switch,
   Text,
   TextInput,
+  ThemeIcon,
+  Tooltip,
 } from '@mantine/core';
 import { useState } from 'react';
-import { IoCheckmarkOutline, IoCopyOutline } from 'react-icons/io5';
+import { BiCopy } from 'react-icons/bi';
+import { IoMdCheckmark } from 'react-icons/io';
+import { IoEyeOutline } from 'react-icons/io5';
 import { UPDATE_OVERLAY_PROPS } from '@/styles/overlays';
 import useShareCanvas from '../../lib/mutations/useShareCanvas';
 import useUnshareCanvas from '../../lib/mutations/useUnshareCanvas';
@@ -33,23 +38,39 @@ export default function ShareCanvasModal(props: Props) {
   const unshareCanvas = useUnshareCanvas();
   // Kept so turning sharing off and back on within the modal keeps working
   const [sharedHere, setSharedHere] = useState<boolean | null>(null);
+  const [confirmingStop, setConfirmingStop] = useState(false);
   const shared = sharedHere ?? props.canvas.sharedAt != null;
   const token = useShareToken(props.canvas.id, shared);
   const link = token.data ? shareHref(token.data.shareToken) : null;
+  const pending = shareCanvas.isPending || unshareCanvas.isPending;
 
-  const handleToggle = (on: boolean) => {
-    setSharedHere(on);
-    if (on) {
-      shareCanvas.mutate(
-        { id: props.canvas.id },
-        { onError: () => showCanvasError('Could not share this canvas') },
-      );
-    } else {
-      unshareCanvas.mutate(
-        { id: props.canvas.id },
-        { onError: () => showCanvasError('Could not stop sharing') },
-      );
-    }
+  const share = () => {
+    setSharedHere(true);
+    shareCanvas.mutate(
+      { id: props.canvas.id },
+      {
+        onError: () => {
+          setSharedHere(false);
+          showCanvasError('Could not share this canvas. Try again.');
+        },
+      },
+    );
+  };
+
+  const stopSharing = () => {
+    setConfirmingStop(false);
+    setSharedHere(false);
+    unshareCanvas.mutate(
+      { id: props.canvas.id },
+      {
+        onError: () => {
+          setSharedHere(true);
+          showCanvasError(
+            'Could not stop sharing. The link still works, so try again.',
+          );
+        },
+      },
+    );
   };
 
   return (
@@ -61,52 +82,113 @@ export default function ShareCanvasModal(props: Props) {
       onClick={(e) => e.stopPropagation()}
       overlayProps={UPDATE_OVERLAY_PROPS}
     >
-      <Stack gap={'md'}>
-        <Switch
-          label="Anyone with the link can view"
-          checked={shared}
-          disabled={shareCanvas.isPending || unshareCanvas.isPending}
-          onChange={(event) => handleToggle(event.currentTarget.checked)}
-        />
-        {shared ? (
-          link ? (
-            <TextInput
-              readOnly
-              variant="filled"
-              value={link}
-              rightSection={
-                <CopyButton value={link} timeout={2000}>
-                  {({ copied, copy }) => (
-                    <Button
-                      size="compact-xs"
-                      variant="subtle"
-                      leftSection={
-                        copied ? <IoCheckmarkOutline /> : <IoCopyOutline />
-                      }
-                      onClick={copy}
-                    >
-                      {copied ? 'Copied' : 'Copy'}
-                    </Button>
-                  )}
-                </CopyButton>
-              }
-            />
-          ) : (
-            <Text fz="sm" c="dimmed">
-              Loading link…
-            </Text>
-          )
-        ) : (
-          <Text fz="sm" c="dimmed">
-            Turn on to create a view-only link. Turning it off stops the link
-            from working.
-          </Text>
-        )}
-        <Group justify="flex-end">
-          <Button variant="light" color="gray" onClick={props.onClose}>
-            Done
-          </Button>
+      <Stack gap="xl">
+        <Group justify="space-between" wrap="nowrap">
+          <Group gap="xs" wrap="nowrap">
+            <ThemeIcon
+              size="md"
+              variant="light"
+              color={shared ? 'blue' : 'gray'}
+              radius="xl"
+            >
+              <IoEyeOutline size={14} />
+            </ThemeIcon>
+            <Stack gap={0}>
+              <Text fw={500} size="sm">
+                View-only link
+              </Text>
+              <Text fw={500} c="gray" size="sm">
+                {shared
+                  ? 'Anyone with the link can view'
+                  : 'Only you can see this canvas'}
+              </Text>
+            </Stack>
+          </Group>
+          <Switch
+            size="md"
+            withThumbIndicator={false}
+            aria-label="View-only link"
+            checked={shared}
+            disabled={pending || confirmingStop}
+            onChange={(event) =>
+              event.currentTarget.checked ? share() : setConfirmingStop(true)
+            }
+          />
         </Group>
+
+        {confirmingStop ? (
+          <Stack>
+            <Text c="dimmed" fz="sm">
+              Stop sharing? The link stops working for everyone who has it.
+            </Text>
+            <Group gap="xs" wrap="nowrap">
+              <Button
+                variant="light"
+                color="gray"
+                size="md"
+                onClick={() => setConfirmingStop(false)}
+              >
+                Cancel
+              </Button>
+              <Button
+                color="red"
+                size="md"
+                style={{ flex: 1 }}
+                onClick={stopSharing}
+                data-autofocus
+              >
+                Stop sharing
+              </Button>
+            </Group>
+          </Stack>
+        ) : (
+          <Stack>
+            {shared && (
+              <TextInput
+                readOnly
+                variant="filled"
+                size="md"
+                aria-label="Share link"
+                description="Copy and share this link"
+                value={link ?? 'Creating link…'}
+                onFocus={(e) => e.currentTarget.select()}
+                rightSection={
+                  link && (
+                    <CopyButton value={link} timeout={2000}>
+                      {({ copied, copy }) => (
+                        <Tooltip
+                          label={copied ? 'Copied' : 'Copy link'}
+                          withArrow
+                        >
+                          <ActionIcon
+                            onClick={copy}
+                            variant="subtle"
+                            color={copied ? 'green' : 'gray'}
+                            aria-label={copied ? 'Link copied' : 'Copy link'}
+                          >
+                            {copied ? (
+                              <IoMdCheckmark size={18} />
+                            ) : (
+                              <BiCopy size={16} />
+                            )}
+                          </ActionIcon>
+                        </Tooltip>
+                      )}
+                    </CopyButton>
+                  )
+                }
+              />
+            )}
+            <Button
+              variant="light"
+              color="gray"
+              size="md"
+              onClick={props.onClose}
+            >
+              Done
+            </Button>
+          </Stack>
+        )}
       </Stack>
     </Modal>
   );
