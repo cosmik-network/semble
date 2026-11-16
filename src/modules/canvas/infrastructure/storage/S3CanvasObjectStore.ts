@@ -14,7 +14,8 @@ export interface S3ObjectStoreOptions {
   region: string;
   accessKeyId: string;
   secretAccessKey: string;
-  // Self-hosted S3 services (e.g. s3mock in tests); unset for Tigris
+  // S3-compatible endpoint (Tigris: https://fly.storage.tigris.dev, self-hosted:
+  // e.g. MinIO). Required for anything that isn't AWS S3 itself.
   endpoint?: string;
 }
 

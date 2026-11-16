@@ -308,6 +308,10 @@ export class EnvironmentConfigService {
             'OAUTH_PRIVATE_KEY_PKCS8 and OAUTH_KEY_ID must be set in the dev environment',
           );
         }
+        // Canvas documents belong in object storage (Tigris); the filesystem
+        // fallback writes to ephemeral machine disks, so a missing S3 config
+        // must fail loudly instead of silently falling back.
+        this.assertObjectStoreConfigured('dev');
         break;
       case Environment.PROD:
         // Override defaults with production-specific values
@@ -326,6 +330,7 @@ export class EnvironmentConfigService {
             'OAUTH_PRIVATE_KEY_PKCS8 and OAUTH_KEY_ID must be set in the production environment',
           );
         }
+        this.assertObjectStoreConfigured('production');
         break;
       case Environment.LOCAL:
       default:
@@ -475,6 +480,19 @@ export class EnvironmentConfigService {
 
     // Default to false (use mock persistence) unless explicitly enabled
     return false;
+  }
+
+  // Throws when canvas object storage isn't fully configured — S3_BUCKET,
+  // S3_ACCESS_KEY, and S3_SECRET_ACCESS_KEY must all be set. Called for dev
+  // and prod so a typo'd secret crashes at boot rather than silently writing
+  // canvas documents to ephemeral machine disks.
+  private assertObjectStoreConfigured(environment: string): void {
+    const { bucket, accessKeyId, secretAccessKey } = this.config.objectStore;
+    if (!bucket || !accessKeyId || !secretAccessKey) {
+      throw new Error(
+        `S3_BUCKET, S3_ACCESS_KEY, and S3_SECRET_ACCESS_KEY must be set in the ${environment} environment for canvas object storage`,
+      );
+    }
   }
 
   // Accepts the key either as a raw PKCS8 PEM or base64-encoded (Fly secrets
