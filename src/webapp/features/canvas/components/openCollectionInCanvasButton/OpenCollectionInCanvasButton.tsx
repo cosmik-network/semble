@@ -1,13 +1,11 @@
 'use client';
 
 import { ActionIcon, Menu, Tooltip } from '@mantine/core';
-import { useMounted } from '@mantine/hooks';
 import Link from 'next/link';
 import { Suspense } from 'react';
 import { TfiBlackboard } from 'react-icons/tfi';
 import { FiPlus } from 'react-icons/fi';
 import useCollection from '@/features/collections/lib/queries/useCollection';
-import { useFeatureFlags } from '@/lib/clientFeatureFlags';
 import {
   RECENT_CANVASES_LIMIT,
   canvasHref,
@@ -22,13 +20,6 @@ interface Props {
 
 // Starts a new board from the collection, or adds it to a recent one
 export default function OpenCollectionInCanvasButton(props: Props) {
-  const { data: featureFlags } = useFeatureFlags();
-  // The server has no feature flags, and the client may already have them
-  // when this hydrates
-  const mounted = useMounted();
-
-  if (!mounted || !featureFlags?.canvas) return null;
-
   return (
     <Suspense fallback={null}>
       <OpenInCanvasMenu handle={props.handle} rkey={props.rkey} />
@@ -36,7 +27,6 @@ export default function OpenCollectionInCanvasButton(props: Props) {
   );
 }
 
-// Apart, so boards are only listed for those with the flag
 function OpenInCanvasMenu(props: Props) {
   const { data: canvases } = useCanvases();
   // The query the collection's header has already loaded
