@@ -6,7 +6,7 @@ import { LuEye, LuEyeOff } from 'react-icons/lu';
 import { MdOpenInNew } from 'react-icons/md';
 import { TbPlugConnected, TbTopologyStar3 } from 'react-icons/tb';
 import { useState } from 'react';
-import { useEditor, useValue, type Computed } from 'tldraw';
+import { useEditor, useValue, type Computed, type TLShapeId } from 'tldraw';
 import { getSembleHref } from '@/lib/utils/link';
 import type { LinkSeed } from '../../controller/linkSeed';
 import type { PopupCard } from '../../controller/popupCard';
@@ -42,7 +42,7 @@ export default function SelectionPopup(props: Props) {
 }
 
 // Above the selection where there's room, else below it, clear by reach
-function usePopupPosition(reach: number) {
+export function usePopupPosition(reach: number) {
   const editor = useEditor();
   return useValue(
     'popup position',
@@ -106,7 +106,7 @@ function ConnectButton(props: { onClick(): void }) {
   );
 }
 
-function OpenPageButton(props: { href: string }) {
+export function OpenPageButton(props: { href: string }) {
   return (
     <Tooltip label="Open page" withArrow withinPortal={false}>
       <ActionIcon
@@ -121,6 +121,31 @@ function OpenPageButton(props: { href: string }) {
   );
 }
 
+// Shown only for a post whose labelled media is hidden
+export function MediaButton(props: {
+  cardId: TLShapeId;
+  link: ReturnType<typeof useCanvasLink>['data'];
+}) {
+  const mediaReveals = useMediaReveals();
+  const mediaRevealed = useMediaRevealed(props.cardId);
+  const preview = linkCardPreview(props.link);
+  const hidesMedia = preview.kind === 'post' && !!preview.mediaHiddenBecause;
+  if (!hidesMedia || !mediaReveals) return null;
+  const label = mediaRevealed ? 'Hide media' : 'Show media';
+
+  return (
+    <Tooltip label={label} withArrow withinPortal={false}>
+      <ActionIcon
+        {...ICON_PROPS}
+        aria-label={label}
+        onClick={() => mediaReveals.toggle(props.cardId)}
+      >
+        {mediaRevealed ? <LuEyeOff size={16} /> : <LuEye size={16} />}
+      </ActionIcon>
+    </Tooltip>
+  );
+}
+
 interface PopupProps {
   card: PopupCard;
   linkSeed: LinkSeed;
@@ -129,8 +154,6 @@ interface PopupProps {
 
 function LinkPopup(props: PopupProps) {
   const { data: link } = useCanvasLink(props.card.url);
-  const mediaReveals = useMediaReveals();
-  const mediaRevealed = useMediaRevealed(props.card.id);
   // Clear of the card's edge dots
   const position = usePopupPosition(EDGE_DOT_REACH);
   const unplaced = useValue(
@@ -161,25 +184,12 @@ function LinkPopup(props: PopupProps) {
 
   const open = (kind: CardModalKind) => () =>
     props.onOpen(kind, props.card.url);
-  const preview = linkCardPreview(link);
-  const hidesMedia = preview.kind === 'post' && !!preview.mediaHiddenBecause;
-  const mediaLabel = mediaRevealed ? 'Hide media' : 'Show media';
 
   return (
     <BoardPopup position={position}>
       <SaveButton saved={!!link?.saved} onClick={open('save')} />
       <ConnectButton onClick={open('connect')} />
-      {hidesMedia && mediaReveals && (
-        <Tooltip label={mediaLabel} withArrow withinPortal={false}>
-          <ActionIcon
-            {...ICON_PROPS}
-            aria-label={mediaLabel}
-            onClick={() => mediaReveals.toggle(props.card.id)}
-          >
-            {mediaRevealed ? <LuEyeOff size={16} /> : <LuEye size={16} />}
-          </ActionIcon>
-        </Tooltip>
-      )}
+      <MediaButton cardId={props.card.id} link={link} />
       {unplaced > 0 && (
         <Tooltip label={placeMoreLabel} withArrow withinPortal={false}>
           <ActionIcon
