@@ -1,10 +1,19 @@
-import { ActionIcon, Button, Group, Menu, Paper, Tooltip } from '@mantine/core';
+import {
+  ActionIcon,
+  Box,
+  Button,
+  Group,
+  Menu,
+  Paper,
+  Tooltip,
+} from '@mantine/core';
 import { notifications } from '@mantine/notifications';
 import type { ReactNode } from 'react';
 import { FiPlus } from 'react-icons/fi';
 import {
   LuCaptions,
   LuCheck,
+  LuEllipsis,
   LuEyeOff,
   LuScan,
   LuSpline,
@@ -21,6 +30,7 @@ import {
 } from 'tldraw';
 import type { CanvasController } from '../../controller/canvasController';
 import { withProxiedExportImages } from '../../lib/proxiedExportImages';
+import classes from './BoardNavigation.module.css';
 
 interface Props {
   // Null until the board has loaded
@@ -136,8 +146,40 @@ export default function BoardNavigation(props: Props) {
     [props.arrowView],
   );
 
+  const arrowItems = (
+    <>
+      <ArrowMenuItem
+        label="Focus arrows on hover"
+        icon={<LuSpline size={16} />}
+        checked={!!focusOn}
+        disabled={!props.arrowView || !!hidden}
+        onClick={() => props.arrowView?.toggleFocus()}
+      />
+      <ArrowMenuItem
+        label="Show connection labels"
+        icon={<LuCaptions size={16} />}
+        checked={!!labelsOn}
+        disabled={!props.arrowView || !!hidden}
+        onClick={() => props.arrowView?.toggleLabels()}
+      />
+      <ArrowMenuItem
+        label="Hide arrows"
+        icon={<LuEyeOff size={16} />}
+        checked={!!hidden}
+        disabled={!props.arrowView}
+        onClick={() => props.arrowView?.toggleHidden()}
+      />
+    </>
+  );
+
   return (
-    <Group gap="xs" m="xs" wrap="nowrap" style={{ pointerEvents: 'all' }}>
+    <Group
+      className={classes.root}
+      gap="xs"
+      m="xs"
+      wrap="nowrap"
+      style={{ pointerEvents: 'all' }}
+    >
       {!isReadonly && (
         <Tooltip
           label="Search or paste a link to add (/)"
@@ -146,6 +188,7 @@ export default function BoardNavigation(props: Props) {
         >
           {/* As tall as the pills beside it */}
           <Button
+            visibleFrom="sm"
             radius="xl"
             h={44}
             leftSection={<FiPlus size={18} />}
@@ -157,66 +200,112 @@ export default function BoardNavigation(props: Props) {
           </Button>
         </Tooltip>
       )}
-      <NavPill>
-        <NavButton label="Zoom out" onClick={() => editor.zoomOut()}>
-          <LuZoomOut size={16} />
-        </NavButton>
-        <NavButton label="Zoom to fit" onClick={() => editor.zoomToFit()}>
-          <LuScan size={16} />
-        </NavButton>
-        <NavButton label="Zoom in" onClick={() => editor.zoomIn()}>
-          <LuZoomIn size={16} />
-        </NavButton>
-      </NavPill>
-      <NavPill>
-        <Menu position="top-start" shadow="sm" withinPortal={false}>
-          <Menu.Target>
-            <Tooltip label="Arrows" withArrow withinPortal={false}>
+      {/* Kept small on phones, where it floats over the board */}
+      {!isReadonly && (
+        <ActionIcon
+          hiddenFrom="sm"
+          radius="xl"
+          size={44}
+          aria-label="Add"
+          disabled={!props.quickAdd}
+          onClick={() => props.quickAdd?.open()}
+          style={{ boxShadow: 'var(--mantine-shadow-sm)' }}
+        >
+          <FiPlus size={18} />
+        </ActionIcon>
+      )}
+      <Group gap="xs" wrap="nowrap" visibleFrom="sm">
+        <NavPill>
+          <NavButton label="Zoom out" onClick={() => editor.zoomOut()}>
+            <LuZoomOut size={16} />
+          </NavButton>
+          <NavButton label="Zoom to fit" onClick={() => editor.zoomToFit()}>
+            <LuScan size={16} />
+          </NavButton>
+          <NavButton label="Zoom in" onClick={() => editor.zoomIn()}>
+            <LuZoomIn size={16} />
+          </NavButton>
+        </NavPill>
+        <NavPill>
+          <Menu position="top-start" shadow="sm" withinPortal={false}>
+            <Menu.Target>
+              <Tooltip label="Arrows" withArrow withinPortal={false}>
+                <ActionIcon
+                  variant="subtle"
+                  color="gray"
+                  radius="xl"
+                  size="lg"
+                  aria-label="Arrows"
+                  disabled={!props.arrowView}
+                >
+                  <LuSpline size={16} />
+                </ActionIcon>
+              </Tooltip>
+            </Menu.Target>
+            <Menu.Dropdown>{arrowItems}</Menu.Dropdown>
+          </Menu>
+        </NavPill>
+        <NavPill>
+          <NavButton
+            label="Screenshot the current view"
+            disabled={!hasShapes}
+            onClick={() => void screenshotView(editor)}
+          >
+            <RiScreenshot2Line size={16} />
+          </NavButton>
+        </NavPill>
+      </Group>
+      <Box hiddenFrom="sm">
+        <NavPill>
+          <Menu position="top-start" shadow="sm" withinPortal={false}>
+            <Menu.Target>
               <ActionIcon
                 variant="subtle"
                 color="gray"
                 radius="xl"
                 size="lg"
-                aria-label="Arrows"
-                disabled={!props.arrowView}
+                aria-label="View options"
               >
-                <LuSpline size={16} />
+                <LuEllipsis size={16} />
               </ActionIcon>
-            </Tooltip>
-          </Menu.Target>
-          <Menu.Dropdown>
-            <ArrowMenuItem
-              label="Focus arrows on hover"
-              icon={<LuSpline size={16} />}
-              checked={!!focusOn}
-              disabled={!!hidden}
-              onClick={() => props.arrowView?.toggleFocus()}
-            />
-            <ArrowMenuItem
-              label="Show connection labels"
-              icon={<LuCaptions size={16} />}
-              checked={!!labelsOn}
-              disabled={!!hidden}
-              onClick={() => props.arrowView?.toggleLabels()}
-            />
-            <ArrowMenuItem
-              label="Hide arrows"
-              icon={<LuEyeOff size={16} />}
-              checked={!!hidden}
-              onClick={() => props.arrowView?.toggleHidden()}
-            />
-          </Menu.Dropdown>
-        </Menu>
-      </NavPill>
-      <NavPill>
-        <NavButton
-          label="Screenshot the current view"
-          disabled={!hasShapes}
-          onClick={() => void screenshotView(editor)}
-        >
-          <RiScreenshot2Line size={16} />
-        </NavButton>
-      </NavPill>
+            </Menu.Target>
+            <Menu.Dropdown>
+              {/* Stay open, so zooming can be repeated */}
+              <Menu.Item
+                leftSection={<LuZoomOut size={16} />}
+                closeMenuOnClick={false}
+                onClick={() => editor.zoomOut()}
+              >
+                Zoom out
+              </Menu.Item>
+              <Menu.Item
+                leftSection={<LuZoomIn size={16} />}
+                closeMenuOnClick={false}
+                onClick={() => editor.zoomIn()}
+              >
+                Zoom in
+              </Menu.Item>
+              <Menu.Item
+                leftSection={<LuScan size={16} />}
+                onClick={() => editor.zoomToFit()}
+              >
+                Zoom to fit
+              </Menu.Item>
+              <Menu.Divider />
+              <Menu.Label>Arrows</Menu.Label>
+              {arrowItems}
+              <Menu.Divider />
+              <Menu.Item
+                leftSection={<RiScreenshot2Line size={16} />}
+                disabled={!hasShapes}
+                onClick={() => void screenshotView(editor)}
+              >
+                Screenshot the view
+              </Menu.Item>
+            </Menu.Dropdown>
+          </Menu>
+        </NavPill>
+      </Box>
     </Group>
   );
 }
