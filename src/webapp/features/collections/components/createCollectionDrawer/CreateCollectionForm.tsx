@@ -17,6 +17,8 @@ interface Props {
   initialName?: string;
   initialAccessType?: CollectionAccessType;
   onCreate?: (collection: Collection) => void;
+  // Fires with the server's id, without waiting for the collection lists
+  onCreatedId?: (collectionId: string) => void;
   analyticsContext?: CardSaveAnalyticsContext;
 }
 
@@ -43,6 +45,7 @@ export default function CreateCollectionForm(props: Props) {
       },
       {
         onSuccess: async (data) => {
+          if (data?.collectionId) props.onCreatedId?.(data.collectionId);
           if (data?.collectionId && props.onCreate) {
             // Wait for the query to refetch and get the new collection
             await queryClient.refetchQueries({

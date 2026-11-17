@@ -12,6 +12,8 @@ interface Props {
   initialName?: string;
   initialAccessType?: CollectionAccessType;
   onCreate?: (collection: Collection) => void;
+  // Fires with the server's id, without waiting for the collection lists
+  onCreatedId?: (collectionId: string) => void;
   analyticsContext?: CardSaveAnalyticsContext;
 }
 
@@ -38,6 +40,7 @@ export default function CreateCollectionDrawer(props: Props) {
           initialName={props.initialName}
           initialAccessType={props.initialAccessType}
           onCreate={props.onCreate}
+          onCreatedId={props.onCreatedId}
           analyticsContext={props.analyticsContext}
         />
       </Container>
