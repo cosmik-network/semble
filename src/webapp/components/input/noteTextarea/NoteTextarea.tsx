@@ -100,7 +100,9 @@ export default function NoteTextarea({ value, onValueChange, ...rest }: Props) {
       onOptionSubmit={handleOptionSubmit}
     >
       <div ref={wrapperRef} style={{ position: 'relative' }}>
-        <Combobox.EventsTarget>
+        {/* Mantine takes ↑/↓ even with no suggestions open, which stops
+            them moving the caret between lines */}
+        <Combobox.EventsTarget withKeyboardNavigation={token !== null}>
           <Textarea
             {...rest}
             ref={textareaRef}
