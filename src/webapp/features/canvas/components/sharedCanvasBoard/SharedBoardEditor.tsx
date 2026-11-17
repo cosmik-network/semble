@@ -16,6 +16,8 @@ import {
 import { createSembleClient } from '@/services/client.apiClient';
 import { getCollectionPageUrl } from '@/lib/utils/link';
 import { attachArrows } from '../../controller/arrows';
+import { createMediaReveals } from '../../controller/mediaReveals';
+import { createPopupCard } from '../../controller/popupCard';
 import type { ConnectionEnd, FetchedConnections } from '../../model/arrows';
 import { collectionFrameOf } from '../../model/collectionFrames';
 import { LINK_CARD_TYPE } from '../../model/linkCards';
@@ -36,6 +38,9 @@ import SharedCanvasBoardSkeleton from './Skeleton.SharedCanvasBoard';
 import { DEFAULT_CANVAS_NAME } from '../../storage/canvasStorage';
 import SharedHeader from '../sharedHeader/SharedHeader';
 import SharedLogoCard from '../sharedHeader/SharedLogoCard';
+import SelectedArrowPill from '../arrowPill/SelectedArrowPill';
+import BoardNavigation from '../boardNavigation/BoardNavigation';
+import SharedSelectionPopup from './SharedSelectionPopup';
 
 // tldraw's licence forbids hiding, covering or restyling the "Made with
 // tldraw" watermark, or interfering with licence key validation, which decides
@@ -74,6 +79,14 @@ export default function SharedBoardEditor(props: { shareToken: string }) {
   const [editor, setEditor] = useState<Editor | null>(null);
   const [status, setStatus] = useState<Status>('loading');
   const [name, setName] = useState<string | null>(null);
+  const [arrowView, setArrowView] = useState<
+    ReturnType<typeof attachArrows>['view'] | null
+  >(null);
+  const [mediaReveals] = useState(createMediaReveals);
+  const popupCard = useMemo(
+    () => (editor ? createPopupCard(editor, getCollectionPageUrl) : null),
+    [editor],
+  );
 
   const opened = useQuery({
     queryKey: ['canvas', 'shared', props.shareToken],
@@ -102,10 +115,13 @@ export default function SharedBoardEditor(props: { shareToken: string }) {
         />
       ),
       SharePanel: SharedLogoCard,
-      // A shared board has one page and no quick add
-      NavigationPanel: () => null,
+      // Quick add stays out on a read-only board
+      NavigationPanel: () => (
+        <BoardNavigation arrowView={arrowView} quickAdd={null} />
+      ),
+      Overlays: SelectedArrowPill,
     }),
-    [name, author.data],
+    [name, author.data, arrowView],
   );
 
   useEffect(() => {
@@ -145,6 +161,7 @@ export default function SharedBoardEditor(props: { shareToken: string }) {
       ends: () => connectionEndsOf(editor),
       fetchedConnections: () => fetched,
     });
+    setArrowView(arrows.view);
     const urls = Array.from(
       new Set(connectionEndsOf(editor).map((end) => end.url)),
     );
@@ -165,6 +182,7 @@ export default function SharedBoardEditor(props: { shareToken: string }) {
     // in a saved document; still, a frame's links arrive with the rest
     return () => {
       detached = true;
+      setArrowView(null);
       arrows.detach();
     };
   }, [editor, opened.data]);
@@ -178,7 +196,7 @@ export default function SharedBoardEditor(props: { shareToken: string }) {
       <div style={{ position: 'absolute', inset: 0, isolation: 'isolate' }}>
         <CanvasServerProvider server={sharedCanvasServer}>
           <CanvasCopiesProvider copies={null}>
-            <CanvasMediaRevealsProvider mediaReveals={null}>
+            <CanvasMediaRevealsProvider mediaReveals={mediaReveals}>
               <CanvasCollectionFramesProvider collectionFrames={null}>
                 <Tldraw
                   licenseKey={process.env.NEXT_PUBLIC_TLDRAW_LICENSE_KEY}
@@ -186,7 +204,9 @@ export default function SharedBoardEditor(props: { shareToken: string }) {
                   getShapeVisibility={getShapeVisibility}
                   components={components}
                   onMount={setEditor}
-                />
+                >
+                  {popupCard && <SharedSelectionPopup popupCard={popupCard} />}
+                </Tldraw>
               </CanvasCollectionFramesProvider>
             </CanvasMediaRevealsProvider>
           </CanvasCopiesProvider>
