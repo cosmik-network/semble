@@ -1,0 +1,9 @@
+/* tldraw's toolbar takes the whole bottom row on phones, so the controls
+   float above it at the left instead of sharing the row */
+@media (width < $mantine-breakpoint-sm) {
+  .root {
+    position: absolute;
+    left: 0;
+    bottom: 100%;
+  }
+}
