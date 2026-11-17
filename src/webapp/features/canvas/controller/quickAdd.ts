@@ -14,6 +14,11 @@ export interface QuickAddDeps {
 
 export type QuickAddKind = 'cards' | 'collections';
 
+export interface QuickAddCreating {
+  name: string;
+  point: VecLike;
+}
+
 // Quick-add places a pasted or searched link or collection where it was
 // opened: the double-click point, or the centre of the view for /
 export function attachQuickAdd(editor: Editor, deps: QuickAddDeps) {
@@ -22,9 +27,11 @@ export function attachQuickAdd(editor: Editor, deps: QuickAddDeps) {
   // Kept across openings while the board is open
   const scope = atom<SearchScope>('quick-add scope', 'mine');
   const kind = atom<QuickAddKind>('quick-add kind', 'cards');
+  // A collection being created from quick-add, placed once it exists
+  const creating = atom<QuickAddCreating | null>('quick-add creating', null);
 
   function open(point?: VecLike) {
-    if (editor.getIsReadonly()) return;
+    if (editor.getIsReadonly() || creating.get()) return;
     placeAt.set(point ?? editor.getViewportPageBounds().center);
   }
 
@@ -66,9 +73,25 @@ export function attachQuickAdd(editor: Editor, deps: QuickAddDeps) {
       const point = take();
       if (point) deps.placeCollection({ id: collectionId }, point);
     },
+    creating,
+    // Closes quick-add and keeps its point for the collection to come
+    startCreate(name: string) {
+      const point = take();
+      // The form's limit, which it doesn't check on a prefilled name
+      if (point) creating.set({ name: name.slice(0, 100), point });
+    },
+    finishCreate(collectionId: string) {
+      const pending = creating.get();
+      creating.set(null);
+      if (pending && !editor.getIsReadonly()) {
+        deps.placeCollection({ id: collectionId }, pending.point);
+      }
+    },
+    cancelCreate: () => creating.set(null),
     detach() {
       idle.handleDoubleClickOnCanvas = originalDoubleClick;
       placeAt.set(null);
+      creating.set(null);
     },
   };
 }
