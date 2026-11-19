@@ -14,6 +14,7 @@ import {
 } from '../../../domain/value-objects/urlMetadataMapping';
 import { err, ok, Result } from '../../../../../shared/core/Result';
 import { v4 as uuid } from 'uuid';
+import { Selector } from '../../../domain/value-objects/selectors/Selector';
 import {
   UrlCardQueryResultDTO,
   CollectionCardQueryResultDTO,
@@ -42,7 +43,25 @@ export interface NoteContentData {
   text: string;
 }
 
-export type CardContentData = UrlContentData | NoteContentData;
+// Selectors live in the annotation_selectors child table, not in contentData;
+// ANNOTATION contentData holds only the note
+export interface AnnotationContentData {
+  note?: string;
+}
+
+export type CardContentData =
+  | UrlContentData
+  | NoteContentData
+  | AnnotationContentData;
+
+// Raw selector row (annotation_selectors), ordered by ordinal
+export interface CardSelectorDTO {
+  selectorType: string;
+  ordinal: number;
+  exact: string;
+  prefix?: string;
+  suffix?: string;
+}
 
 // Persistence layer types
 export interface CardPersistenceData {
@@ -76,6 +95,16 @@ export interface CardPersistenceData {
     uri: string;
     cid: string;
     recordedAt?: Date;
+  }>;
+  annotationSelectors?: Array<{
+    id: string;
+    cardId: string;
+    selectorType: string;
+    ordinal: number;
+    exact: string;
+    exactNormalized: string;
+    prefix?: string;
+    suffix?: string;
   }>;
 }
 
@@ -119,6 +148,7 @@ export interface CardDTO {
     uri: string;
     cid: string;
   };
+  selectors?: CardSelectorDTO[];
   libraryCount: number;
   libraryMemberships: Array<{
     userId: string;
@@ -145,6 +175,7 @@ export class CardMapper {
       const contentOrError = this.createCardContent(
         dto.type as CardTypeEnum,
         dto.contentData,
+        dto.selectors,
       );
       if (contentOrError.isErr()) return err(contentOrError.error);
 
@@ -238,6 +269,7 @@ export class CardMapper {
   private static createCardContent(
     type: CardTypeEnum,
     data: CardContentData,
+    selectors?: CardSelectorDTO[],
   ): Result<CardContent> {
     try {
       switch (type) {
@@ -263,6 +295,32 @@ export class CardMapper {
           return CardContent.createNoteContent(noteData.text);
         }
 
+        case CardTypeEnum.ANNOTATION: {
+          const annotationData = data as AnnotationContentData;
+          if (!selectors || selectors.length === 0) {
+            return err(
+              new Error('Annotation card is missing its selector rows'),
+            );
+          }
+
+          const ordered = [...selectors].sort((a, b) => a.ordinal - b.ordinal);
+          const selectorVOs: Selector[] = [];
+          for (const selectorDTO of ordered) {
+            const selectorResult = Selector.createTextQuote({
+              exact: selectorDTO.exact,
+              prefix: selectorDTO.prefix,
+              suffix: selectorDTO.suffix,
+            });
+            if (selectorResult.isErr()) return err(selectorResult.error);
+            selectorVOs.push(selectorResult.value);
+          }
+
+          return CardContent.createAnnotationContent(
+            selectorVOs,
+            annotationData.note,
+          );
+        }
+
         default:
           return err(new Error(`Unknown card type: ${type}`));
       }
@@ -276,6 +334,7 @@ export class CardMapper {
     let contentData: CardContentData;
 
     // Extract content data based on type
+    let annotationSelectors: CardPersistenceData['annotationSelectors'];
     if (content.type === CardTypeEnum.URL) {
       const urlContent = content.urlContent!;
       contentData = {
@@ -289,6 +348,33 @@ export class CardMapper {
       contentData = {
         text: noteContent.text,
       } as NoteContentData;
+    } else if (content.type === CardTypeEnum.ANNOTATION) {
+      // Selectors are persisted in the annotation_selectors child table;
+      // contentData carries only the note
+      const annotationContent = content.annotationContent!;
+      contentData = {
+        note: annotationContent.note,
+      } as AnnotationContentData;
+      annotationSelectors = annotationContent.selectors.map(
+        (selector: Selector, ordinal) => {
+          const textQuote = selector.textQuoteSelector;
+          if (!textQuote) {
+            throw new Error(
+              `Unsupported selector type in persistence: ${selector.type}`,
+            );
+          }
+          return {
+            id: uuid(),
+            cardId: card.cardId.getStringValue(),
+            selectorType: selector.type,
+            ordinal,
+            exact: textQuote.exact,
+            exactNormalized: textQuote.normalizedExact,
+            prefix: textQuote.prefix,
+            suffix: textQuote.suffix,
+          };
+        },
+      );
     } else {
       throw new Error(`Unknown card type: ${content.type}`);
     }
@@ -352,6 +438,7 @@ export class CardMapper {
         membershipPublishedRecords.length > 0
           ? membershipPublishedRecords
           : undefined,
+      annotationSelectors,
     };
   }
 

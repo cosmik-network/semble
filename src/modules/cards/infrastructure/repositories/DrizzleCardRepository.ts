@@ -6,13 +6,53 @@ import { CardId } from '../../domain/value-objects/CardId';
 import { cards } from './schema/card.sql';
 import { libraryMemberships } from './schema/libraryMembership.sql';
 import { publishedRecords } from './schema/publishedRecord.sql';
-import { CardDTO, CardMapper } from './mappers/CardMapper';
+import { annotationSelectors } from './schema/annotationSelector.sql';
+import { CardDTO, CardMapper, CardSelectorDTO } from './mappers/CardMapper';
 import { Result, ok, err } from '../../../../shared/core/Result';
 import { URL } from '../../domain/value-objects/URL';
 import { CuratorId } from '../../domain/value-objects/CuratorId';
 
 export class DrizzleCardRepository implements ICardRepository {
   constructor(private db: PostgresJsDatabase) {}
+
+  /**
+   * Fetch annotation selector rows for the given cards, keyed by cardId and
+   * ordered by ordinal. Only meaningful for ANNOTATION cards.
+   */
+  private async fetchAnnotationSelectors(
+    cardIds: string[],
+  ): Promise<Map<string, CardSelectorDTO[]>> {
+    const selectorsByCard = new Map<string, CardSelectorDTO[]>();
+    if (cardIds.length === 0) {
+      return selectorsByCard;
+    }
+
+    const rows = await this.db
+      .select({
+        cardId: annotationSelectors.cardId,
+        selectorType: annotationSelectors.selectorType,
+        ordinal: annotationSelectors.ordinal,
+        exact: annotationSelectors.exact,
+        prefix: annotationSelectors.prefix,
+        suffix: annotationSelectors.suffix,
+      })
+      .from(annotationSelectors)
+      .where(inArray(annotationSelectors.cardId, cardIds))
+      .orderBy(annotationSelectors.ordinal);
+
+    for (const row of rows) {
+      const list = selectorsByCard.get(row.cardId) ?? [];
+      list.push({
+        selectorType: row.selectorType,
+        ordinal: row.ordinal,
+        exact: row.exact,
+        prefix: row.prefix ?? undefined,
+        suffix: row.suffix ?? undefined,
+      });
+      selectorsByCard.set(row.cardId, list);
+    }
+    return selectorsByCard;
+  }
 
   async findById(id: CardId): Promise<Result<Card | null>> {
     try {
@@ -59,6 +99,12 @@ export class DrizzleCardRepository implements ICardRepository {
         return ok(null);
       }
 
+      // Hydrate selector rows for annotation cards
+      const selectors =
+        result.type === 'ANNOTATION'
+          ? (await this.fetchAnnotationSelectors([result.id])).get(result.id)
+          : undefined;
+
       const cardDTO: CardDTO = {
         id: result.id,
         curatorId: result.authorId,
@@ -67,6 +113,7 @@ export class DrizzleCardRepository implements ICardRepository {
         url: result.url || undefined,
         parentCardId: result.parentCardId || undefined,
         viaCardId: result.viaCardId || undefined,
+        selectors,
         publishedRecordId: publishedRecord
           ? {
               uri: publishedRecord.uri,
@@ -107,6 +154,7 @@ export class DrizzleCardRepository implements ICardRepository {
         libraryMemberships: membershipData,
         publishedRecord,
         membershipPublishedRecords,
+        annotationSelectors: selectorData,
       } = CardMapper.toPersistence(card);
 
       await this.db.transaction(async (tx) => {
@@ -294,6 +342,18 @@ export class DrizzleCardRepository implements ICardRepository {
                 eq(libraryMemberships.userId, membership.userId),
               ),
             );
+        }
+
+        // Sync annotation selector rows — replace wholesale. Selectors are a
+        // small ordered set (max 4) that may be rewritten on update, so
+        // delete-and-reinsert avoids per-row diffing on ordinal.
+        if (selectorData) {
+          await tx
+            .delete(annotationSelectors)
+            .where(eq(annotationSelectors.cardId, cardData.id));
+          if (selectorData.length > 0) {
+            await tx.insert(annotationSelectors).values(selectorData);
+          }
         }
       });
 
@@ -496,6 +556,114 @@ export class DrizzleCardRepository implements ICardRepository {
       }
 
       return ok(domainResult.value);
+    } catch (error) {
+      return err(error as Error);
+    }
+  }
+
+  async findUsersAnnotationCardsByUrl(
+    url: URL,
+    curatorId: CuratorId,
+  ): Promise<Result<Card[]>> {
+    try {
+      const cardResults = await this.db
+        .select({
+          card: cards,
+          publishedRecord: publishedRecords,
+        })
+        .from(cards)
+        .leftJoin(
+          publishedRecords,
+          eq(cards.publishedRecordId, publishedRecords.id),
+        )
+        .where(
+          and(
+            eq(cards.url, url.value),
+            eq(cards.type, 'ANNOTATION'),
+            eq(cards.authorId, curatorId.value),
+          ),
+        );
+
+      if (cardResults.length === 0) {
+        return ok([]);
+      }
+
+      const cardIds = cardResults.map((row) => row.card!.id);
+
+      // Batch-fetch memberships and selector rows for all matched cards
+      const [membershipResults, selectorsByCard] = await Promise.all([
+        this.db
+          .select({
+            cardId: libraryMemberships.cardId,
+            userId: libraryMemberships.userId,
+            addedAt: libraryMemberships.addedAt,
+            publishedRecordUri: publishedRecords.uri,
+            publishedRecordCid: publishedRecords.cid,
+          })
+          .from(libraryMemberships)
+          .leftJoin(
+            publishedRecords,
+            eq(libraryMemberships.publishedRecordId, publishedRecords.id),
+          )
+          .where(inArray(libraryMemberships.cardId, cardIds)),
+        this.fetchAnnotationSelectors(cardIds),
+      ]);
+
+      const membershipsByCard = new Map<
+        string,
+        Array<CardDTO['libraryMemberships'][number]>
+      >();
+      for (const membership of membershipResults) {
+        const list = membershipsByCard.get(membership.cardId) ?? [];
+        list.push({
+          userId: membership.userId,
+          addedAt: membership.addedAt,
+          publishedRecordId:
+            membership.publishedRecordUri && membership.publishedRecordCid
+              ? {
+                  uri: membership.publishedRecordUri,
+                  cid: membership.publishedRecordCid,
+                }
+              : undefined,
+        });
+        membershipsByCard.set(membership.cardId, list);
+      }
+
+      const annotationCards: Card[] = [];
+      for (const row of cardResults) {
+        if (!row.card) {
+          continue;
+        }
+
+        const cardDTO: CardDTO = {
+          id: row.card.id,
+          curatorId: row.card.authorId,
+          type: row.card.type,
+          contentData: row.card.contentData,
+          url: row.card.url || undefined,
+          parentCardId: row.card.parentCardId || undefined,
+          viaCardId: row.card.viaCardId || undefined,
+          publishedRecordId: row.publishedRecord
+            ? {
+                uri: row.publishedRecord.uri,
+                cid: row.publishedRecord.cid,
+              }
+            : undefined,
+          selectors: selectorsByCard.get(row.card.id),
+          libraryCount: row.card.libraryCount ?? 0,
+          libraryMemberships: membershipsByCard.get(row.card.id) ?? [],
+          createdAt: row.card.createdAt,
+          updatedAt: row.card.updatedAt,
+        };
+
+        const domainResult = CardMapper.toDomain(cardDTO);
+        if (domainResult.isErr()) {
+          return err(domainResult.error);
+        }
+        annotationCards.push(domainResult.value);
+      }
+
+      return ok(annotationCards);
     } catch (error) {
       return err(error as Error);
     }

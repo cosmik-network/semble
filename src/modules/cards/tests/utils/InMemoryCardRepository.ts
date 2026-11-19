@@ -92,6 +92,25 @@ export class InMemoryCardRepository implements ICardRepository {
     }
   }
 
+  async findUsersAnnotationCardsByUrl(
+    url: URL,
+    curatorId: CuratorId,
+  ): Promise<Result<Card[]>> {
+    try {
+      const matching = Array.from(this.cards.values())
+        .filter(
+          (card) =>
+            card.type.value === 'ANNOTATION' &&
+            card.url?.value === url.value &&
+            card.props.curatorId.equals(curatorId),
+        )
+        .map((card) => this.clone(card));
+      return ok(matching);
+    } catch (error) {
+      return err(error as Error);
+    }
+  }
+
   async save(card: Card): Promise<Result<void>> {
     if (this.shouldFailSave || this.shouldFail) {
       return err(new Error('Simulated save failure'));

@@ -538,6 +538,7 @@ describe('GetUrlStatusForMyLibraryUseCase', () => {
         findById: jest.fn(),
         delete: jest.fn(),
         findUsersNoteCardByUrl: jest.fn(),
+        findUsersAnnotationCardsByUrl: jest.fn(),
       };
 
       const errorUseCase = new GetUrlStatusForMyLibraryUseCase(

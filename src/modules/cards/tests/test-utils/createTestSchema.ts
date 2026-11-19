@@ -231,6 +231,20 @@ export async function createTestSchema(db: PostgresJsDatabase) {
       created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
       updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
     )`,
+
+    // Annotation selectors table (canonical storage for annotation card selectors;
+    // ANNOTATION card content_data holds only the note)
+    sql`CREATE TABLE IF NOT EXISTS annotation_selectors (
+      id UUID PRIMARY KEY,
+      card_id UUID NOT NULL REFERENCES cards(id) ON DELETE CASCADE,
+      selector_type TEXT NOT NULL,
+      ordinal INTEGER NOT NULL,
+      exact TEXT NOT NULL,
+      exact_normalized TEXT NOT NULL,
+      prefix TEXT,
+      suffix TEXT,
+      created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
+    )`,
   ];
 
   // Execute table creation queries in order
@@ -497,5 +511,11 @@ export async function createTestSchema(db: PostgresJsDatabase) {
   `);
   await db.execute(sql`
     CREATE UNIQUE INDEX IF NOT EXISTS canvases_share_token_idx ON canvases(share_token);
+  `);
+
+  // Annotation selectors table indexes
+  await db.execute(sql`
+    CREATE UNIQUE INDEX IF NOT EXISTS annotation_selectors_card_ordinal_uniq
+    ON annotation_selectors(card_id, ordinal);
   `);
 }

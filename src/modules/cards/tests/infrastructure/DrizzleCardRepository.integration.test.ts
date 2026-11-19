@@ -16,6 +16,8 @@ import { UrlMetadata } from '../../domain/value-objects/UrlMetadata';
 import { CardContent } from '../../domain/value-objects/CardContent';
 import { PublishedRecordId } from '../../domain/value-objects/PublishedRecordId';
 import { createTestSchema } from '../test-utils/createTestSchema';
+import { Selector } from '../../domain/value-objects/selectors/Selector';
+import { annotationSelectors } from '../../infrastructure/repositories/schema/annotationSelector.sql';
 
 describe('DrizzleCardRepository', () => {
   let container: StartedPostgreSqlContainer;
@@ -497,5 +499,136 @@ describe('DrizzleCardRepository', () => {
 
     expect(retrievedCard?.libraryCount).toBe(2);
     expect(retrievedCard?.libraryMemberships).toHaveLength(2);
+  });
+
+  describe('annotation cards', () => {
+    const ANNOTATION_URL = 'https://example.com/annotated';
+
+    const makeAnnotationCard = (exact: string, note?: string): Card => {
+      const selector = Selector.createTextQuote({
+        exact,
+        prefix: 'before ',
+        suffix: ' after',
+      }).unwrap();
+      const content = CardContent.createAnnotationContent(
+        [selector],
+        note,
+      ).unwrap();
+      const url = URL.create(ANNOTATION_URL).unwrap();
+
+      return Card.create({
+        curatorId,
+        type: CardType.create(CardTypeEnum.ANNOTATION).unwrap(),
+        content,
+        url,
+      }).unwrap();
+    };
+
+    it('should save and retrieve an annotation card with note and selector', async () => {
+      const card = makeAnnotationCard(
+        'the quoted passage',
+        'this claim needs a source',
+      );
+
+      const saveResult = await cardRepository.save(card);
+      expect(saveResult.isOk()).toBe(true);
+
+      const retrievedResult = await cardRepository.findById(card.cardId);
+      expect(retrievedResult.isOk()).toBe(true);
+
+      const retrievedCard = retrievedResult.unwrap();
+      expect(retrievedCard?.type.value).toBe(CardTypeEnum.ANNOTATION);
+      expect(retrievedCard?.url?.value).toBe(ANNOTATION_URL);
+
+      const annotationContent = retrievedCard?.content.annotationContent;
+      expect(annotationContent?.note).toBe('this claim needs a source');
+
+      const textQuote = annotationContent?.textQuoteSelector;
+      expect(textQuote?.exact).toBe('the quoted passage');
+      expect(textQuote?.prefix).toBe('before ');
+      expect(textQuote?.suffix).toBe(' after');
+    });
+
+    it('should persist exact_normalized alongside the raw exact', async () => {
+      const card = makeAnnotationCard('passage\n\nspanning blocks');
+
+      await cardRepository.save(card);
+
+      const rows = await db
+        .select({
+          exact: annotationSelectors.exact,
+          exactNormalized: annotationSelectors.exactNormalized,
+        })
+        .from(annotationSelectors);
+
+      expect(rows).toHaveLength(1);
+      expect(rows[0]!.exact).toBe('passage\n\nspanning blocks');
+      expect(rows[0]!.exactNormalized).toBe('passage spanning blocks');
+    });
+
+    it('should save an annotation without a note', async () => {
+      const card = makeAnnotationCard('just a passage');
+
+      const saveResult = await cardRepository.save(card);
+      expect(saveResult.isOk()).toBe(true);
+
+      const retrieved = (await cardRepository.findById(card.cardId)).unwrap();
+      expect(retrieved?.content.annotationContent?.note).toBeUndefined();
+      expect(retrieved?.content.annotationContent?.selectors).toHaveLength(1);
+    });
+
+    it('should resync selector rows when an annotation is updated', async () => {
+      const card = makeAnnotationCard('original passage', 'old note');
+
+      await cardRepository.save(card);
+
+      const selectorCountAfterFirstSave = await db
+        .select({ id: annotationSelectors.id })
+        .from(annotationSelectors);
+      expect(selectorCountAfterFirstSave).toHaveLength(1);
+
+      // Save again — selectors should be replaced, not duplicated
+      await cardRepository.save(card);
+
+      const rows = await db
+        .select({ id: annotationSelectors.id })
+        .from(annotationSelectors);
+      expect(rows).toHaveLength(1);
+    });
+
+    it("should find all of a user's annotation cards for a url", async () => {
+      const first = makeAnnotationCard('first passage', 'note one');
+      const second = makeAnnotationCard('second passage');
+      // Another curator\'s annotation on the same url — must not match
+      const otherCurators = Card.create({
+        curatorId: anotherCuratorId,
+        type: CardType.create(CardTypeEnum.ANNOTATION).unwrap(),
+        content: CardContent.createAnnotationContent([
+          Selector.createTextQuote({ exact: 'someone else' }).unwrap(),
+        ]).unwrap(),
+        url: URL.create(ANNOTATION_URL).unwrap(),
+      }).unwrap();
+
+      await cardRepository.save(first);
+      await cardRepository.save(second);
+      await cardRepository.save(otherCurators);
+
+      const found = await cardRepository.findUsersAnnotationCardsByUrl(
+        URL.create(ANNOTATION_URL).unwrap(),
+        curatorId,
+      );
+
+      expect(found.isOk()).toBe(true);
+      const annotationCards = found.unwrap();
+      expect(annotationCards).toHaveLength(2);
+
+      const exacts = annotationCards
+        .map((c) => c.content.annotationContent?.textQuoteSelector?.exact)
+        .sort();
+      expect(exacts).toEqual(['first passage', 'second passage']);
+      expect(annotationCards.every((c) => c.curatorId.equals(curatorId))).toBe(
+        true,
+      );
+    });
   });
 });

@@ -16,4 +16,11 @@ export interface ICardRepository {
     url: URL,
     curatorId: CuratorId,
   ): Promise<Result<Card | null>>;
+
+  // A user can annotate multiple passages on the same URL, so unlike the
+  // note card lookup this returns all of their annotation cards
+  findUsersAnnotationCardsByUrl(
+    url: URL,
+    curatorId: CuratorId,
+  ): Promise<Result<Card[]>>;
 }
