@@ -2,6 +2,7 @@ import { useLocalStorage } from '@mantine/hooks';
 import { useEffect, useState } from 'react';
 import { ActivitySource, ActivityType, UrlType } from '@semble/types';
 import { FeedView } from '@/features/feeds/lib/feedOptions';
+import type { EmbedSource } from '@/features/platforms/common/lib/externalEmbeds';
 
 export interface UserSettings {
   tinkerMode: boolean;
@@ -22,6 +23,8 @@ export interface UserSettings {
    * Consulted only while signed out — a session names its own subject.
    */
   bskyHandle: string | null;
+  /** Sources whose iframe embeds load without asking. Missing means ask. */
+  externalEmbeds: Partial<Record<EmbedSource, boolean>>;
 }
 
 export const defaultSettings: UserSettings = {
@@ -39,6 +42,7 @@ export const defaultSettings: UserSettings = {
   feedActivityType: null,
   includeKnownBots: false,
   bskyHandle: null,
+  externalEmbeds: {},
 };
 
 /**

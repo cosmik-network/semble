@@ -11,9 +11,13 @@ import {
 import { UrlCard } from '@semble/types';
 
 import { Fragment } from 'react';
+import { EmbedSource } from '@/features/platforms/common/lib/externalEmbeds';
+import ExternalEmbedGate from '../externalEmbedGate/ExternalEmbedGate';
+import EmbedPreviewImage from '../embedPreviewImage/EmbedPreviewImage';
 
 interface IframeEmbedProps {
   url: string;
+  source: EmbedSource;
   cardContent: UrlCard['cardContent'];
   height?: number | string;
   aspectRatio?: number;
@@ -26,12 +30,21 @@ export default function IframeEmbed(props: IframeEmbedProps) {
 
   const iframeElement = (
     <Card p={0} radius={props.radius ?? 'md'}>
-      <iframe
-        src={props.url}
+      <ExternalEmbedGate
+        source={props.source}
+        sourceUrl={props.cardContent.url}
+        preview={<EmbedPreviewImage src={props.cardContent.imageUrl} />}
         height={props.aspectRatio ? '100%' : height}
-        allowFullScreen
-        style={{ border: 0 }}
-      />
+      >
+        <iframe
+          src={props.url}
+          height={props.aspectRatio ? '100%' : height}
+          allowFullScreen
+          allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
+          loading="lazy"
+          style={{ border: 0 }}
+        />
+      </ExternalEmbedGate>
     </Card>
   );
 

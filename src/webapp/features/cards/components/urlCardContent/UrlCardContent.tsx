@@ -13,6 +13,7 @@ import BlueskyPostSkeleton from '@/features/platforms/bluesky/components/bluesky
 import { useSettings } from '@/providers/settings';
 import IframeEmbed from '@/features/platforms/common/components/IframeEmbed/IframeEmbed';
 import UrlCardContentSkeleton from './Skeleton.UrlCardContent';
+import { getEmbedSource } from '@/features/platforms/common/lib/externalEmbeds';
 
 interface Props {
   url: string;
@@ -24,6 +25,7 @@ interface Props {
 export default function UrlCardContent(props: Props) {
   const platform = detectUrlPlatform(props.url);
   const { settings } = useSettings();
+  const embedSource = getEmbedSource(platform.type);
 
   if (platform.type === SupportedPlatform.SEMBLE_COLLECTION) {
     if (!platform.handle || !platform.rkey) {
@@ -119,6 +121,7 @@ export default function UrlCardContent(props: Props) {
     return (
       <IframeEmbed
         url={platform.url}
+        source={embedSource!}
         cardContent={props.cardContent}
         aspectRatio={16 / 8}
       />
@@ -132,6 +135,7 @@ export default function UrlCardContent(props: Props) {
     return (
       <IframeEmbed
         url={platform.url}
+        source={embedSource!}
         cardContent={props.cardContent}
         height={152}
         radius={'lg'}
@@ -147,6 +151,7 @@ export default function UrlCardContent(props: Props) {
     return (
       <IframeEmbed
         url={platform.url}
+        source={embedSource!}
         cardContent={props.cardContent}
         height={
           platform.type === SupportedPlatform.SOUNDCLOUD_TRACK ? 166 : 280
@@ -163,6 +168,7 @@ export default function UrlCardContent(props: Props) {
     return (
       <IframeEmbed
         url={platform.url}
+        source={embedSource!}
         cardContent={props.cardContent}
         height={200}
       />
@@ -177,6 +183,7 @@ export default function UrlCardContent(props: Props) {
     return (
       <IframeEmbed
         url={platform.url}
+        source={embedSource!}
         cardContent={props.cardContent}
         height={120}
         radius={0}

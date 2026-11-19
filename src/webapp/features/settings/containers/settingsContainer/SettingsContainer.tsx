@@ -15,6 +15,7 @@ import {
   MdSync,
   MdOutlineCollectionsBookmark,
   MdOutlineInstallMobile,
+  MdVideoLibrary,
 } from 'react-icons/md';
 import { TbStackForward, TbBrandFirefox } from 'react-icons/tb';
 import { FiChrome } from 'react-icons/fi';
@@ -42,6 +43,9 @@ export default async function SettingsContainer() {
             </SettingItem>
             <SettingItem href="/settings/feed" icon={MdEmojiNature}>
               Feed
+            </SettingItem>
+            <SettingItem href="/settings/external-media" icon={MdVideoLibrary}>
+              External media
             </SettingItem>
           </ButtonGroup>
           <ButtonGroup orientation="vertical">

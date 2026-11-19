@@ -20,12 +20,17 @@ interface PageParams {
   searchText?: string;
 }
 
-export const getUrlMetadata = cache(async (params: GetUrlMetadataParams) => {
-  const client = createSembleClient();
-  const response = await client.getUrlMetadata(params);
+// `cache` matches arguments by identity, so key on primitives: every caller
+// passes a fresh params object, which would otherwise never dedupe.
+const getUrlMetadataCached = cache(
+  async (url: string, includeStats: boolean | undefined) => {
+    const client = createSembleClient();
+    return client.getUrlMetadata({ url, includeStats });
+  },
+);
 
-  return response;
-});
+export const getUrlMetadata = (params: GetUrlMetadataParams) =>
+  getUrlMetadataCached(params.url, params.includeStats);
 
 export const getCardFromMyLibrary = cache(async (url: string) => {
   const session = await verifySessionOnClient({ redirectOnFail: true });
