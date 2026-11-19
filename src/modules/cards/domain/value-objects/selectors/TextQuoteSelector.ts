@@ -2,6 +2,7 @@ import { ValueObject } from '../../../../../shared/domain/ValueObject';
 import { ok, err, Result } from '../../../../../shared/core/Result';
 import { SelectorTypeEnum } from './SelectorType';
 import { SelectorValidationError } from './SelectorValidationError';
+import { normalizeQuotedText } from './normalizeQuotedText';
 
 interface TextQuoteSelectorProps {
   type: SelectorTypeEnum.TEXT_QUOTE;
@@ -27,6 +28,14 @@ export class TextQuoteSelector extends ValueObject<TextQuoteSelectorProps> {
     return this.props.exact;
   }
 
+  /**
+   * The comparison key for "same passage" matching — raw exact is never
+   * compared directly (see normalizeQuotedText).
+   */
+  get normalizedExact(): string {
+    return normalizeQuotedText(this.props.exact);
+  }
+
   get prefix(): string | undefined {
     return this.props.prefix;
   }
@@ -45,8 +54,8 @@ export class TextQuoteSelector extends ValueObject<TextQuoteSelectorProps> {
     suffix?: string;
   }): Result<TextQuoteSelector, SelectorValidationError> {
     // Whitespace is part of the anchor (a selection can span blocks), so
-    // exact is never trimmed — only rejected if empty once collapsed.
-    if (!props.exact || props.exact.replace(/\s+/g, ' ').trim().length === 0) {
+    // exact is never trimmed — only rejected if empty once normalized.
+    if (!props.exact || normalizeQuotedText(props.exact).length === 0) {
       return err(
         new SelectorValidationError('TextQuoteSelector must have exact text'),
       );
