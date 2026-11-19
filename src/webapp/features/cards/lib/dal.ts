@@ -6,6 +6,7 @@ import {
   GetUrlMetadataParams,
   SortOrder,
   UrlType,
+  TextQuoteSelector,
 } from '@semble/types';
 import { cache } from 'react';
 import { RankingWeights } from './types/rankingWeights';
@@ -66,6 +67,29 @@ export const addUrlToLibrary = cache(
       note: note,
       collectionIds: collectionIds,
       viaCardId: viaCardId,
+    });
+  },
+);
+
+export const addAnnotationToLibrary = cache(
+  async (
+    url: string,
+    selectors: TextQuoteSelector[],
+    {
+      note,
+      collectionIds,
+      viaCardId,
+    }: { note?: string; collectionIds?: string[]; viaCardId?: string },
+  ) => {
+    const session = await verifySessionOnClient({ redirectOnFail: true });
+    if (!session) throw new NoSessionError();
+    const client = createSembleClient();
+    return client.addAnnotationToLibrary({
+      url,
+      selectors,
+      note,
+      collectionIds,
+      viaCardId,
     });
   },
 );

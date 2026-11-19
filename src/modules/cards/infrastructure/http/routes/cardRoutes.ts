@@ -1,5 +1,6 @@
 import { IRouter } from 'express';
 import { AddUrlToLibraryController } from '../controllers/AddUrlToLibraryController';
+import { AddAnnotationToLibraryController } from '../controllers/AddAnnotationToLibraryController';
 import { AddCardToLibraryController } from '../controllers/AddCardToLibraryController';
 import { AddCardToCollectionController } from '../controllers/AddCardToCollectionController';
 import { UpdateNoteCardController } from '../controllers/UpdateNoteCardController';
@@ -28,6 +29,7 @@ export function registerCardRoutes(
   app: IRouter,
   authMiddleware: AuthMiddleware,
   addUrlToLibraryController: AddUrlToLibraryController,
+  addAnnotationToLibraryController: AddAnnotationToLibraryController,
   addCardToLibraryController: AddCardToLibraryController,
   addCardToCollectionController: AddCardToCollectionController,
   updateNoteCardController: UpdateNoteCardController,
@@ -120,6 +122,13 @@ export function registerCardRoutes(
     authMiddleware.ensureAuthenticated(),
     validateBody(cardsContract.addUrlToLibrary.body),
     (req, res) => addUrlToLibraryController.execute(req, res),
+  );
+
+  app.post(
+    routes.cards.addAnnotationToLibrary.path,
+    authMiddleware.ensureAuthenticated(),
+    validateBody(cardsContract.addAnnotationToLibrary.body),
+    (req, res) => addAnnotationToLibraryController.execute(req, res),
   );
 
   app.post(

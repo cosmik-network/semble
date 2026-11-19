@@ -2,6 +2,7 @@ import { IRouter } from 'express';
 import { registerCardRoutes } from './cardRoutes';
 import { registerCollectionRoutes } from './collectionRoutes';
 import { AddUrlToLibraryController } from '../controllers/AddUrlToLibraryController';
+import { AddAnnotationToLibraryController } from '../controllers/AddAnnotationToLibraryController';
 import { AddCardToLibraryController } from '../controllers/AddCardToLibraryController';
 import { AddCardToCollectionController } from '../controllers/AddCardToCollectionController';
 import { UpdateNoteCardController } from '../controllers/UpdateNoteCardController';
@@ -39,6 +40,7 @@ export function registerCardsModuleRoutes(
   authMiddleware: AuthMiddleware,
   // Card controllers
   addUrlToLibraryController: AddUrlToLibraryController,
+  addAnnotationToLibraryController: AddAnnotationToLibraryController,
   addCardToLibraryController: AddCardToLibraryController,
   addCardToCollectionController: AddCardToCollectionController,
   updateNoteCardController: UpdateNoteCardController,
@@ -75,6 +77,7 @@ export function registerCardsModuleRoutes(
     app,
     authMiddleware,
     addUrlToLibraryController,
+    addAnnotationToLibraryController,
     addCardToLibraryController,
     addCardToCollectionController,
     updateNoteCardController,

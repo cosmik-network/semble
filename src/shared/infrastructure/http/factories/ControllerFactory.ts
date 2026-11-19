@@ -2,6 +2,7 @@ import { InitiateOAuthSignInController } from '../../../../modules/user/infrastr
 import { CompleteOAuthSignInController } from '../../../../modules/user/infrastructure/http/controllers/CompleteOAuthSignInController';
 import { RefreshAccessTokenController } from '../../../../modules/user/infrastructure/http/controllers/RefreshAccessTokenController';
 import { AddUrlToLibraryController } from '../../../../modules/cards/infrastructure/http/controllers/AddUrlToLibraryController';
+import { AddAnnotationToLibraryController } from '../../../../modules/cards/infrastructure/http/controllers/AddAnnotationToLibraryController';
 import { AddCardToLibraryController } from '../../../../modules/cards/infrastructure/http/controllers/AddCardToLibraryController';
 import { AddCardToCollectionController } from '../../../../modules/cards/infrastructure/http/controllers/AddCardToCollectionController';
 import { UpdateNoteCardController } from '../../../../modules/cards/infrastructure/http/controllers/UpdateNoteCardController';
@@ -124,6 +125,7 @@ export interface Controllers {
   getUserStatsController: GetUserStatsController;
   // Card controllers
   addUrlToLibraryController: AddUrlToLibraryController;
+  addAnnotationToLibraryController: AddAnnotationToLibraryController;
   addCardToLibraryController: AddCardToLibraryController;
   addCardToCollectionController: AddCardToCollectionController;
   updateNoteCardController: UpdateNoteCardController;
@@ -319,6 +321,9 @@ export class ControllerFactory {
       // Card controllers
       addUrlToLibraryController: new AddUrlToLibraryController(
         useCases.addUrlToLibraryUseCase,
+      ),
+      addAnnotationToLibraryController: new AddAnnotationToLibraryController(
+        useCases.addAnnotationToLibraryUseCase,
       ),
       addCardToLibraryController: new AddCardToLibraryController(
         useCases.addCardToLibraryUseCase,

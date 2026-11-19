@@ -5,6 +5,8 @@ import {
   UrlTypeSchema,
   AddUrlToLibraryRequestSchema,
   AddUrlToLibraryResponseSchema,
+  AddAnnotationToLibraryRequestSchema,
+  AddAnnotationToLibraryResponseSchema,
   AddCardToLibraryRequestSchema,
   AddCardToLibraryResponseSchema,
   AddCardToCollectionRequestSchema,
@@ -46,6 +48,15 @@ export const cardsContract = c.router(
       summary: 'Add a URL to library',
       description:
         "Saves a URL as a URL card in the authenticated user's library.",
+    },
+    addAnnotationToLibrary: {
+      method: 'POST',
+      path: paths.addAnnotationToLibrary,
+      body: AddAnnotationToLibraryRequestSchema,
+      responses: { 200: AddAnnotationToLibraryResponseSchema },
+      summary: 'Add an annotation to library',
+      description:
+        "Saves a passage annotation (text quote selector with optional note) on a URL in the authenticated user's library, publishing it as an at.margin.note record. The source URL is saved to the library if it isn't already.",
     },
     addCardToLibrary: {
       method: 'POST',

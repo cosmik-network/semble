@@ -1,4 +1,5 @@
 export * from './cards/addUrl';
+export * from './cards/addAnnotation';
 export * from './cards/addToLibrary';
 export * from './cards/addToCollection';
 export * from './cards/updateNote';

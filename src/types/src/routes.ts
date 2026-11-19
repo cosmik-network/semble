@@ -42,6 +42,7 @@ function defineRoute<Path extends string>(
 export const paths = {
   // cards
   addUrlToLibrary: '/network.cosmik.card.addUrl',
+  addAnnotationToLibrary: '/network.cosmik.card.addAnnotation',
   addCardToLibrary: '/network.cosmik.card.addToLibrary',
   addCardToCollection: '/network.cosmik.card.addToCollection',
   urlCardAssociations: '/network.cosmik.card.updateUrlAssociations',
@@ -158,6 +159,11 @@ export const paths = {
 export const routes = {
   cards: {
     addUrlToLibrary: defineRoute(paths.addUrlToLibrary, 'POST', true),
+    addAnnotationToLibrary: defineRoute(
+      paths.addAnnotationToLibrary,
+      'POST',
+      true,
+    ),
     addCardToLibrary: defineRoute(paths.addCardToLibrary, 'POST', true),
     addCardToCollection: defineRoute(paths.addCardToCollection, 'POST', true),
     urlCardAssociations: defineRoute(paths.urlCardAssociations, 'POST', true),

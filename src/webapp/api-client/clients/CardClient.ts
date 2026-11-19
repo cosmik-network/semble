@@ -3,6 +3,8 @@ import { unwrap } from '../unwrap';
 import {
   AddUrlToLibraryRequest,
   AddUrlToLibraryResponse,
+  AddAnnotationToLibraryRequest,
+  AddAnnotationToLibraryResponse,
   AddCardToLibraryRequest,
   AddCardToLibraryResponse,
   AddCardToCollectionRequest,
@@ -23,6 +25,15 @@ export class CardClient extends BaseClient {
   ): Promise<AddUrlToLibraryResponse> {
     const res = await this.client.cards.addUrlToLibrary({ body: request });
     return unwrap<AddUrlToLibraryResponse>(res);
+  }
+
+  async addAnnotationToLibrary(
+    request: AddAnnotationToLibraryRequest,
+  ): Promise<AddAnnotationToLibraryResponse> {
+    const res = await this.client.cards.addAnnotationToLibrary({
+      body: request,
+    });
+    return unwrap<AddAnnotationToLibraryResponse>(res);
   }
 
   async addCardToLibrary(

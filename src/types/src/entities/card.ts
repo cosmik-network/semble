@@ -3,6 +3,16 @@ import { UserSchema } from './user';
 import { UrlMetadataSchema } from './url';
 import { CollectionSchema } from './collection';
 
+// W3C Web Annotation text quote selector — identifies a passage by quoting
+// it, with optional surrounding context for disambiguation
+export const TextQuoteSelectorSchema = z.object({
+  type: z.literal('TextQuoteSelector'),
+  exact: z.string().min(1),
+  prefix: z.string().optional(),
+  suffix: z.string().optional(),
+});
+export type TextQuoteSelector = z.infer<typeof TextQuoteSelectorSchema>;
+
 export const UrlCardSchema = z.object({
   id: z.string(),
   type: z.literal('URL'),

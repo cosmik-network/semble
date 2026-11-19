@@ -323,6 +323,7 @@ export const createExpressApp = async (
       services.authMiddleware,
       // Card controllers
       controllers.addUrlToLibraryController,
+      controllers.addAnnotationToLibraryController,
       controllers.addCardToLibraryController,
       controllers.addCardToCollectionController,
       controllers.updateNoteCardController,

@@ -13,6 +13,7 @@ import { createTsRestClient } from './tsRestClient';
 import type {
   // Request types
   AddUrlToLibraryRequest,
+  AddAnnotationToLibraryRequest,
   AddCardToLibraryRequest,
   AddCardToCollectionRequest,
   UpdateNoteCardRequest,
@@ -38,6 +39,7 @@ import type {
   GetBskyFollowingFeedParams,
   // Response types
   AddUrlToLibraryResponse,
+  AddAnnotationToLibraryResponse,
   AddCardToLibraryResponse,
   AddCardToCollectionResponse,
   UpdateNoteCardResponse,
@@ -402,6 +404,12 @@ export class ApiClient {
     request: AddUrlToLibraryRequest,
   ): Promise<AddUrlToLibraryResponse> {
     return this.cardClient.addUrlToLibrary(request);
+  }
+
+  async addAnnotationToLibrary(
+    request: AddAnnotationToLibraryRequest,
+  ): Promise<AddAnnotationToLibraryResponse> {
+    return this.cardClient.addAnnotationToLibrary(request);
   }
 
   async addCardToLibrary(
