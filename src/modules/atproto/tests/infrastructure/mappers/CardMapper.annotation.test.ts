@@ -36,7 +36,9 @@ describe('CardMapper.toMarginNoteRecordDTO', () => {
       makeAnnotationCard('math is cool'),
     );
 
-    expect(record.$type).toBe('at.margin.note');
+    // The $type is the environment-configured annotation collection
+    // (at.margin.note in prod, network.cosmik.<env>.annotation elsewhere)
+    expect(record.$type).toBe(CardMapper.annotationCollection);
     expect(record.motivation).toBe('commenting');
     expect(record.createdAt).toBe('2026-11-04T21:18:42.000Z');
     expect(record.body).toEqual({

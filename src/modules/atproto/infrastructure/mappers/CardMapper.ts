@@ -14,15 +14,15 @@ import { toUrlMetadataJSON } from 'src/modules/cards/domain/value-objects/urlMet
 import { CuratorId } from 'src/modules/cards/domain/value-objects/CuratorId';
 import { EnvironmentConfigService } from 'src/shared/infrastructure/config/EnvironmentConfigService';
 import { PublishedRecordId } from 'src/modules/cards/domain/value-objects/PublishedRecordId';
-import { ATPROTO_NSID } from 'src/shared/constants/atproto';
 
 type CardRecordDTO = Record;
 
-// at.margin.note record shape (lexicon: at.margin.note). Declared locally
-// like ProcessMarginNoteFirehoseEventUseCase does — the generated type file
-// for this lexicon doesn't currently compile.
+// at.margin.note record shape (prod lexicon; local/dev publish the same shape
+// under environment-suffixed cosmik NSIDs, see EnvironmentConfigService).
+// Declared locally like ProcessMarginNoteFirehoseEventUseCase does — the
+// generated type file for this lexicon doesn't currently compile.
 export interface MarginNoteRecordDTO {
-  $type: typeof ATPROTO_NSID.MARGIN.NOTE;
+  $type: string;
   motivation: string;
   createdAt: string;
   target: {
@@ -46,6 +46,8 @@ export class CardMapper {
   private static configService = new EnvironmentConfigService();
   static cardCollection = CardMapper.configService.getAtProtoCollections().card;
   static baseCollection = CardMapper.configService.getAtProtoBaseCollection();
+  static annotationCollection =
+    CardMapper.configService.getAtProtoCollections().annotation;
   static toCreateRecordDTO(
     card: Card,
     curatorId: CuratorId,
@@ -115,7 +117,7 @@ export class CardMapper {
     const textQuote = annotationContent.textQuoteSelector;
 
     return {
-      $type: ATPROTO_NSID.MARGIN.NOTE,
+      $type: this.annotationCollection,
       motivation: annotationContent.note ? 'commenting' : 'highlighting',
       createdAt: card.createdAt.toISOString(),
       target: {

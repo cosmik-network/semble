@@ -55,6 +55,10 @@ export interface EnvironmentConfig {
       collectionLinkRemoval: string;
       follow: string;
       connection: string;
+      // Where annotation cards are published. Prod uses the third-party
+      // at.margin.note lexicon; local/dev use environment-suffixed cosmik
+      // variants so test writes never land in the real margin namespace.
+      annotation: string;
     };
     serviceAccount: {
       identifier: string;
@@ -219,6 +223,12 @@ export class EnvironmentConfigService {
           marginCollection: ATPROTO_NSID.MARGIN.COLLECTION,
           marginCollectionItem: ATPROTO_NSID.MARGIN.COLLECTION_ITEM,
           marginNote: ATPROTO_NSID.MARGIN.NOTE,
+          // Annotation records publish as at.margin.note only in prod;
+          // local/dev write to environment-suffixed cosmik variants instead
+          annotation:
+            environment === Environment.PROD
+              ? ATPROTO_NSID.MARGIN.NOTE
+              : `${ATPROTO_NSID.COSMIK.NAMESPACE}.${environment}.annotation`,
         },
         serviceAccount: {
           identifier: process.env.BSKY_SERVICE_ACCOUNT_IDENTIFIER || '',

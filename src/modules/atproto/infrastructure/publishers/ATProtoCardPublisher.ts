@@ -10,11 +10,11 @@ import { DID } from '../../domain/DID';
 import { PublishedRecordId } from 'src/modules/cards/domain/value-objects/PublishedRecordId';
 import { AuthenticationError } from 'src/shared/core/AuthenticationError';
 import { NamespaceDetector } from '../../domain/NamespaceDetector';
-import { ATPROTO_NSID } from 'src/shared/constants/atproto';
 export class ATProtoCardPublisher implements ICardPublisher {
   constructor(
     private readonly agentService: IAgentService,
     private readonly cardCollection: string,
+    private readonly annotationCollection: string,
   ) {}
 
   /**
@@ -27,11 +27,11 @@ export class ATProtoCardPublisher implements ICardPublisher {
     viaCardPublishedRecordId?: PublishedRecordId,
   ): Promise<Result<PublishedRecordId, UseCaseError>> {
     try {
-      // Annotation cards publish as at.margin.note records (W3C web
-      // annotation) rather than network.cosmik.card records
+      // Annotation cards publish as W3C web annotation records
+      // (at.margin.note in prod) rather than network.cosmik.card records
       const isAnnotation = card.isAnnotationCard;
       const collection = isAnnotation
-        ? ATPROTO_NSID.MARGIN.NOTE
+        ? this.annotationCollection
         : this.cardCollection;
 
       const record = isAnnotation

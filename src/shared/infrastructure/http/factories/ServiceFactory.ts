@@ -564,7 +564,11 @@ export class ServiceFactory {
       ? new DisabledCardPublisher()
       : useFakePublishers
         ? new FakeCardPublisher()
-        : new ATProtoCardPublisher(atProtoAgentService, collections.card);
+        : new ATProtoCardPublisher(
+            atProtoAgentService,
+            collections.card,
+            collections.annotation,
+          );
 
     // Create domain services
     const cardCollectionService = new CardCollectionService(

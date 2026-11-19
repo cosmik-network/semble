@@ -18,5 +18,9 @@ export const ATPROTO_NSID = {
     COLLECTION_LINK_REMOVAL: 'network.cosmik.collectionLinkRemoval',
     FOLLOW: 'network.cosmik.follow',
     CONNECTION: 'network.cosmik.connection',
+    // Base NSID for annotation records. Prod publishes annotations as
+    // at.margin.note (see EnvironmentConfigService); local/dev use
+    // environment-suffixed variants of this to isolate PDS writes.
+    ANNOTATION: 'network.cosmik.annotation',
   },
 } as const;
