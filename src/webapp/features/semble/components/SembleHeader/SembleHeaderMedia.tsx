@@ -1,6 +1,9 @@
 import { detectUrlPlatform, SupportedPlatform } from '@/lib/utils/link';
 import { Card, AspectRatio } from '@mantine/core';
-import { ReactNode } from 'react';
+import { ReactNode, Suspense } from 'react';
+import { getEmbedSource } from '@/features/platforms/common/lib/externalEmbeds';
+import ExternalEmbedGate from '@/features/platforms/common/components/externalEmbedGate/ExternalEmbedGate';
+import SembleHeaderEmbedPreview from './SembleHeaderEmbedPreview';
 
 interface Props {
   url: string;
@@ -59,21 +62,32 @@ function getEmbedConfig(platform: ReturnType<typeof detectUrlPlatform>): {
 export default function SembleHeaderMedia({ url, children }: Props) {
   const platform = detectUrlPlatform(url);
   const embedConfig = getEmbedConfig(platform);
+  const embedSource = getEmbedSource(platform.type);
 
-  if (!embedConfig) {
+  if (!embedConfig || !embedSource) {
     return <>{children}</>;
   }
 
   const iframe = (
-    <iframe
-      src={embedConfig.url}
-      width="100%"
+    <ExternalEmbedGate
+      source={embedSource}
+      preview={
+        <Suspense key={url}>
+          <SembleHeaderEmbedPreview url={url} />
+        </Suspense>
+      }
       height={embedConfig.aspectRatio ? '100%' : embedConfig.height}
-      allowFullScreen
-      allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
-      loading="lazy"
-      style={{ border: 0, display: 'block' }}
-    />
+    >
+      <iframe
+        src={embedConfig.url}
+        width="100%"
+        height={embedConfig.aspectRatio ? '100%' : embedConfig.height}
+        allowFullScreen
+        allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
+        loading="lazy"
+        style={{ border: 0, display: 'block' }}
+      />
+    </ExternalEmbedGate>
   );
 
   return (
