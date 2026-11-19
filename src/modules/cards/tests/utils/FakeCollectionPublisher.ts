@@ -12,7 +12,14 @@ export class FakeCollectionPublisher implements ICollectionPublisher {
   private publishedCollections: Map<string, Collection> = new Map();
   private publishedLinks: Map<
     string,
-    { cardId: string; linkRecord: PublishedRecordId }[]
+    {
+      cardId: string;
+      linkRecord: PublishedRecordId;
+      // The card strongRef the link record points at — mirrors the real
+      // publisher, which reads the curator's published library record for
+      // the card
+      cardRef?: { uri: string; cid: string };
+    }[]
   > = new Map();
   private unpublishedCollections: Array<{ uri: string; cid: string }> = [];
   private removedLinks: Array<{ cardId: string; collectionId: string }> = [];
@@ -97,11 +104,22 @@ export class FakeCollectionPublisher implements ICollectionPublisher {
       cid: fakeLinkCid,
     });
 
-    // Store published link for inspection
+    // Store published link for inspection, capturing the card strongRef the
+    // way the real publisher does: the curator's published library record
+    // for the card
+    const membership = card.libraryMemberships.find((m) =>
+      m.curatorId.equals(curatorId),
+    );
     const existingLinks = this.publishedLinks.get(collectionId) || [];
     existingLinks.push({
       cardId,
       linkRecord,
+      cardRef: membership?.publishedRecordId
+        ? {
+            uri: membership.publishedRecordId.uri,
+            cid: membership.publishedRecordId.cid,
+          }
+        : undefined,
     });
     this.publishedLinks.set(collectionId, existingLinks);
 
@@ -258,9 +276,11 @@ export class FakeCollectionPublisher implements ICollectionPublisher {
     return Array.from(this.publishedCollections.values());
   }
 
-  getPublishedLinksForCollection(
-    collectionId: string,
-  ): Array<{ cardId: string; linkRecord: PublishedRecordId }> {
+  getPublishedLinksForCollection(collectionId: string): Array<{
+    cardId: string;
+    linkRecord: PublishedRecordId;
+    cardRef?: { uri: string; cid: string };
+  }> {
     return this.publishedLinks.get(collectionId) || [];
   }
 
@@ -280,8 +300,11 @@ export class FakeCollectionPublisher implements ICollectionPublisher {
     return this.removedLinks;
   }
   getAllPublishedLinks() {
-    const allLinks: Array<{ cardId: string; linkRecord: PublishedRecordId }> =
-      [];
+    const allLinks: Array<{
+      cardId: string;
+      linkRecord: PublishedRecordId;
+      cardRef?: { uri: string; cid: string };
+    }> = [];
     for (const links of this.publishedLinks.values()) {
       allLinks.push(...links);
     }

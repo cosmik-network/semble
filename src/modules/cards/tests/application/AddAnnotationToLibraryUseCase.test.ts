@@ -8,8 +8,10 @@ import { CardCollectionService } from '../../domain/services/CardCollectionServi
 import { CuratorId } from '../../domain/value-objects/CuratorId';
 import { CardTypeEnum } from '../../domain/value-objects/CardType';
 import { SelectorTypeEnum } from '../../domain/value-objects/selectors/SelectorType';
+import { CardId } from '../../domain/value-objects/CardId';
 import { FakeEventPublisher } from '../utils/FakeEventPublisher';
 import { CollectionBuilder } from '../utils/builders/CollectionBuilder';
+import { EnvironmentConfigService } from 'src/shared/infrastructure/config/EnvironmentConfigService';
 
 describe('AddAnnotationToLibraryUseCase', () => {
   let useCase: AddAnnotationToLibraryUseCase;
@@ -155,6 +157,46 @@ describe('AddAnnotationToLibraryUseCase', () => {
     expect(storedCollection?.cardLinks[0]!.cardId.getStringValue()).toBe(
       result.unwrap().annotationCardId,
     );
+  });
+
+  it('publishes collection links whose card strongRef is the annotation record', async () => {
+    const collection = new CollectionBuilder()
+      .withAuthorId(curatorId.value)
+      .buildOrThrow();
+    await collectionRepository.save(collection);
+
+    const result = await useCase.execute({
+      ...baseRequest,
+      collectionIds: [collection.collectionId.getStringValue()],
+    });
+    expect(result.isOk()).toBe(true);
+
+    const annotationCardId = result.unwrap().annotationCardId;
+
+    // The annotation's own published record (FakeCardPublisher mints it in
+    // the annotation collection NSID)
+    const annotationCard = cardRepository.getStoredCard(
+      CardId.createFromString(annotationCardId).unwrap(),
+    );
+    const annotationRecord = annotationCard?.libraryMemberships.find((m) =>
+      m.curatorId.equals(curatorId),
+    )?.publishedRecordId;
+    expect(annotationRecord).toBeDefined();
+    expect(annotationRecord!.uri).toContain(
+      new EnvironmentConfigService().getAtProtoCollections().annotation,
+    );
+
+    // The published collectionLink must reference that annotation record
+    // as its card strongRef — not a URL card or anything else
+    const links = collectionPublisher.getPublishedLinksForCollection(
+      collection.collectionId.getStringValue(),
+    );
+    expect(links).toHaveLength(1);
+    expect(links[0]!.cardId).toBe(annotationCardId);
+    expect(links[0]!.cardRef).toEqual({
+      uri: annotationRecord!.uri,
+      cid: annotationRecord!.cid,
+    });
   });
 
   it('rejects an invalid selector', async () => {
