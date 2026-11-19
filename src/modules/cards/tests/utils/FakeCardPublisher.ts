@@ -6,6 +6,7 @@ import { UseCaseError } from '../../../../shared/core/UseCaseError';
 import { AppError } from '../../../../shared/core/AppError';
 import { CuratorId } from 'src/modules/cards/domain/value-objects/CuratorId';
 import { EnvironmentConfigService } from 'src/shared/infrastructure/config/EnvironmentConfigService';
+import { ATPROTO_NSID } from 'src/shared/constants/atproto';
 
 export class FakeCardPublisher implements ICardPublisher {
   private publishedRecords: Map<string, Card> = new Map();
@@ -31,8 +32,12 @@ export class FakeCardPublisher implements ICardPublisher {
     }
 
     const cardId = card.cardId.getStringValue();
-    // Simulate generating an AT URI based on curator DID and collection/rkey
-    const fakeUri = `at://${curatorId.value}/${this.cardType}/${cardId}`;
+    // Simulate generating an AT URI based on curator DID and collection/rkey,
+    // mirroring ATProtoCardPublisher's collection per card type
+    const collection = card.isAnnotationCard
+      ? ATPROTO_NSID.MARGIN.NOTE
+      : this.cardType;
+    const fakeUri = `at://${curatorId.value}/${collection}/${cardId}`;
     const fakeCid = `fake-cid-${cardId}`;
     const publishedRecordId = PublishedRecordId.create({
       uri: fakeUri,

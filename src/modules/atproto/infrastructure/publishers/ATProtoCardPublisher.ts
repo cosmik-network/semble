@@ -10,6 +10,7 @@ import { DID } from '../../domain/DID';
 import { PublishedRecordId } from 'src/modules/cards/domain/value-objects/PublishedRecordId';
 import { AuthenticationError } from 'src/shared/core/AuthenticationError';
 import { NamespaceDetector } from '../../domain/NamespaceDetector';
+import { ATPROTO_NSID } from 'src/shared/constants/atproto';
 export class ATProtoCardPublisher implements ICardPublisher {
   constructor(
     private readonly agentService: IAgentService,
@@ -26,13 +27,21 @@ export class ATProtoCardPublisher implements ICardPublisher {
     viaCardPublishedRecordId?: PublishedRecordId,
   ): Promise<Result<PublishedRecordId, UseCaseError>> {
     try {
-      let record = CardMapper.toCreateRecordDTO(
-        card,
-        curatorId,
-        parentCardPublishedRecordId,
-        viaCardPublishedRecordId,
-      );
-      record.$type = this.cardCollection as any;
+      // Annotation cards publish as at.margin.note records (W3C web
+      // annotation) rather than network.cosmik.card records
+      const isAnnotation = card.isAnnotationCard;
+      const collection = isAnnotation
+        ? ATPROTO_NSID.MARGIN.NOTE
+        : this.cardCollection;
+
+      const record = isAnnotation
+        ? CardMapper.toMarginNoteRecordDTO(card)
+        : CardMapper.toCreateRecordDTO(
+            card,
+            curatorId,
+            parentCardPublishedRecordId,
+            viaCardPublishedRecordId,
+          );
 
       const curatorDidResult = DID.create(curatorId.value);
 
@@ -74,16 +83,22 @@ export class ATProtoCardPublisher implements ICardPublisher {
       );
 
       if (existingMembership && existingMembership.publishedRecordId) {
-        // Update existing record
+        // Update existing record. The record may live in a different
+        // collection than a fresh publish would use (e.g. at.margin.note),
+        // so follow the collection in the existing record's URI.
         const publishedRecordId =
           existingMembership.publishedRecordId.getValue();
         const strongRef = new StrongRef(publishedRecordId);
         const atUri = strongRef.atUri;
         const rkey = atUri.rkey;
+        const updateCollection =
+          NamespaceDetector.extractCollectionFromPublishedRecordId(
+            existingMembership.publishedRecordId,
+          ) || collection;
 
         const updateResult = await agent.com.atproto.repo.putRecord({
           repo: curatorDid.value,
-          collection: this.cardCollection,
+          collection: updateCollection,
           rkey: rkey,
           record: record,
         });
@@ -98,7 +113,7 @@ export class ATProtoCardPublisher implements ICardPublisher {
         // Create new record
         const createResult = await agent.com.atproto.repo.createRecord({
           repo: curatorDid.value,
-          collection: this.cardCollection,
+          collection,
           record,
         });
 

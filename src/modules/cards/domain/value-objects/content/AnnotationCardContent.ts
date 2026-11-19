@@ -3,6 +3,7 @@ import { ok, err, Result } from '../../../../../shared/core/Result';
 import { CardTypeEnum } from '../CardType';
 import { Selector } from '../selectors/Selector';
 import { TextQuoteSelector } from '../selectors/TextQuoteSelector';
+import { countGraphemes } from '../selectors/countGraphemes';
 
 export class AnnotationCardContentValidationError extends Error {
   constructor(message: string) {
@@ -23,7 +24,10 @@ interface AnnotationCardContentProps {
  * itself (Card.url), not in the content.
  */
 export class AnnotationCardContent extends ValueObject<AnnotationCardContentProps> {
+  // Note limits match the at.margin.note lexicon body def (value field), so
+  // anything the domain accepts is publishable
   public static readonly MAX_NOTE_LENGTH = 10000;
+  public static readonly MAX_NOTE_GRAPHEMES = 3000;
   public static readonly MAX_SELECTORS = 4;
 
   get type(): CardTypeEnum.ANNOTATION {
@@ -97,6 +101,14 @@ export class AnnotationCardContent extends ValueObject<AnnotationCardContentProp
         return err(
           new AnnotationCardContentValidationError(
             `Annotation note cannot exceed ${this.MAX_NOTE_LENGTH} characters`,
+          ),
+        );
+      }
+
+      if (countGraphemes(note) > this.MAX_NOTE_GRAPHEMES) {
+        return err(
+          new AnnotationCardContentValidationError(
+            `Annotation note cannot exceed ${this.MAX_NOTE_GRAPHEMES} graphemes`,
           ),
         );
       }

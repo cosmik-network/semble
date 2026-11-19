@@ -37,6 +37,7 @@ export class OAuthClientFactory {
     const scope = [
       'atproto',
       `repo?${cosmikCollections}`,
+      'repo:at.margin.note',
       'repo:at.margin.collection?action=update&action=delete',
       'repo:at.margin.collectionItem?action=delete',
       'rpc:app.bsky.feed.searchPosts?aud=*',

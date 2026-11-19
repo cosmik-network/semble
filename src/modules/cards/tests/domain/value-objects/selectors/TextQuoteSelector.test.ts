@@ -61,11 +61,22 @@ describe('TextQuoteSelector', () => {
   });
 
   it('rejects exact exceeding the max length', () => {
-    const result = TextQuoteSelector.create({ exact: 'a'.repeat(10001) });
+    const result = TextQuoteSelector.create({ exact: 'a'.repeat(5001) });
 
     expect(result.isErr()).toBe(true);
     if (result.isErr()) {
-      expect(result.error.message).toContain('cannot exceed 10000');
+      expect(result.error.message).toContain('cannot exceed 5000');
+    }
+  });
+
+  it('rejects exact exceeding the max grapheme count (lexicon parity)', () => {
+    // Each emoji is one grapheme but two UTF-16 code units, so this passes
+    // the character limit while exceeding the grapheme limit
+    const result = TextQuoteSelector.create({ exact: '😀'.repeat(1501) });
+
+    expect(result.isErr()).toBe(true);
+    if (result.isErr()) {
+      expect(result.error.message).toContain('cannot exceed 1500 graphemes');
     }
   });
 

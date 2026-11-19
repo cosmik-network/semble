@@ -8,6 +8,7 @@ import { RevokeApiKeyUseCase } from '../../../../modules/user/application/use-ca
 import { GetOnboardingStateUseCase } from '../../../../modules/user/application/use-cases/GetOnboardingStateUseCase';
 import { UpdateOnboardingStateUseCase } from '../../../../modules/user/application/use-cases/UpdateOnboardingStateUseCase';
 import { AddUrlToLibraryUseCase } from '../../../../modules/cards/application/useCases/commands/AddUrlToLibraryUseCase';
+import { AddAnnotationToLibraryUseCase } from '../../../../modules/cards/application/useCases/commands/AddAnnotationToLibraryUseCase';
 import { UpdateUrlCardMetadataUseCase } from '../../../../modules/cards/application/useCases/commands/UpdateUrlCardMetadataUseCase';
 import { UpdateConnectionUrlMetadataUseCase } from '../../../../modules/cards/application/useCases/commands/UpdateConnectionUrlMetadataUseCase';
 import { AddCardToLibraryUseCase } from '../../../../modules/cards/application/useCases/commands/AddCardToLibraryUseCase';
@@ -164,6 +165,7 @@ export interface UseCases {
   getUserStatsUseCase: GetUserStatsUseCase;
   // Card use cases
   addUrlToLibraryUseCase: AddUrlToLibraryUseCase;
+  addAnnotationToLibraryUseCase: AddAnnotationToLibraryUseCase;
   addCardToLibraryUseCase: AddCardToLibraryUseCase;
   addCardToCollectionUseCase: AddCardToCollectionUseCase;
   updateNoteCardUseCase: UpdateNoteCardUseCase;
@@ -425,6 +427,13 @@ export class UseCaseFactory {
 
       // Card use cases
       addUrlToLibraryUseCase: new AddUrlToLibraryUseCase(
+        repositories.cardRepository,
+        services.metadataService,
+        services.cardLibraryService,
+        services.cardCollectionService,
+        services.eventPublisher,
+      ),
+      addAnnotationToLibraryUseCase: new AddAnnotationToLibraryUseCase(
         repositories.cardRepository,
         services.metadataService,
         services.cardLibraryService,

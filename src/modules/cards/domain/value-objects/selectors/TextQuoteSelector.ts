@@ -3,6 +3,7 @@ import { ok, err, Result } from '../../../../../shared/core/Result';
 import { SelectorTypeEnum } from './SelectorType';
 import { SelectorValidationError } from './SelectorValidationError';
 import { normalizeQuotedText } from './normalizeQuotedText';
+import { countGraphemes } from './countGraphemes';
 
 interface TextQuoteSelectorProps {
   type: SelectorTypeEnum.TEXT_QUOTE;
@@ -17,7 +18,10 @@ interface TextQuoteSelectorProps {
  * disambiguate multiple occurrences of exact within the source document.
  */
 export class TextQuoteSelector extends ValueObject<TextQuoteSelectorProps> {
-  public static readonly MAX_EXACT_LENGTH = 10000;
+  // Limits match the at.margin.note lexicon selector def, so anything the
+  // domain accepts is publishable
+  public static readonly MAX_EXACT_LENGTH = 5000;
+  public static readonly MAX_EXACT_GRAPHEMES = 1500;
   public static readonly MAX_CONTEXT_LENGTH = 256;
 
   get type(): SelectorTypeEnum.TEXT_QUOTE {
@@ -65,6 +69,14 @@ export class TextQuoteSelector extends ValueObject<TextQuoteSelectorProps> {
       return err(
         new SelectorValidationError(
           `TextQuoteSelector exact text cannot exceed ${this.MAX_EXACT_LENGTH} characters`,
+        ),
+      );
+    }
+
+    if (countGraphemes(props.exact) > this.MAX_EXACT_GRAPHEMES) {
+      return err(
+        new SelectorValidationError(
+          `TextQuoteSelector exact text cannot exceed ${this.MAX_EXACT_GRAPHEMES} graphemes`,
         ),
       );
     }

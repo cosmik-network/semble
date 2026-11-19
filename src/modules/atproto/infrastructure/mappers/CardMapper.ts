@@ -1,4 +1,5 @@
 import { $Typed } from '@atproto/api';
+import { createHash } from 'crypto';
 import { Card } from 'src/modules/cards/domain/Card';
 import { CardTypeEnum } from 'src/modules/cards/domain/value-objects/CardType';
 import {
@@ -13,8 +14,33 @@ import { toUrlMetadataJSON } from 'src/modules/cards/domain/value-objects/urlMet
 import { CuratorId } from 'src/modules/cards/domain/value-objects/CuratorId';
 import { EnvironmentConfigService } from 'src/shared/infrastructure/config/EnvironmentConfigService';
 import { PublishedRecordId } from 'src/modules/cards/domain/value-objects/PublishedRecordId';
+import { ATPROTO_NSID } from 'src/shared/constants/atproto';
 
 type CardRecordDTO = Record;
+
+// at.margin.note record shape (lexicon: at.margin.note). Declared locally
+// like ProcessMarginNoteFirehoseEventUseCase does — the generated type file
+// for this lexicon doesn't currently compile.
+export interface MarginNoteRecordDTO {
+  $type: typeof ATPROTO_NSID.MARGIN.NOTE;
+  motivation: string;
+  createdAt: string;
+  target: {
+    source: string;
+    sourceHash: string;
+    selector?: {
+      type: string;
+      exact?: string;
+      prefix?: string;
+      suffix?: string;
+    };
+  };
+  body?: {
+    value: string;
+    format: string;
+  };
+  [k: string]: unknown;
+}
 
 export class CardMapper {
   private static configService = new EnvironmentConfigService();
@@ -66,6 +92,53 @@ export class CardMapper {
     }
 
     return record;
+  }
+
+  /**
+   * Builds an at.margin.note record from an annotation card. The lexicon's
+   * target.selector is a single selector (with refinedBy for refinement), so
+   * parallel domain selectors collapse to the primary text-quote selector.
+   * Motivation follows W3C semantics: commenting when there is a body note,
+   * highlighting otherwise.
+   */
+  static toMarginNoteRecordDTO(card: Card): MarginNoteRecordDTO {
+    if (!card.isAnnotationCard) {
+      throw new Error(
+        `toMarginNoteRecordDTO requires an annotation card, got ${card.type.value}`,
+      );
+    }
+    if (!card.url) {
+      throw new Error('Annotation card is missing its source url');
+    }
+
+    const annotationContent = card.content.annotationContent!;
+    const textQuote = annotationContent.textQuoteSelector;
+
+    return {
+      $type: ATPROTO_NSID.MARGIN.NOTE,
+      motivation: annotationContent.note ? 'commenting' : 'highlighting',
+      createdAt: card.createdAt.toISOString(),
+      target: {
+        source: card.url.value,
+        // SHA256 hash of the url for indexing, per the lexicon target def.
+        // Normalization is just trimming — the value only needs to be a
+        // stable function of the url since domain urls are already trimmed.
+        sourceHash: createHash('sha256')
+          .update(card.url.value.trim())
+          .digest('hex'),
+        selector: textQuote
+          ? {
+              type: 'TextQuoteSelector',
+              exact: textQuote.exact,
+              prefix: textQuote.prefix,
+              suffix: textQuote.suffix,
+            }
+          : undefined,
+      },
+      body: annotationContent.note
+        ? { value: annotationContent.note, format: 'text/plain' }
+        : undefined,
+    };
   }
 
   private static mapCardContent(card: Card): $Typed<UrlContent | NoteContent> {
