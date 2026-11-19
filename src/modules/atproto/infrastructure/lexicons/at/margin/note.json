@@ -1,0 +1,239 @@
+{
+  "defs": {
+    "body": {
+      "description": "Annotation body - the content of the annotation",
+      "properties": {
+        "format": {
+          "default": "text/plain",
+          "description": "MIME type of the body content",
+          "type": "string"
+        },
+        "uri": {
+          "description": "Reference to external body content",
+          "format": "uri",
+          "type": "string"
+        },
+        "value": {
+          "description": "Text content of the annotation. For bookmarks, this is the description.",
+          "maxGraphemes": 3000,
+          "maxLength": 10000,
+          "type": "string"
+        }
+      },
+      "type": "object"
+    },
+    "generator": {
+      "description": "The client/agent that created this record",
+      "properties": {
+        "homepage": {
+          "format": "uri",
+          "type": "string"
+        },
+        "id": {
+          "format": "uri",
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        }
+      },
+      "type": "object"
+    },
+    "main": {
+      "description": "A W3C-compliant web annotation stored on the AT Protocol",
+      "key": "tid",
+      "record": {
+        "properties": {
+          "body": {
+            "description": "The annotation content (text or reference). For bookmarks, use body.value for the description.",
+            "ref": "#body",
+            "type": "ref"
+          },
+          "color": {
+            "description": "Highlight color tint",
+            "maxLength": 20,
+            "type": "string"
+          },
+          "createdAt": {
+            "format": "datetime",
+            "type": "string"
+          },
+          "facets": {
+            "description": "Rich text facets (e.g. mentions, links)",
+            "items": {
+              "ref": "app.bsky.richtext.facet",
+              "type": "ref"
+            },
+            "type": "array"
+          },
+          "generator": {
+            "description": "The client/agent that created this record",
+            "ref": "#generator",
+            "type": "ref"
+          },
+          "labels": {
+            "description": "Self-applied content labels for this annotation",
+            "ref": "com.atproto.label.defs#selfLabels",
+            "type": "ref"
+          },
+          "modifiedAt": {
+            "description": "When this record was last modified",
+            "format": "datetime",
+            "type": "string"
+          },
+          "motivation": {
+            "description": "W3C motivation for the annotation",
+            "knownValues": [
+              "commenting",
+              "highlighting",
+              "bookmarking",
+              "tagging",
+              "describing",
+              "linking",
+              "replying",
+              "editing",
+              "questioning",
+              "assessing"
+            ],
+            "type": "string"
+          },
+          "rights": {
+            "description": "License URI (e.g., https://creativecommons.org/licenses/by/4.0/)",
+            "format": "uri",
+            "type": "string"
+          },
+          "tags": {
+            "description": "Tags for categorization",
+            "items": {
+              "maxGraphemes": 32,
+              "maxLength": 64,
+              "type": "string"
+            },
+            "maxLength": 10,
+            "type": "array"
+          },
+          "target": {
+            "description": "The resource being annotated with optional selector",
+            "ref": "#target",
+            "type": "ref"
+          }
+        },
+        "required": ["motivation", "target", "createdAt"],
+        "type": "object"
+      },
+      "type": "record"
+    },
+    "selector": {
+      "description": "W3C Web Annotation Selector. The 'type' field discriminates the selector kind using W3C type names (e.g. TextQuoteSelector). This follows W3C conventions, not ATProto union $type.",
+      "properties": {
+        "conformsTo": {
+          "description": "FragmentSelector: URI of the specification the fragment conforms to",
+          "format": "uri",
+          "type": "string"
+        },
+        "end": {
+          "description": "TextPositionSelector: end character offset (exclusive)",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "exact": {
+          "description": "TextQuoteSelector: the exact text being selected",
+          "maxGraphemes": 1500,
+          "maxLength": 5000,
+          "type": "string"
+        },
+        "prefix": {
+          "description": "TextQuoteSelector: text immediately before the selection, for disambiguation",
+          "maxGraphemes": 150,
+          "maxLength": 500,
+          "type": "string"
+        },
+        "refinedBy": {
+          "description": "W3C refinement: a further selector applied within the region this selector identifies (e.g. a FragmentSelector locating a page or CFI range inside a TextQuoteSelector match).",
+          "ref": "#selector",
+          "type": "ref"
+        },
+        "start": {
+          "description": "TextPositionSelector: start character offset (inclusive)",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "suffix": {
+          "description": "TextQuoteSelector: text immediately after the selection, for disambiguation",
+          "maxGraphemes": 150,
+          "maxLength": 500,
+          "type": "string"
+        },
+        "type": {
+          "description": "W3C selector type identifier",
+          "knownValues": [
+            "TextQuoteSelector",
+            "TextPositionSelector",
+            "CssSelector",
+            "XPathSelector",
+            "FragmentSelector"
+          ],
+          "type": "string"
+        },
+        "value": {
+          "description": "CssSelector/XPathSelector/FragmentSelector: the selector expression or fragment value",
+          "maxLength": 2000,
+          "type": "string"
+        }
+      },
+      "required": ["type"],
+      "type": "object"
+    },
+    "target": {
+      "description": "W3C SpecificResource - the target with optional selector",
+      "properties": {
+        "selector": {
+          "description": "W3C Selector to identify the annotated segment. Uses W3C 'type' field (not ATProto $type) per the Web Annotation Data Model.",
+          "ref": "#selector",
+          "type": "ref"
+        },
+        "source": {
+          "description": "The URL being annotated",
+          "format": "uri",
+          "type": "string"
+        },
+        "sourceHash": {
+          "description": "SHA256 hash of normalized URL for indexing",
+          "type": "string"
+        },
+        "state": {
+          "description": "State of the resource at annotation time",
+          "ref": "#timeState",
+          "type": "ref"
+        },
+        "title": {
+          "description": "Page title at time of annotation",
+          "maxLength": 500,
+          "type": "string"
+        }
+      },
+      "required": ["source"],
+      "type": "object"
+    },
+    "timeState": {
+      "description": "W3C TimeState - record when content was captured",
+      "properties": {
+        "cached": {
+          "description": "URL to cached/archived version",
+          "format": "uri",
+          "type": "string"
+        },
+        "sourceDate": {
+          "description": "When the source was accessed",
+          "format": "datetime",
+          "type": "string"
+        }
+      },
+      "type": "object"
+    }
+  },
+  "description": "W3C Web Annotation Data Model compliant unified note record for ATProto",
+  "id": "at.margin.note",
+  "lexicon": 1,
+  "revision": 4
+}
