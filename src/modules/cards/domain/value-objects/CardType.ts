@@ -4,7 +4,7 @@ import { ValueObject } from '../../../../shared/domain/ValueObject';
 export enum CardTypeEnum {
   URL = 'URL',
   NOTE = 'NOTE',
-  HIGHLIGHT = 'HIGHLIGHT',
+  ANNOTATION = 'ANNOTATION',
 }
 
 interface CardTypeProps {

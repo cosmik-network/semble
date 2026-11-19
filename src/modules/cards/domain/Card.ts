@@ -17,6 +17,9 @@ export const CARD_ERROR_MESSAGES = {
   URL_CARD_CANNOT_HAVE_PARENT: 'URL cards cannot have parent cards',
   URL_CARD_MUST_HAVE_URL: 'URL cards must have a url property',
   URL_CARD_SINGLE_LIBRARY_ONLY: 'URL cards can only be in one library',
+  ANNOTATION_CARD_MUST_HAVE_URL: 'Annotation cards must have a url property',
+  ANNOTATION_CARD_CANNOT_HAVE_PARENT:
+    'Annotation cards cannot have parent cards',
   URL_CARD_CREATOR_LIBRARY_ONLY:
     'URL cards can only be in the library of the creator',
   LIBRARY_COUNT_MISMATCH:
@@ -45,7 +48,7 @@ interface CardProps {
   type: CardType;
   content: CardContent;
   url?: URL;
-  parentCardId?: CardId; // For NOTE and HIGHLIGHT cards that reference other cards
+  parentCardId?: CardId; // For NOTE cards that reference other cards
   viaCardId?: CardId; // For cards that were discovered via another card
   libraryMemberships: CardInLibraryLink[]; // Set of users who have this card in their library
   libraryCount: number; // Cached count of library memberships
@@ -116,6 +119,10 @@ export class Card extends AggregateRoot<CardProps> {
     return this.props.type.value === CardTypeEnum.NOTE;
   }
 
+  get isAnnotationCard(): boolean {
+    return this.props.type.value === CardTypeEnum.ANNOTATION;
+  }
+
   private constructor(props: CardProps, id?: UniqueEntityID) {
     super(props, id);
   }
@@ -181,6 +188,25 @@ export class Card extends AggregateRoot<CardProps> {
     if (props.type.value === CardTypeEnum.URL && !props.url) {
       return err(
         new CardValidationError(CARD_ERROR_MESSAGES.URL_CARD_MUST_HAVE_URL),
+      );
+    }
+
+    // Annotation cards are anchored to a source document via their url;
+    // they have no parent card (the link to the user's URL card is by
+    // url + author, like note cards)
+    if (props.type.value === CardTypeEnum.ANNOTATION && !props.url) {
+      return err(
+        new CardValidationError(
+          CARD_ERROR_MESSAGES.ANNOTATION_CARD_MUST_HAVE_URL,
+        ),
+      );
+    }
+
+    if (props.type.value === CardTypeEnum.ANNOTATION && props.parentCardId) {
+      return err(
+        new CardValidationError(
+          CARD_ERROR_MESSAGES.ANNOTATION_CARD_CANNOT_HAVE_PARENT,
+        ),
       );
     }
 

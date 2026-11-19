@@ -6,6 +6,8 @@ import { CardId } from './value-objects/CardId';
 import { CuratorId } from './value-objects/CuratorId';
 import { URL } from './value-objects/URL';
 import { UrlMetadata } from './value-objects/UrlMetadata';
+import { Selector } from './value-objects/selectors/Selector';
+import { SelectorTypeEnum } from './value-objects/selectors/SelectorType';
 
 // Define interfaces for the different card creation inputs
 export interface IUrlCardInput {
@@ -22,8 +24,25 @@ export interface INoteCardInput {
   url?: string;
 }
 
+export interface ITextQuoteSelectorInput {
+  type: SelectorTypeEnum.TEXT_QUOTE;
+  exact: string;
+  prefix?: string;
+  suffix?: string;
+}
+
+export interface IAnnotationCardInput {
+  type: CardTypeEnum.ANNOTATION;
+  url: string; // The source document the passage is selected from
+  selectors: ITextQuoteSelectorInput[];
+  note?: string;
+}
+
 // Union type for all possible card creation inputs
-export type CardCreationInput = IUrlCardInput | INoteCardInput;
+export type CardCreationInput =
+  | IUrlCardInput
+  | INoteCardInput
+  | IAnnotationCardInput;
 
 interface CreateCardProps {
   curatorId: string;
@@ -106,7 +125,8 @@ export class CardFactory {
         }
         url = urlResult.value;
       } else if ('url' in props.cardInput && props.cardInput.url) {
-        // Handle optional URL for NOTE and HIGHLIGHT cards
+        // Handle optional URL for NOTE cards (required for ANNOTATION cards,
+        // enforced by Card.create)
         const urlResult = URL.create(props.cardInput.url);
         if (urlResult.isErr()) {
           return err(
@@ -147,6 +167,9 @@ export class CardFactory {
       case CardTypeEnum.NOTE:
         return this.createNoteContent(cardInput);
 
+      case CardTypeEnum.ANNOTATION:
+        return this.createAnnotationContent(cardInput);
+
       default:
         return err(new CardValidationError('Invalid card type'));
     }
@@ -181,6 +204,33 @@ export class CardFactory {
     input: INoteCardInput,
   ): Result<CardContent, CardValidationError> {
     return CardContent.createNoteContent(input.text);
+  }
+
+  private static createAnnotationContent(
+    input: IAnnotationCardInput,
+  ): Result<CardContent, CardValidationError> {
+    const selectors: Selector[] = [];
+    for (const selectorInput of input.selectors) {
+      switch (selectorInput.type) {
+        case SelectorTypeEnum.TEXT_QUOTE: {
+          const selectorResult = Selector.createTextQuote(selectorInput);
+          if (selectorResult.isErr()) {
+            return err(new CardValidationError(selectorResult.error.message));
+          }
+          selectors.push(selectorResult.value);
+          break;
+        }
+
+        default:
+          return err(
+            new CardValidationError(
+              `Invalid selector type: ${selectorInput.type}`,
+            ),
+          );
+      }
+    }
+
+    return CardContent.createAnnotationContent(selectors, input.note);
   }
 
   // Type guards

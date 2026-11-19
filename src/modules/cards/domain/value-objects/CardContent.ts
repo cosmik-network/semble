@@ -5,10 +5,15 @@ import { UrlMetadata } from './UrlMetadata';
 import { URL } from './URL';
 import { UrlCardContent } from './content/UrlCardContent';
 import { NoteCardContent } from './content/NoteCardContent';
+import { AnnotationCardContent } from './content/AnnotationCardContent';
 import { CuratorId } from './CuratorId';
+import { Selector } from './selectors/Selector';
 
 // Union type for all card content types
-type CardContentUnion = UrlCardContent | NoteCardContent;
+type CardContentUnion =
+  | UrlCardContent
+  | NoteCardContent
+  | AnnotationCardContent;
 
 export class CardContentValidationError extends Error {
   constructor(message: string) {
@@ -35,6 +40,12 @@ export class CardContent extends ValueObject<{ content: CardContentUnion }> {
 
   get noteContent(): NoteCardContent | null {
     return this.props.content instanceof NoteCardContent
+      ? this.props.content
+      : null;
+  }
+
+  get annotationContent(): AnnotationCardContent | null {
+    return this.props.content instanceof AnnotationCardContent
       ? this.props.content
       : null;
   }
@@ -68,5 +79,21 @@ export class CardContent extends ValueObject<{ content: CardContentUnion }> {
       );
     }
     return ok(new CardContent(noteContentResult.value));
+  }
+
+  public static createAnnotationContent(
+    selectors: Selector[],
+    note?: string,
+  ): Result<CardContent, CardContentValidationError> {
+    const annotationContentResult = AnnotationCardContent.create(
+      selectors,
+      note,
+    );
+    if (annotationContentResult.isErr()) {
+      return err(
+        new CardContentValidationError(annotationContentResult.error.message),
+      );
+    }
+    return ok(new CardContent(annotationContentResult.value));
   }
 }

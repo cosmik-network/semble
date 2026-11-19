@@ -16,7 +16,7 @@ export const cards: PgTableWithColumns<any> = pgTable(
   {
     id: uuid('id').primaryKey(),
     authorId: text('author_id').notNull(),
-    type: text('type').notNull(), // URL, NOTE, HIGHLIGHT
+    type: text('type').notNull(), // URL, NOTE, ANNOTATION
     contentData: jsonb('content_data').notNull(),
     url: text('url'), // Optional URL field for all card types
     urlType: text('url_type'), // Optional URL type field (article, video, etc.)

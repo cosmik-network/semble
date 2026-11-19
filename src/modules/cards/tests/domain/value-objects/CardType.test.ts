@@ -17,12 +17,12 @@ describe('CardType', () => {
     expect(cardType.value).toBe(CardTypeEnum.NOTE);
   });
 
-  it('should create HIGHLIGHT card type', () => {
-    const result = CardType.create(CardTypeEnum.HIGHLIGHT);
+  it('should create ANNOTATION card type', () => {
+    const result = CardType.create(CardTypeEnum.ANNOTATION);
 
     expect(result.isOk()).toBe(true);
     const cardType = result.unwrap();
-    expect(cardType.value).toBe(CardTypeEnum.HIGHLIGHT);
+    expect(cardType.value).toBe(CardTypeEnum.ANNOTATION);
   });
 
   it('should be equal when same type', () => {
