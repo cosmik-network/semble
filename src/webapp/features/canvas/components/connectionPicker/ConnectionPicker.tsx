@@ -9,7 +9,11 @@ import {
   Tooltip,
   UnstyledButton,
 } from '@mantine/core';
-import { useWindowEvent } from '@mantine/hooks';
+import {
+  useMergedRef,
+  useResizeObserver,
+  useWindowEvent,
+} from '@mantine/hooks';
 import { useEffect, useRef, useState, type KeyboardEvent } from 'react';
 import { LuArrowUpDown } from 'react-icons/lu';
 import {
@@ -30,6 +34,14 @@ import classes from './ConnectionPicker.module.css';
 
 const PICKER_MENU = 'canvas-connection-picker';
 const WIDTH = 300;
+// Between the arrow's middle and the panel
+const GAP = 12;
+// Kept clear between the panel and the board's edges
+const MARGIN = 8;
+const LIST_MAX_HEIGHT = 300;
+// Shorter than this, the list stops shrinking and the panel overflows instead
+const LIST_MIN_HEIGHT = 120;
+const BORDER_BOX: ResizeObserverOptions = { box: 'border-box' };
 
 interface Props {
   picker: Picker;
@@ -51,6 +63,9 @@ interface PanelProps extends Props {
 function PickerPanel(props: PanelProps) {
   const editor = useEditor();
   const ref = useRef<HTMLDivElement>(null);
+  const [sizeRef, size] = useResizeObserver<HTMLDivElement>(BORDER_BOX);
+  const panelRef = useMergedRef(ref, sizeRef);
+  const [listRef, listSize] = useResizeObserver<HTMLDivElement>(BORDER_BOX);
   const highlightedRef = useRef<HTMLButtonElement>(null);
   const [note, setNote] = useState('');
   const position = useValue(
@@ -64,6 +79,9 @@ function PickerPanel(props: PanelProps) {
     },
     [editor, props.open.arrowId],
   );
+  const board = useValue('board size', () => editor.getViewportScreenBounds(), [
+    editor,
+  ]);
 
   // Open as a tldraw menu, so the board's shortcuts leave its keys alone
   useEffect(() => {
@@ -107,9 +125,28 @@ function PickerPanel(props: PanelProps) {
 
   if (!position) return null;
 
+  const height = size.height;
+  // Shrink the list so the whole panel fits on small boards
+  const chrome = height - listSize.height;
+  const listMaxHeight = Math.max(
+    LIST_MIN_HEIGHT,
+    Math.min(LIST_MAX_HEIGHT, board.h - 2 * MARGIN - chrome),
+  );
+  const below = position.y + GAP;
+  const above = position.y - GAP - height;
+  const fitsBelow = below + height <= board.h - MARGIN;
+  const roomAbove = position.y - MARGIN;
+  const roomBelow = board.h - MARGIN - position.y;
+  const top = clamp(
+    fitsBelow || roomBelow >= roomAbove ? below : above,
+    MARGIN,
+    board.h - MARGIN - height,
+  );
+  const left = clamp(position.x - WIDTH / 2, MARGIN, board.w - MARGIN - WIDTH);
+
   return (
     <Paper
-      ref={ref}
+      ref={panelRef}
       tabIndex={-1}
       role="listbox"
       aria-label="Connection type"
@@ -121,9 +158,10 @@ function PickerPanel(props: PanelProps) {
       w={WIDTH}
       pos="absolute"
       style={{
-        left: position.x,
-        top: position.y,
-        transform: 'translate(-50%, 12px)',
+        left,
+        top,
+        // Hidden until measured, so it never shows in the wrong place
+        opacity: height ? 1 : 0,
         zIndex: 'var(--layer-menus)',
         pointerEvents: 'all',
         outline: 'none',
@@ -165,7 +203,7 @@ function PickerPanel(props: PanelProps) {
           onValueChange={setNote}
         />
       </Box>
-      <ScrollArea.Autosize type="scroll" mah={300}>
+      <ScrollArea.Autosize ref={listRef} type="scroll" mah={listMaxHeight}>
         <Stack gap={0}>
           {CONNECTION_TYPES.map((type) => {
             const Icon = type.icon;
@@ -205,6 +243,11 @@ function PickerPanel(props: PanelProps) {
       </ScrollArea.Autosize>
     </Paper>
   );
+}
+
+// Prefers the lower bound when the panel is larger than the board
+function clamp(value: number, min: number, max: number) {
+  return Math.max(min, Math.min(value, max));
 }
 
 function EndTitle(props: { url: string; titleOf(url: string): string }) {
