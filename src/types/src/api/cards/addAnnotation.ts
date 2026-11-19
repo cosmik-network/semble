@@ -13,7 +13,6 @@ export type AddAnnotationToLibraryRequest = z.infer<
 >;
 
 export const AddAnnotationToLibraryResponseSchema = z.object({
-  urlCardId: z.string(),
   annotationCardId: z.string(),
 });
 export type AddAnnotationToLibraryResponse = z.infer<

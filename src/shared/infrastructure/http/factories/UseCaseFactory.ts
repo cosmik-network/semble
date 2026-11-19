@@ -435,7 +435,6 @@ export class UseCaseFactory {
       ),
       addAnnotationToLibraryUseCase: new AddAnnotationToLibraryUseCase(
         repositories.cardRepository,
-        services.metadataService,
         services.cardLibraryService,
         services.cardCollectionService,
         services.eventPublisher,
