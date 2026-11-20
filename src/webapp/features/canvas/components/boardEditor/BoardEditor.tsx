@@ -42,7 +42,9 @@ import { LinkCardShapeUtil } from '../../shapes/linkCard/LinkCardShapeUtil';
 import { canvasStorage } from '../../storage/browserCanvasStorage';
 import BoardContextMenu from '../boardContextMenu/BoardContextMenu';
 import BoardHeader from '../boardHeader/BoardHeader';
-import BoardNavigation from '../boardNavigation/BoardNavigation';
+import BoardNavigation, {
+  ShowUiButton,
+} from '../boardNavigation/BoardNavigation';
 import SelectedArrowPill from '../arrowPill/SelectedArrowPill';
 import BoardToolbar from '../boardToolbar/BoardToolbar';
 import CardModals, { type CardModal } from '../cardModals/CardModals';
@@ -282,6 +284,7 @@ export default function BoardEditor(props: Props) {
                   options={options}
                   onMount={onMount}
                 >
+                  <ShowUiButton />
                   {controller && (
                     <ConnectionPicker
                       picker={controller.connectionPicker}

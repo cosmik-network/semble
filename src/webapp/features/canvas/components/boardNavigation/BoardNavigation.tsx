@@ -15,6 +15,7 @@ import {
   LuCheck,
   LuEllipsis,
   LuEyeOff,
+  LuEye,
   LuScan,
   LuSpline,
   LuZoomIn,
@@ -23,6 +24,8 @@ import {
 import { RiScreenshot2Line } from 'react-icons/ri';
 import {
   exportAs,
+  tlenv,
+  useActions,
   useEditor,
   useReadonly,
   useValue,
@@ -32,6 +35,7 @@ import type { CanvasController } from '../../controller/canvasController';
 import { withProxiedExportImages } from '../../lib/proxiedExportImages';
 import { withExportTitle } from '../../controller/boardExports';
 import classes from './BoardNavigation.module.css';
+import './focusMode.css';
 
 interface Props {
   // Null until the board has loaded
@@ -129,8 +133,46 @@ async function screenshotView(editor: Editor) {
   }
 }
 
+const FOCUS_SHORTCUT = tlenv.isDarwin ? '⌘.' : 'Ctrl+.';
+
+// tldraw's focus mode, which hides every panel but the button to come back
+function useToggleUi() {
+  const actions = useActions();
+  return () => actions['toggle-focus-mode']?.onSelect('toolbar');
+}
+
+// Stands in for tldraw's own focus mode button, in the corner the controls
+// were in
+export function ShowUiButton() {
+  const editor = useEditor();
+  const toggleUi = useToggleUi();
+  const isFocusMode = useValue(
+    'focus mode',
+    () => editor.getInstanceState().isFocusMode,
+    [editor],
+  );
+  if (!isFocusMode) return null;
+
+  return (
+    <Box
+      pos="absolute"
+      left={0}
+      bottom={0}
+      m="xs"
+      style={{ zIndex: 'var(--layer-panels)', pointerEvents: 'all' }}
+    >
+      <NavPill>
+        <NavButton label={`Show UI (${FOCUS_SHORTCUT})`} onClick={toggleUi}>
+          <LuEye size={16} />
+        </NavButton>
+      </NavPill>
+    </Box>
+  );
+}
+
 export default function BoardNavigation(props: Props) {
   const editor = useEditor();
+  const toggleUi = useToggleUi();
   const isReadonly = useReadonly();
   const hasShapes = useValue(
     'has shapes',
@@ -256,6 +298,9 @@ export default function BoardNavigation(props: Props) {
           >
             <RiScreenshot2Line size={16} />
           </NavButton>
+          <NavButton label={`Hide UI (${FOCUS_SHORTCUT})`} onClick={toggleUi}>
+            <LuEyeOff size={16} />
+          </NavButton>
         </NavPill>
       </Group>
       <Box hiddenFrom="sm">
@@ -304,6 +349,12 @@ export default function BoardNavigation(props: Props) {
                 onClick={() => void screenshotView(editor)}
               >
                 Screenshot the view
+              </Menu.Item>
+              <Menu.Item
+                leftSection={<LuEyeOff size={16} />}
+                onClick={toggleUi}
+              >
+                Hide UI
               </Menu.Item>
             </Menu.Dropdown>
           </Menu>

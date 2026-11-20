@@ -40,7 +40,9 @@ import { DEFAULT_CANVAS_NAME } from '../../storage/canvasStorage';
 import SharedHeader from '../sharedHeader/SharedHeader';
 import SharedLogoCard from '../sharedHeader/SharedLogoCard';
 import SelectedArrowPill from '../arrowPill/SelectedArrowPill';
-import BoardNavigation from '../boardNavigation/BoardNavigation';
+import BoardNavigation, {
+  ShowUiButton,
+} from '../boardNavigation/BoardNavigation';
 import SharedSelectionPopup from './SharedSelectionPopup';
 
 // tldraw's licence forbids hiding, covering or restyling the "Made with
@@ -216,6 +218,7 @@ export default function SharedBoardEditor(props: { shareToken: string }) {
                   components={components}
                   onMount={onMount}
                 >
+                  <ShowUiButton />
                   {popupCard && <SharedSelectionPopup popupCard={popupCard} />}
                 </Tldraw>
               </CanvasCollectionFramesProvider>
