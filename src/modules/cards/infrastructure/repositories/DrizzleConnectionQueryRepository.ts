@@ -4,6 +4,7 @@ import {
   ConnectionQueryOptions,
   PaginatedConnectionQueryResult,
   ConnectionForUserDTO,
+  ConnectionForAnnotationRawDTO,
 } from '../../domain/IConnectionQueryRepository';
 import { ConnectionQueryService } from './query-services/ConnectionQueryService';
 import { ConnectionTypeEnum } from '../../domain/value-objects/ConnectionType';
@@ -25,6 +26,13 @@ export class DrizzleConnectionQueryRepository implements IConnectionQueryReposit
       direction,
       options,
     );
+  }
+
+  async getConnectionsForCards(
+    cardIds: string[],
+    options: ConnectionQueryOptions,
+  ): Promise<PaginatedConnectionQueryResult<ConnectionForAnnotationRawDTO>> {
+    return this.connectionQueryService.getConnectionsForCards(cardIds, options);
   }
 
   async getConnectionsForUser(

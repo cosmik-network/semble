@@ -189,21 +189,13 @@ export class DrizzleCollectionQueryRepository implements ICollectionQueryReposit
     options: CollectionForUrlQueryOptions,
   ): Promise<PaginatedQueryResult<CollectionForUrlRawDTO>> {
     try {
-      const { page, limit, sortBy, sortOrder } = options;
-      const offset = (page - 1) * limit;
-
-      // Build the sort order
-      const orderDirection = sortOrder === SortOrder.ASC ? asc : desc;
-
       // Find all URL cards with this URL
-      const urlCardsQuery = this.db
+      const urlCardsResult = await this.db
         .select({
           id: cards.id,
         })
         .from(cards)
         .where(and(eq(cards.url, url), eq(cards.type, CardTypeEnum.URL)));
-
-      const urlCardsResult = await urlCardsQuery;
 
       if (urlCardsResult.length === 0) {
         return {
@@ -213,7 +205,34 @@ export class DrizzleCollectionQueryRepository implements ICollectionQueryReposit
         };
       }
 
-      const cardIds = urlCardsResult.map((card) => card.id);
+      return this.getCollectionsContainingCards(
+        urlCardsResult.map((card) => card.id),
+        options,
+      );
+    } catch (error) {
+      console.error('Error in getCollectionsWithUrl:', error);
+      throw error;
+    }
+  }
+
+  async getCollectionsContainingCards(
+    cardIds: string[],
+    options: CollectionForUrlQueryOptions,
+  ): Promise<PaginatedQueryResult<CollectionForUrlRawDTO>> {
+    try {
+      if (cardIds.length === 0) {
+        return {
+          items: [],
+          totalCount: 0,
+          hasMore: false,
+        };
+      }
+
+      const { page, limit, sortBy, sortOrder } = options;
+      const offset = (page - 1) * limit;
+
+      // Build the sort order
+      const orderDirection = sortOrder === SortOrder.ASC ? asc : desc;
 
       // Find all collections that contain any of these cards with pagination and sorting
       const collectionsQuery = this.db
@@ -292,7 +311,7 @@ export class DrizzleCollectionQueryRepository implements ICollectionQueryReposit
         hasMore,
       };
     } catch (error) {
-      console.error('Error in getCollectionsWithUrl:', error);
+      console.error('Error in getCollectionsContainingCards:', error);
       throw error;
     }
   }

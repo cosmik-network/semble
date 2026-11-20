@@ -1,9 +1,10 @@
 import { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
-import { eq, and, inArray, SQL, desc, asc, count, sql } from 'drizzle-orm';
+import { eq, and, or, inArray, SQL, desc, asc, count, sql } from 'drizzle-orm';
 import {
   ConnectionQueryOptions,
   PaginatedConnectionQueryResult,
   ConnectionForUserDTO,
+  ConnectionForAnnotationRawDTO,
   ConnectionSortField,
   SortOrder,
 } from '../../../domain/IConnectionQueryRepository';
@@ -112,6 +113,97 @@ export class ConnectionQueryService {
       sourceUrlMetadata: row.sourceUrlMetadata || undefined,
       targetUrl: row.targetValue,
       targetUrlMetadata: row.targetUrlMetadata || undefined,
+    }));
+
+    return {
+      items,
+      totalCount,
+      hasMore: offset + results.length < totalCount,
+    };
+  }
+
+  async getConnectionsForCards(
+    cardIds: string[],
+    options: ConnectionQueryOptions,
+  ): Promise<PaginatedConnectionQueryResult<ConnectionForAnnotationRawDTO>> {
+    const { page, limit, sortBy, sortOrder, connectionTypes } = options;
+    const offset = (page - 1) * limit;
+
+    if (cardIds.length === 0) {
+      return { items: [], totalCount: 0, hasMore: false };
+    }
+
+    const whereConditions: SQL[] = [
+      // Any of the given cards is an endpoint (source or target)
+      or(
+        and(
+          eq(connections.sourceType, 'CARD'),
+          inArray(connections.sourceValue, cardIds),
+        )!,
+        and(
+          eq(connections.targetType, 'CARD'),
+          inArray(connections.targetValue, cardIds),
+        )!,
+      )!,
+    ];
+
+    if (connectionTypes && connectionTypes.length > 0) {
+      whereConditions.push(
+        inArray(connections.connectionType, connectionTypes),
+      );
+    }
+
+    const whereClause =
+      whereConditions.length > 1 ? and(...whereConditions) : whereConditions[0];
+
+    const sortColumn =
+      sortBy === ConnectionSortField.UPDATED_AT
+        ? connections.updatedAt
+        : connections.createdAt;
+
+    const sortOrderFn = sortOrder === SortOrder.ASC ? asc : desc;
+
+    const [results, countResult] = await Promise.all([
+      this.db
+        .select({
+          id: connections.id,
+          curatorId: connections.curatorId,
+          sourceType: connections.sourceType,
+          sourceValue: connections.sourceValue,
+          targetType: connections.targetType,
+          targetValue: connections.targetValue,
+          connectionType: connections.connectionType,
+          note: connections.note,
+          createdAt: connections.createdAt,
+          updatedAt: connections.updatedAt,
+        })
+        .from(connections)
+        .where(whereClause)
+        .orderBy(sortOrderFn(sortColumn))
+        .limit(limit)
+        .offset(offset),
+      this.db.select({ count: count() }).from(connections).where(whereClause),
+    ]);
+
+    const totalCount = countResult[0]?.count || 0;
+
+    const items: ConnectionForAnnotationRawDTO[] = results.map((row) => ({
+      connection: {
+        id: row.id,
+        type: row.connectionType as ConnectionTypeEnum | undefined,
+        note: row.note || undefined,
+        createdAt: row.createdAt,
+        updatedAt: row.updatedAt,
+        curatorId: row.curatorId,
+      },
+      source: {
+        type: row.sourceType as 'URL' | 'CARD',
+        value: row.sourceValue,
+      },
+      target: {
+        type: row.targetType as 'URL' | 'CARD',
+        value: row.targetValue,
+      },
     }));
 
     return {

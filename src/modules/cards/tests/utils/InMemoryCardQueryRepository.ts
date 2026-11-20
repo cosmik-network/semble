@@ -11,6 +11,9 @@ import {
   SortOrder,
   LibraryForUrlDTO,
   NoteCardForUrlRawDTO,
+  AnnotationCardView,
+  NoteForAnnotationRawDTO,
+  LibraryForAnnotationDTO,
   UrlLibraryInfo,
   UrlStats,
   UrlConnectionCounts,
@@ -19,6 +22,7 @@ import {
   UrlSearchResultDTO,
 } from '../../domain/ICardQueryRepository';
 import { CardTypeEnum } from '../../domain/value-objects/CardType';
+import { SelectorTypeEnum } from '../../domain/value-objects/selectors/SelectorType';
 import { InMemoryCardRepository } from './InMemoryCardRepository';
 import { InMemoryCollectionRepository } from './InMemoryCollectionRepository';
 import { IConnectionRepository } from '../../domain/IConnectionRepository';
@@ -793,6 +797,176 @@ export class InMemoryCardQueryRepository implements ICardQueryRepository {
     });
 
     return sorted;
+  }
+
+  private toAnnotationView(card: Card): AnnotationCardView {
+    const annotationContent = card.content.annotationContent;
+    return {
+      id: card.cardId.getStringValue(),
+      type: CardTypeEnum.ANNOTATION,
+      url: card.url?.value ?? '',
+      libraryCount: card.libraryCount,
+      selectors: (annotationContent?.selectors ?? []).map((selector) => ({
+        type: 'TextQuoteSelector',
+        exact: selector.textQuoteSelector?.exact ?? '',
+        prefix: selector.textQuoteSelector?.prefix,
+        suffix: selector.textQuoteSelector?.suffix,
+      })),
+      note: annotationContent?.note,
+      createdAt: card.createdAt,
+      updatedAt: card.updatedAt,
+      authorId: card.curatorId.value,
+    };
+  }
+
+  private sortAnnotationCards(
+    cards: Card[],
+    sortBy: CardSortField,
+    sortOrder: SortOrder,
+  ): Card[] {
+    const sorted = [...cards].sort((a, b) => {
+      let comparison = 0;
+
+      switch (sortBy) {
+        case CardSortField.CREATED_AT:
+          comparison = a.createdAt.getTime() - b.createdAt.getTime();
+          break;
+        case CardSortField.UPDATED_AT:
+          comparison = a.updatedAt.getTime() - b.updatedAt.getTime();
+          break;
+        case CardSortField.LIBRARY_COUNT:
+          comparison = a.libraryCount - b.libraryCount;
+          break;
+        default:
+          comparison = 0;
+      }
+
+      return sortOrder === SortOrder.DESC ? -comparison : comparison;
+    });
+
+    return sorted;
+  }
+
+  private getMatchingAnnotationCards(
+    url: string,
+    exactNormalized: string,
+  ): Card[] {
+    return this.cardRepository
+      .getAllCards()
+      .filter(
+        (card) =>
+          card.isAnnotationCard &&
+          card.url?.value === url &&
+          (card.content.annotationContent?.selectors ?? []).some(
+            (selector) =>
+              selector.type === SelectorTypeEnum.TEXT_QUOTE &&
+              selector.textQuoteSelector?.normalizedExact === exactNormalized,
+          ),
+      );
+  }
+
+  async getAnnotationsForUrl(
+    url: string,
+    options: CardQueryOptions,
+  ): Promise<PaginatedQueryResult<AnnotationCardView>> {
+    const annotationCards = this.sortAnnotationCards(
+      this.cardRepository
+        .getAllCards()
+        .filter((card) => card.isAnnotationCard && card.url?.value === url),
+      options.sortBy,
+      options.sortOrder,
+    );
+
+    const startIndex = (options.page - 1) * options.limit;
+    const endIndex = startIndex + options.limit;
+
+    return {
+      items: annotationCards
+        .slice(startIndex, endIndex)
+        .map((card) => this.toAnnotationView(card)),
+      totalCount: annotationCards.length,
+      hasMore: endIndex < annotationCards.length,
+    };
+  }
+
+  async getMatchingAnnotationCardIds(
+    url: string,
+    exactNormalized: string,
+  ): Promise<string[]> {
+    return this.getMatchingAnnotationCards(url, exactNormalized).map((card) =>
+      card.cardId.getStringValue(),
+    );
+  }
+
+  async getNotesForAnnotation(
+    url: string,
+    exactNormalized: string,
+    options: CardQueryOptions,
+  ): Promise<PaginatedQueryResult<NoteForAnnotationRawDTO>> {
+    const noteCards = this.getMatchingAnnotationCards(url, exactNormalized)
+      .filter((card) => (card.content.annotationContent?.note ?? '') !== '')
+      .map((card) => ({
+        id: card.cardId.getStringValue(),
+        note: card.content.annotationContent?.note ?? '',
+        authorId: card.curatorId.value,
+        createdAt: card.createdAt,
+        updatedAt: card.updatedAt,
+      }));
+
+    const sortedNotes = this.sortNoteCards(
+      noteCards,
+      options.sortBy,
+      options.sortOrder,
+    );
+
+    const startIndex = (options.page - 1) * options.limit;
+    const endIndex = startIndex + options.limit;
+
+    return {
+      items: sortedNotes.slice(startIndex, endIndex),
+      totalCount: sortedNotes.length,
+      hasMore: endIndex < sortedNotes.length,
+    };
+  }
+
+  async getLibrariesForAnnotation(
+    url: string,
+    exactNormalized: string,
+    options: CardQueryOptions,
+  ): Promise<PaginatedQueryResult<LibraryForAnnotationDTO>> {
+    const annotationCards = this.sortAnnotationCards(
+      this.getMatchingAnnotationCards(url, exactNormalized),
+      options.sortBy,
+      options.sortOrder,
+    );
+
+    const libraries: LibraryForAnnotationDTO[] = annotationCards.flatMap(
+      (card) =>
+        card.libraryMemberships.map((link) => ({
+          userId: link.curatorId.value,
+          card: this.toAnnotationView(card),
+        })),
+    );
+
+    const startIndex = (options.page - 1) * options.limit;
+    const endIndex = startIndex + options.limit;
+
+    return {
+      items: libraries.slice(startIndex, endIndex),
+      totalCount: libraries.length,
+      hasMore: endIndex < libraries.length,
+    };
+  }
+
+  async getCardUrlsByIds(cardIds: string[]): Promise<Map<string, string>> {
+    const urlMap = new Map<string, string>();
+    for (const card of this.cardRepository.getAllCards()) {
+      const id = card.cardId.getStringValue();
+      if (cardIds.includes(id) && card.url) {
+        urlMap.set(id, card.url.value);
+      }
+    }
+    return urlMap;
   }
 
   async getBatchUrlCardViews(

@@ -3,6 +3,7 @@ import {
   ConnectionQueryOptions,
   PaginatedConnectionQueryResult,
   ConnectionForUserDTO,
+  ConnectionForAnnotationRawDTO,
   ConnectionSortField,
   SortOrder,
 } from '../../domain/IConnectionQueryRepository';
@@ -85,6 +86,83 @@ export class InMemoryConnectionQueryRepository implements IConnectionQueryReposi
         },
         sourceUrl: connection.source.stringValue,
         targetUrl: connection.target.stringValue,
+      }),
+    );
+
+    return {
+      items,
+      totalCount: filteredConnections.length,
+      hasMore:
+        offset + paginatedConnections.length < filteredConnections.length,
+    };
+  }
+
+  async getConnectionsForCards(
+    cardIds: string[],
+    options: ConnectionQueryOptions,
+  ): Promise<PaginatedConnectionQueryResult<ConnectionForAnnotationRawDTO>> {
+    const { page, limit, sortBy, sortOrder, connectionTypes } = options;
+    const cardIdSet = new Set(cardIds);
+
+    const allConnections = this.connectionRepository.getAllConnections();
+
+    // Connections where any of the given cards is an endpoint (source or target)
+    let filteredConnections = allConnections.filter((connection) => {
+      const isSourceMatch =
+        connection.source.type === UrlOrCardIdType.CARD &&
+        cardIdSet.has(connection.source.cardId?.getStringValue() ?? '');
+      const isTargetMatch =
+        connection.target.type === UrlOrCardIdType.CARD &&
+        cardIdSet.has(connection.target.cardId?.getStringValue() ?? '');
+      return isSourceMatch || isTargetMatch;
+    });
+
+    // Apply connection type filter if provided
+    if (connectionTypes && connectionTypes.length > 0) {
+      filteredConnections = filteredConnections.filter((connection) =>
+        connection.type
+          ? connectionTypes.includes(connection.type.value)
+          : false,
+      );
+    }
+
+    // Sort connections
+    filteredConnections.sort((a, b) => {
+      const dateA =
+        sortBy === ConnectionSortField.UPDATED_AT ? a.updatedAt : a.createdAt;
+      const dateB =
+        sortBy === ConnectionSortField.UPDATED_AT ? b.updatedAt : b.createdAt;
+
+      const comparison = dateA.getTime() - dateB.getTime();
+      return sortOrder === SortOrder.ASC ? comparison : -comparison;
+    });
+
+    // Apply pagination
+    const offset = (page - 1) * limit;
+    const paginatedConnections = filteredConnections.slice(
+      offset,
+      offset + limit,
+    );
+
+    // Map to DTOs carrying endpoint types
+    const items: ConnectionForAnnotationRawDTO[] = paginatedConnections.map(
+      (connection) => ({
+        connection: {
+          id: connection.connectionId.getStringValue(),
+          type: connection.type?.value,
+          note: connection.note?.value,
+          createdAt: connection.createdAt,
+          updatedAt: connection.updatedAt,
+          curatorId: connection.curatorId.value,
+        },
+        source: {
+          type: connection.source.type === UrlOrCardIdType.URL ? 'URL' : 'CARD',
+          value: connection.source.stringValue,
+        },
+        target: {
+          type: connection.target.type === UrlOrCardIdType.URL ? 'URL' : 'CARD',
+          value: connection.target.stringValue,
+        },
       }),
     );
 

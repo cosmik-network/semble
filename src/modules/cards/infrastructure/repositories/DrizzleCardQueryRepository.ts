@@ -14,23 +14,29 @@ import {
   UserActivityStats,
   SearchUrlsOptions,
   UrlSearchResultDTO,
+  AnnotationCardView,
+  NoteForAnnotationRawDTO,
+  LibraryForAnnotationDTO,
 } from '../../domain/ICardQueryRepository';
 import { UrlCardQueryService } from './query-services/UrlCardQueryService';
 import { CollectionCardQueryService } from './query-services/CollectionCardQueryService';
 import { LibraryQueryService } from './query-services/LibraryQueryService';
 import { NoteCardQueryService } from './query-services/NoteCardQueryService';
+import { AnnotationCardQueryService } from './query-services/AnnotationCardQueryService';
 
 export class DrizzleCardQueryRepository implements ICardQueryRepository {
   private urlCardQueryService: UrlCardQueryService;
   private collectionCardQueryService: CollectionCardQueryService;
   private libraryQueryService: LibraryQueryService;
   private noteCardQueryService: NoteCardQueryService;
+  private annotationCardQueryService: AnnotationCardQueryService;
 
   constructor(private db: PostgresJsDatabase) {
     this.urlCardQueryService = new UrlCardQueryService(db);
     this.collectionCardQueryService = new CollectionCardQueryService(db);
     this.libraryQueryService = new LibraryQueryService(db);
     this.noteCardQueryService = new NoteCardQueryService(db);
+    this.annotationCardQueryService = new AnnotationCardQueryService(db);
   }
 
   async getUrlCardsOfUser(
@@ -87,6 +93,51 @@ export class DrizzleCardQueryRepository implements ICardQueryRepository {
     options: CardQueryOptions,
   ): Promise<PaginatedQueryResult<NoteCardForUrlRawDTO>> {
     return this.noteCardQueryService.getNoteCardsForUrl(url, options);
+  }
+
+  async getAnnotationsForUrl(
+    url: string,
+    options: CardQueryOptions,
+  ): Promise<PaginatedQueryResult<AnnotationCardView>> {
+    return this.annotationCardQueryService.getAnnotationsForUrl(url, options);
+  }
+
+  async getMatchingAnnotationCardIds(
+    url: string,
+    exactNormalized: string,
+  ): Promise<string[]> {
+    return this.annotationCardQueryService.getMatchingAnnotationCardIds(
+      url,
+      exactNormalized,
+    );
+  }
+
+  async getNotesForAnnotation(
+    url: string,
+    exactNormalized: string,
+    options: CardQueryOptions,
+  ): Promise<PaginatedQueryResult<NoteForAnnotationRawDTO>> {
+    return this.annotationCardQueryService.getNotesForAnnotation(
+      url,
+      exactNormalized,
+      options,
+    );
+  }
+
+  async getLibrariesForAnnotation(
+    url: string,
+    exactNormalized: string,
+    options: CardQueryOptions,
+  ): Promise<PaginatedQueryResult<LibraryForAnnotationDTO>> {
+    return this.annotationCardQueryService.getLibrariesForAnnotation(
+      url,
+      exactNormalized,
+      options,
+    );
+  }
+
+  async getCardUrlsByIds(cardIds: string[]): Promise<Map<string, string>> {
+    return this.annotationCardQueryService.getCardUrlsByIds(cardIds);
   }
 
   async getBatchUrlCardViews(

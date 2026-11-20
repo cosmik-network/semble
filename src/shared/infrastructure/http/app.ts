@@ -339,6 +339,9 @@ export const createExpressApp = async (
       controllers.getUrlStatusForMyLibraryController,
       controllers.getLibrariesForUrlController,
       controllers.getNoteCardsForUrlController,
+      controllers.getAnnotationsForUrlController,
+      controllers.getNotesForAnnotationController,
+      controllers.getLibrariesForAnnotationController,
       controllers.searchUrlsController,
       controllers.getBatchUrlStatsController,
       // Collection controllers
@@ -350,6 +353,7 @@ export const createExpressApp = async (
       controllers.getMyCollectionsController,
       controllers.getCollectionsController,
       controllers.getCollectionsForUrlController,
+      controllers.getCollectionsForAnnotationController,
       controllers.getRecommendedCollectionsForUrlController,
       controllers.searchCollectionsController,
       controllers.getOpenCollectionsWithContributorController,
@@ -366,6 +370,7 @@ export const createExpressApp = async (
       controllers.deleteConnectionController,
       controllers.getConnectionsController,
       controllers.getConnectionsForUrlController,
+      controllers.getConnectionsForAnnotationController,
     );
 
     registerTagRoutes(

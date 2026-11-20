@@ -18,6 +18,9 @@ import { GetUserUrlCardsController } from '../controllers/GetUserUrlCardsControl
 import { GetUrlStatusForMyLibraryController } from '../controllers/GetUrlStatusForMyLibraryController';
 import { GetLibrariesForUrlController } from '../controllers/GetLibrariesForUrlController';
 import { GetNoteCardsForUrlController } from '../controllers/GetNoteCardsForUrlController';
+import { GetAnnotationsForUrlController } from '../controllers/GetAnnotationsForUrlController';
+import { GetNotesForAnnotationController } from '../controllers/GetNotesForAnnotationController';
+import { GetLibrariesForAnnotationController } from '../controllers/GetLibrariesForAnnotationController';
 import { CreateCollectionController } from '../controllers/CreateCollectionController';
 import { UpdateCollectionController } from '../controllers/UpdateCollectionController';
 import { DeleteCollectionController } from '../controllers/DeleteCollectionController';
@@ -29,6 +32,7 @@ import { SearchCollectionsController } from '../controllers/SearchCollectionsCon
 import { GetOpenCollectionsWithContributorController } from '../controllers/GetOpenCollectionsWithContributorController';
 import { GetCollectionPageByAtUriController } from '../controllers/GetCollectionPageByAtUriController';
 import { GetCollectionsForUrlController } from '../controllers/GetCollectionsForUrlController';
+import { GetCollectionsForAnnotationController } from '../controllers/GetCollectionsForAnnotationController';
 import { GetRecommendedCollectionsForUrlController } from '../controllers/GetRecommendedCollectionsForUrlController';
 import { GetCollectionFollowersController } from '../controllers/GetCollectionFollowersController';
 import { GetCollectionFollowersCountController } from '../controllers/GetCollectionFollowersCountController';
@@ -57,6 +61,9 @@ export function registerCardsModuleRoutes(
   getUrlStatusForMyLibraryController: GetUrlStatusForMyLibraryController,
   getLibrariesForUrlController: GetLibrariesForUrlController,
   getNoteCardsForUrlController: GetNoteCardsForUrlController,
+  getAnnotationsForUrlController: GetAnnotationsForUrlController,
+  getNotesForAnnotationController: GetNotesForAnnotationController,
+  getLibrariesForAnnotationController: GetLibrariesForAnnotationController,
   searchUrlsController: SearchUrlsController,
   getBatchUrlStatsController: GetBatchUrlStatsController,
   // Collection controllers
@@ -68,6 +75,7 @@ export function registerCardsModuleRoutes(
   getMyCollectionsController: GetMyCollectionsController,
   getCollectionsController: GetUserCollectionsController,
   getCollectionsForUrlController: GetCollectionsForUrlController,
+  getCollectionsForAnnotationController: GetCollectionsForAnnotationController,
   getRecommendedCollectionsForUrlController: GetRecommendedCollectionsForUrlController,
   searchCollectionsController: SearchCollectionsController,
   getOpenCollectionsWithContributorController: GetOpenCollectionsWithContributorController,
@@ -95,6 +103,9 @@ export function registerCardsModuleRoutes(
     getUrlStatusForMyLibraryController,
     getLibrariesForUrlController,
     getNoteCardsForUrlController,
+    getAnnotationsForUrlController,
+    getNotesForAnnotationController,
+    getLibrariesForAnnotationController,
     searchUrlsController,
     getBatchUrlStatsController,
   );
@@ -110,6 +121,7 @@ export function registerCardsModuleRoutes(
     getCollectionsController,
     getCollectionPageByAtUriController,
     getCollectionsForUrlController,
+    getCollectionsForAnnotationController,
     getRecommendedCollectionsForUrlController,
     searchCollectionsController,
     getOpenCollectionsWithContributorController,

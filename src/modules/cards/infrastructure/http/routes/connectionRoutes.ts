@@ -4,6 +4,7 @@ import { UpdateConnectionController } from '../controllers/UpdateConnectionContr
 import { DeleteConnectionController } from '../controllers/DeleteConnectionController';
 import { GetConnectionsController } from '../controllers/GetConnectionsController';
 import { GetConnectionsForUrlController } from '../controllers/GetConnectionsForUrlController';
+import { GetConnectionsForAnnotationController } from '../controllers/GetConnectionsForAnnotationController';
 import { AuthMiddleware } from 'src/shared/infrastructure/http/middleware';
 import { routes } from '@semble/types';
 import { connectionsContract } from '@semble/contract';
@@ -20,6 +21,7 @@ export function registerConnectionRoutes(
   deleteConnectionController: DeleteConnectionController,
   getConnectionsController: GetConnectionsController,
   getConnectionsForUrlController: GetConnectionsForUrlController,
+  getConnectionsForAnnotationController: GetConnectionsForAnnotationController,
 ): void {
   app.get(
     routes.connections.connectionsByUser.path,
@@ -33,6 +35,13 @@ export function registerConnectionRoutes(
     authMiddleware.optionalAuth(),
     validateQuery(connectionsContract.connectionsForUrl.query),
     (req, res) => getConnectionsForUrlController.execute(req, res),
+  );
+
+  app.get(
+    routes.connections.connectionsForAnnotation.path,
+    authMiddleware.optionalAuth(),
+    validateQuery(connectionsContract.connectionsForAnnotation.query),
+    (req, res) => getConnectionsForAnnotationController.execute(req, res),
   );
 
   app.post(

@@ -168,6 +168,23 @@ export interface NoteCardForUrlRawDTO {
   updatedAt: Date;
 }
 
+// Raw repository DTO - a note-bearing annotation card matching a passage
+// (matched on url + normalized exact text of its TextQuoteSelector)
+export interface NoteForAnnotationRawDTO {
+  id: string;
+  note: string;
+  authorId: string;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+// Raw repository DTO - a library membership of a matching annotation card.
+// userId is the card author (it's their card in their library).
+export interface LibraryForAnnotationDTO {
+  userId: string;
+  card: AnnotationCardView;
+}
+
 // Public DTO - what the use case returns (enriched with author profile)
 export interface NoteCardForUrlDTO {
   id: string;
@@ -270,6 +287,38 @@ export interface ICardQueryRepository {
     url: string,
     options: CardQueryOptions,
   ): Promise<PaginatedQueryResult<NoteCardForUrlRawDTO>>;
+
+  /** All annotation cards made on a URL */
+  getAnnotationsForUrl(
+    url: string,
+    options: CardQueryOptions,
+  ): Promise<PaginatedQueryResult<AnnotationCardView>>;
+
+  /**
+   * Ids of annotation cards matching a passage: same URL and a
+   * TextQuoteSelector whose normalized exact equals `exactNormalized`.
+   */
+  getMatchingAnnotationCardIds(
+    url: string,
+    exactNormalized: string,
+  ): Promise<string[]>;
+
+  /** Note-bearing annotation cards matching a passage (see above) */
+  getNotesForAnnotation(
+    url: string,
+    exactNormalized: string,
+    options: CardQueryOptions,
+  ): Promise<PaginatedQueryResult<NoteForAnnotationRawDTO>>;
+
+  /** Library memberships of annotation cards matching a passage */
+  getLibrariesForAnnotation(
+    url: string,
+    exactNormalized: string,
+    options: CardQueryOptions,
+  ): Promise<PaginatedQueryResult<LibraryForAnnotationDTO>>;
+
+  /** URL of each card id; ids that don't resolve are omitted */
+  getCardUrlsByIds(cardIds: string[]): Promise<Map<string, string>>;
 
   getBatchUrlCardViews(
     cardIds: string[],

@@ -130,6 +130,12 @@ export interface ICollectionQueryRepository {
     options: CollectionForUrlQueryOptions,
   ): Promise<PaginatedQueryResult<CollectionForUrlRawDTO>>;
 
+  /** Distinct collections containing any of the given cards */
+  getCollectionsContainingCards(
+    cardIds: string[],
+    options: CollectionForUrlQueryOptions,
+  ): Promise<PaginatedQueryResult<CollectionForUrlRawDTO>>;
+
   searchCollections(
     options: SearchCollectionsOptions,
   ): Promise<PaginatedQueryResult<CollectionQueryResultDTO>>;

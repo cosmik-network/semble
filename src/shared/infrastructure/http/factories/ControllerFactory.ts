@@ -57,6 +57,10 @@ import { GetLibrariesForUrlController } from '../../../../modules/cards/infrastr
 import { GetRecommendedCollectionsForUrlController } from '../../../../modules/cards/infrastructure/http/controllers/GetRecommendedCollectionsForUrlController';
 import { GetCollectionsForUrlController } from '../../../../modules/cards/infrastructure/http/controllers/GetCollectionsForUrlController';
 import { GetNoteCardsForUrlController } from '../../../../modules/cards/infrastructure/http/controllers/GetNoteCardsForUrlController';
+import { GetAnnotationsForUrlController } from '../../../../modules/cards/infrastructure/http/controllers/GetAnnotationsForUrlController';
+import { GetNotesForAnnotationController } from '../../../../modules/cards/infrastructure/http/controllers/GetNotesForAnnotationController';
+import { GetLibrariesForAnnotationController } from '../../../../modules/cards/infrastructure/http/controllers/GetLibrariesForAnnotationController';
+import { GetCollectionsForAnnotationController } from '../../../../modules/cards/infrastructure/http/controllers/GetCollectionsForAnnotationController';
 import { GetMyNotificationsController } from '../../../../modules/notifications/infrastructure/http/controllers/GetMyNotificationsController';
 import { GetUnreadNotificationCountController } from '../../../../modules/notifications/infrastructure/http/controllers/GetUnreadNotificationCountController';
 import { MarkNotificationsAsReadController } from '../../../../modules/notifications/infrastructure/http/controllers/MarkNotificationsAsReadController';
@@ -85,6 +89,7 @@ import { UpdateConnectionController } from '../../../../modules/cards/infrastruc
 import { DeleteConnectionController } from '../../../../modules/cards/infrastructure/http/controllers/DeleteConnectionController';
 import { GetConnectionsController } from '../../../../modules/cards/infrastructure/http/controllers/GetConnectionsController';
 import { GetConnectionsForUrlController } from '../../../../modules/cards/infrastructure/http/controllers/GetConnectionsForUrlController';
+import { GetConnectionsForAnnotationController } from '../../../../modules/cards/infrastructure/http/controllers/GetConnectionsForAnnotationController';
 import { SearchUrlsController } from '../../../../modules/cards/infrastructure/http/controllers/SearchUrlsController';
 import { GetGraphDataController } from '../../../../modules/cards/infrastructure/http/controllers/GetGraphDataController';
 import { GetUserGraphDataController } from '../../../../modules/cards/infrastructure/http/controllers/GetUserGraphDataController';
@@ -156,6 +161,10 @@ export interface Controllers {
   getCollectionsForUrlController: GetCollectionsForUrlController;
   getRecommendedCollectionsForUrlController: GetRecommendedCollectionsForUrlController;
   getNoteCardsForUrlController: GetNoteCardsForUrlController;
+  getAnnotationsForUrlController: GetAnnotationsForUrlController;
+  getNotesForAnnotationController: GetNotesForAnnotationController;
+  getLibrariesForAnnotationController: GetLibrariesForAnnotationController;
+  getCollectionsForAnnotationController: GetCollectionsForAnnotationController;
   getCollectionFollowersController: GetCollectionFollowersController;
   getCollectionFollowersCountController: GetCollectionFollowersCountController;
   getCollectionContributorsController: GetCollectionContributorsController;
@@ -165,6 +174,7 @@ export interface Controllers {
   updateConnectionController: UpdateConnectionController;
   deleteConnectionController: DeleteConnectionController;
   getConnectionsForUrlController: GetConnectionsForUrlController;
+  getConnectionsForAnnotationController: GetConnectionsForAnnotationController;
   // Graph controllers
   getGraphDataController: GetGraphDataController;
   getUserGraphDataController: GetUserGraphDataController;
@@ -419,6 +429,20 @@ export class ControllerFactory {
       getNoteCardsForUrlController: new GetNoteCardsForUrlController(
         useCases.getNoteCardsForUrlUseCase,
       ),
+      getAnnotationsForUrlController: new GetAnnotationsForUrlController(
+        useCases.getAnnotationsForUrlUseCase,
+      ),
+      getNotesForAnnotationController: new GetNotesForAnnotationController(
+        useCases.getNotesForAnnotationUseCase,
+      ),
+      getLibrariesForAnnotationController:
+        new GetLibrariesForAnnotationController(
+          useCases.getLibrariesForAnnotationUseCase,
+        ),
+      getCollectionsForAnnotationController:
+        new GetCollectionsForAnnotationController(
+          useCases.getCollectionsForAnnotationUseCase,
+        ),
       getCollectionFollowersController: new GetCollectionFollowersController(
         useCases.getCollectionFollowersUseCase,
       ),
@@ -447,6 +471,10 @@ export class ControllerFactory {
       getConnectionsForUrlController: new GetConnectionsForUrlController(
         useCases.getConnectionsForUrlUseCase,
       ),
+      getConnectionsForAnnotationController:
+        new GetConnectionsForAnnotationController(
+          useCases.getConnectionsForAnnotationUseCase,
+        ),
 
       // Graph controllers
       getGraphDataController: new GetGraphDataController(

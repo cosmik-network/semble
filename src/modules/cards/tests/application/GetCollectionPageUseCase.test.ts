@@ -804,6 +804,11 @@ describe('GetCollectionPageUseCase', () => {
         searchUrls: jest.fn(),
         getProfileCardStats: jest.fn(),
         getBatchLatestCardCreatedAt: jest.fn(),
+        getAnnotationsForUrl: jest.fn(),
+        getMatchingAnnotationCardIds: jest.fn().mockResolvedValue([]),
+        getNotesForAnnotation: jest.fn(),
+        getLibrariesForAnnotation: jest.fn(),
+        getCardUrlsByIds: jest.fn().mockResolvedValue(new Map()),
       };
 
       const errorUseCase = new GetCollectionPageUseCase(

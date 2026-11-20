@@ -11,6 +11,7 @@ import {
   DeleteConnectionResponseSchema,
   GetConnectionsForUrlResponseSchema,
   GetConnectionsResponseSchema,
+  GetConnectionsForAnnotationResponseSchema,
 } from '@semble/types';
 import { CoercedPaginatedConnectionSortedQuery } from './shared';
 
@@ -30,6 +31,19 @@ export const connectionsContract = c.router(
       summary: 'Get connections for a URL',
       description:
         'Returns connections where the given URL is the source or target, optionally filtered by direction and type.',
+    },
+    connectionsForAnnotation: {
+      method: 'GET',
+      path: paths.connectionsForAnnotation,
+      query: CoercedPaginatedConnectionSortedQuery.extend({
+        url: z.string(),
+        exact: z.string(),
+        connectionTypes: z.array(ConnectionTypeSchema).optional(),
+      }),
+      responses: { 200: GetConnectionsForAnnotationResponseSchema },
+      summary: 'Get connections for an annotation',
+      description:
+        'Returns connections where any annotation card matching a passage is an endpoint. Matching is on the URL and the normalized exact text of the TextQuoteSelector.',
     },
     createConnection: {
       method: 'POST',

@@ -40,6 +40,21 @@ export interface ConnectionForUserDTO {
   targetUrlMetadata?: any; // JSONB metadata from database
 }
 
+// DTO for a connection with a card endpoint — source/target carry their
+// stored type ('URL' | 'CARD') and raw value (URL string or card id)
+export interface ConnectionForAnnotationRawDTO {
+  connection: {
+    id: string;
+    type?: ConnectionTypeEnum;
+    note?: string;
+    createdAt: Date;
+    updatedAt: Date;
+    curatorId: string;
+  };
+  source: { type: 'URL' | 'CARD'; value: string };
+  target: { type: 'URL' | 'CARD'; value: string };
+}
+
 export interface IConnectionQueryRepository {
   /**
    * Get connections for a URL with optional direction filtering
@@ -53,6 +68,16 @@ export interface IConnectionQueryRepository {
     direction: 'forward' | 'backward' | 'both',
     options: ConnectionQueryOptions,
   ): Promise<PaginatedConnectionQueryResult<ConnectionForUserDTO>>;
+
+  /**
+   * Get connections where any of the given cards is an endpoint (source or
+   * target). Endpoints carry their stored type so card references can be
+   * resolved by the caller.
+   */
+  getConnectionsForCards(
+    cardIds: string[],
+    options: ConnectionQueryOptions,
+  ): Promise<PaginatedConnectionQueryResult<ConnectionForAnnotationRawDTO>>;
 
   /**
    * Get all connections created by a specific curator

@@ -17,6 +17,9 @@ import { GetUserUrlCardsController } from '../controllers/GetUserUrlCardsControl
 import { GetUrlStatusForMyLibraryController } from '../controllers/GetUrlStatusForMyLibraryController';
 import { GetLibrariesForUrlController } from '../controllers/GetLibrariesForUrlController';
 import { GetNoteCardsForUrlController } from '../controllers/GetNoteCardsForUrlController';
+import { GetAnnotationsForUrlController } from '../controllers/GetAnnotationsForUrlController';
+import { GetNotesForAnnotationController } from '../controllers/GetNotesForAnnotationController';
+import { GetLibrariesForAnnotationController } from '../controllers/GetLibrariesForAnnotationController';
 import { SearchUrlsController } from '../controllers/SearchUrlsController';
 import { AuthMiddleware } from 'src/shared/infrastructure/http/middleware';
 import { routes } from '@semble/types';
@@ -46,6 +49,9 @@ export function registerCardRoutes(
   getUrlStatusForMyLibraryController: GetUrlStatusForMyLibraryController,
   getLibrariesForUrlController: GetLibrariesForUrlController,
   getNoteCardsForUrlController: GetNoteCardsForUrlController,
+  getAnnotationsForUrlController: GetAnnotationsForUrlController,
+  getNotesForAnnotationController: GetNotesForAnnotationController,
+  getLibrariesForAnnotationController: GetLibrariesForAnnotationController,
   searchUrlsController: SearchUrlsController,
   getBatchUrlStatsController: GetBatchUrlStatsController,
 ): void {
@@ -96,6 +102,27 @@ export function registerCardRoutes(
     authMiddleware.optionalAuth(),
     validateQuery(cardsContract.noteCardsForUrl.query),
     (req, res) => getNoteCardsForUrlController.execute(req, res),
+  );
+
+  app.get(
+    routes.cards.annotationsForUrl.path,
+    authMiddleware.optionalAuth(),
+    validateQuery(cardsContract.annotationsForUrl.query),
+    (req, res) => getAnnotationsForUrlController.execute(req, res),
+  );
+
+  app.get(
+    routes.cards.notesForAnnotation.path,
+    authMiddleware.optionalAuth(),
+    validateQuery(cardsContract.notesForAnnotation.query),
+    (req, res) => getNotesForAnnotationController.execute(req, res),
+  );
+
+  app.get(
+    routes.cards.librariesForAnnotation.path,
+    authMiddleware.optionalAuth(),
+    validateQuery(cardsContract.librariesForAnnotation.query),
+    (req, res) => getLibrariesForAnnotationController.execute(req, res),
   );
 
   app.get(

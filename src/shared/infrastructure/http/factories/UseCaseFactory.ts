@@ -50,6 +50,11 @@ import { GetCollectionsForUrlUseCase } from '../../../../modules/cards/applicati
 import { GetRecommendedCollectionsForUrlUseCase } from '../../../../modules/cards/application/useCases/queries/GetRecommendedCollectionsForUrlUseCase';
 import { GetNoteCardsForUrlUseCase } from '../../../../modules/cards/application/useCases/queries/GetNoteCardsForUrlUseCase';
 import { GetConnectionsForUrlUseCase } from '../../../../modules/cards/application/useCases/queries/GetConnectionsForUrlUseCase';
+import { GetAnnotationsForUrlUseCase } from '../../../../modules/cards/application/useCases/queries/GetAnnotationsForUrlUseCase';
+import { GetNotesForAnnotationUseCase } from '../../../../modules/cards/application/useCases/queries/GetNotesForAnnotationUseCase';
+import { GetLibrariesForAnnotationUseCase } from '../../../../modules/cards/application/useCases/queries/GetLibrariesForAnnotationUseCase';
+import { GetCollectionsForAnnotationUseCase } from '../../../../modules/cards/application/useCases/queries/GetCollectionsForAnnotationUseCase';
+import { GetConnectionsForAnnotationUseCase } from '../../../../modules/cards/application/useCases/queries/GetConnectionsForAnnotationUseCase';
 import { GetConnectionsUseCase } from '../../../../modules/cards/application/useCases/queries/GetConnectionsUseCase';
 import { IndexUrlForSearchUseCase } from '../../../../modules/search/application/useCases/commands/IndexUrlForSearchUseCase';
 import { GetSimilarUrlsForUrlUseCase } from '../../../../modules/search/application/useCases/queries/GetSimilarUrlsForUrlUseCase';
@@ -195,6 +200,11 @@ export interface UseCases {
   getRecommendedCollectionsForUrlUseCase: GetRecommendedCollectionsForUrlUseCase;
   getNoteCardsForUrlUseCase: GetNoteCardsForUrlUseCase;
   getConnectionsForUrlUseCase: GetConnectionsForUrlUseCase;
+  getAnnotationsForUrlUseCase: GetAnnotationsForUrlUseCase;
+  getNotesForAnnotationUseCase: GetNotesForAnnotationUseCase;
+  getLibrariesForAnnotationUseCase: GetLibrariesForAnnotationUseCase;
+  getCollectionsForAnnotationUseCase: GetCollectionsForAnnotationUseCase;
+  getConnectionsForAnnotationUseCase: GetConnectionsForAnnotationUseCase;
   // Connection use cases
   getConnectionsUseCase: GetConnectionsUseCase;
   createConnectionUseCase: CreateConnectionUseCase;
@@ -570,6 +580,31 @@ export class UseCaseFactory {
         repositories.cardQueryRepository,
         services.profileService,
       ),
+      getAnnotationsForUrlUseCase: new GetAnnotationsForUrlUseCase(
+        repositories.cardQueryRepository,
+        services.profileService,
+      ),
+      getNotesForAnnotationUseCase: new GetNotesForAnnotationUseCase(
+        repositories.cardQueryRepository,
+        services.profileService,
+      ),
+      getLibrariesForAnnotationUseCase: new GetLibrariesForAnnotationUseCase(
+        repositories.cardQueryRepository,
+        services.profileService,
+      ),
+      getCollectionsForAnnotationUseCase:
+        new GetCollectionsForAnnotationUseCase(
+          repositories.collectionQueryRepository,
+          repositories.cardQueryRepository,
+          services.profileService,
+          repositories.followsRepository,
+        ),
+      getConnectionsForAnnotationUseCase:
+        new GetConnectionsForAnnotationUseCase(
+          repositories.connectionQueryRepository,
+          repositories.cardQueryRepository,
+          services.profileService,
+        ),
 
       // Connection use cases
       getConnectionsUseCase: new GetConnectionsUseCase(

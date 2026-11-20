@@ -17,6 +17,9 @@ export * from './cards/getBatchUrlStats';
 export * from './cards/getLibraryStatus';
 export * from './cards/getLibrariesForUrl';
 export * from './cards/getNoteCardsForUrl';
+export * from './cards/getAnnotationsForUrl';
+export * from './cards/getNotesForAnnotation';
+export * from './cards/getLibrariesForAnnotation';
 
 export * from './collections/create';
 export * from './collections/update';
@@ -28,6 +31,7 @@ export * from './collections/listByUser';
 export * from './collections/getCollections';
 export * from './collections/search';
 export * from './collections/getForUrl';
+export * from './collections/getForAnnotation';
 export * from './collections/listContributed';
 export * from './collections/getFollowers';
 export * from './collections/getContributors';
@@ -56,6 +60,7 @@ export * from './connections/create';
 export * from './connections/update';
 export * from './connections/delete';
 export * from './connections/getForUrl';
+export * from './connections/getForAnnotation';
 export * from './connections/listByUser';
 
 export * from './search/similarUrls';

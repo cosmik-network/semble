@@ -15,6 +15,8 @@ import {
   SearchCollectionsParamsSchema,
   GetCollectionsForUrlParamsSchema,
   GetCollectionsForUrlResponseSchema,
+  GetCollectionsForAnnotationParamsSchema,
+  GetCollectionsForAnnotationResponseSchema,
   GetOpenCollectionsWithContributorParamsSchema,
   GetCollectionFollowersParamsSchema,
   GetCollectionFollowersResponseSchema,
@@ -62,6 +64,18 @@ export const collectionsContract = c.router(
       responses: { 200: GetCollectionsForUrlResponseSchema },
       summary: 'Get collections containing a URL',
       description: 'Returns collections that contain a specific URL.',
+    },
+    collectionsForAnnotation: {
+      method: 'GET',
+      path: paths.collectionsForAnnotation,
+      query: CoercedPaginatedCollectionSortedQuery.extend({
+        url: z.string(),
+        exact: z.string(),
+      }),
+      responses: { 200: GetCollectionsForAnnotationResponseSchema },
+      summary: 'Get collections containing an annotation',
+      description:
+        'Returns collections that contain any annotation card matching a passage. Matching is on the URL and the normalized exact text of the TextQuoteSelector.',
     },
     searchCollections: {
       method: 'GET',

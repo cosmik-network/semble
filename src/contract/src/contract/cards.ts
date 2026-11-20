@@ -27,6 +27,12 @@ import {
   GetLibrariesForUrlResponseSchema,
   GetNoteCardsForUrlParamsSchema,
   GetNoteCardsForUrlResponseSchema,
+  GetAnnotationsForUrlParamsSchema,
+  GetAnnotationsForUrlResponseSchema,
+  GetNotesForAnnotationParamsSchema,
+  GetNotesForAnnotationResponseSchema,
+  GetLibrariesForAnnotationParamsSchema,
+  GetLibrariesForAnnotationResponseSchema,
   GetUrlCardViewResponseSchema,
   GetLibrariesForCardResponseSchema,
   UpdateNoteCardRequestSchema,
@@ -163,6 +169,41 @@ export const cardsContract = c.router(
       summary: 'Get notes for a URL',
       description:
         'Returns a paginated list of all notes that are added to a given URL.',
+    },
+    annotationsForUrl: {
+      method: 'GET',
+      path: paths.annotationsForUrl,
+      query: CoercedPaginatedCardSortedQuery.extend({
+        url: z.string(),
+      }),
+      responses: { 200: GetAnnotationsForUrlResponseSchema },
+      summary: 'Get annotations for a URL',
+      description:
+        'Returns a paginated list of all annotation cards made on a given URL.',
+    },
+    notesForAnnotation: {
+      method: 'GET',
+      path: paths.notesForAnnotation,
+      query: CoercedPaginatedCardSortedQuery.extend({
+        url: z.string(),
+        exact: z.string(),
+      }),
+      responses: { 200: GetNotesForAnnotationResponseSchema },
+      summary: 'Get notes for an annotation',
+      description:
+        'Returns the notes of all annotation cards matching a passage — matched on the URL and the normalized exact text of the TextQuoteSelector.',
+    },
+    librariesForAnnotation: {
+      method: 'GET',
+      path: paths.librariesForAnnotation,
+      query: CoercedPaginatedCardSortedQuery.extend({
+        url: z.string(),
+        exact: z.string(),
+      }),
+      responses: { 200: GetLibrariesForAnnotationResponseSchema },
+      summary: 'Get libraries for an annotation',
+      description:
+        'Returns users who have saved any annotation card matching a passage, including their annotation card. Matching is on the URL and the normalized exact text of the TextQuoteSelector.',
     },
     searchCards: {
       method: 'GET',
