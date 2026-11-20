@@ -19,6 +19,8 @@ import {
   UrlCardQueryResultDTO,
   CollectionCardQueryResultDTO,
   UrlCardViewDTO,
+  UrlCardView,
+  AnnotationCardView,
 } from '../../../domain/ICardQueryRepository';
 
 // Type-safe content data interfaces
@@ -478,6 +480,46 @@ export class CardMapper {
     };
   }
 
+  // Maps an annotation card row (+ its selector rows from
+  // annotation_selectors) to the annotation list-view DTO
+  public static toAnnotationCardQueryResult(raw: {
+    id: string;
+    authorId: string;
+    url: string;
+    uri?: string;
+    libraryCount: number;
+    contentData: any; // AnnotationContentData { note? }
+    selectors: Array<{
+      selectorType: string;
+      ordinal: number;
+      exact: string;
+      prefix?: string | null;
+      suffix?: string | null;
+    }>;
+    createdAt: Date;
+    updatedAt: Date;
+  }): AnnotationCardView {
+    return {
+      id: raw.id,
+      type: CardTypeEnum.ANNOTATION,
+      url: raw.url,
+      uri: raw.uri,
+      libraryCount: raw.libraryCount,
+      selectors: [...raw.selectors]
+        .sort((a, b) => a.ordinal - b.ordinal)
+        .map((s) => ({
+          type: s.selectorType,
+          exact: s.exact,
+          prefix: s.prefix ?? undefined,
+          suffix: s.suffix ?? undefined,
+        })),
+      note: raw.contentData?.note || undefined,
+      createdAt: raw.createdAt,
+      updatedAt: raw.updatedAt,
+      authorId: raw.authorId,
+    };
+  }
+
   public static toCollectionCardQueryResult(raw: {
     id: string;
     authorId: string;
@@ -495,7 +537,7 @@ export class CardMapper {
       id: string;
       contentData: any;
     };
-  }): CollectionCardQueryResultDTO {
+  }): UrlCardView {
     // Extract URL metadata from contentData
     const cardContent = toUrlMetadataView({
       ...raw.contentData?.metadata,

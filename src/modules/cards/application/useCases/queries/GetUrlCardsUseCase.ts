@@ -6,8 +6,10 @@ import {
   SortOrder,
   WithCollections,
   UrlCardView,
+  AnnotationCardView,
 } from '../../../domain/ICardQueryRepository';
 import { UrlType } from '../../../domain/value-objects/UrlType';
+import { CardTypeEnum } from '../../../domain/value-objects/CardType';
 import { DIDOrHandle } from 'src/modules/atproto/domain/DIDOrHandle';
 import { IIdentityResolutionService } from 'src/modules/atproto/domain/services/IIdentityResolutionService';
 import { IProfileService } from '../../../domain/services/IProfileService';
@@ -24,14 +26,20 @@ export interface GetUrlCardsQuery {
   urlType?: UrlType;
   uncollected?: boolean;
   searchText?: string;
+  /** Card types to include; defaults to URL only (backwards compatible) */
+  cardTypes?: CardTypeEnum[];
 }
 
-// Enriched data for the final use case result
-export type UrlCardListItemDTO = Omit<UrlCardView, 'authorId'> & {
+// Enriched data for the final use case result — a card-type union
+// discriminated by `type`
+export type CardListItemDTO = (
+  | Omit<UrlCardView, 'authorId'>
+  | Omit<AnnotationCardView, 'authorId'>
+) & {
   author: User;
 };
 export interface GetUrlCardsResult {
-  cards: UrlCardListItemDTO[];
+  cards: CardListItemDTO[];
   pagination: {
     currentPage: number;
     totalPages: number;
@@ -100,6 +108,7 @@ export class GetUrlCardsUseCase implements UseCase<
           urlType,
           uncollected: query.uncollected,
           searchText: query.searchText,
+          cardTypes: query.cardTypes,
         },
         query.callingUserId,
       );

@@ -13,6 +13,16 @@ import { URL } from '../../domain/value-objects/URL';
 import { CardSortField, SortOrder } from '../../domain/ICardQueryRepository';
 import { UniqueEntityID } from '../../../../shared/domain/UniqueEntityID';
 
+import { CardListItemDTO } from '../../application/useCases/queries/GetUrlCardsUseCase';
+
+// Narrows the card-type union to the URL variant these URL-card fixtures produce
+const asUrlCard = (
+  card: CardListItemDTO | undefined,
+): Extract<CardListItemDTO, { type: CardTypeEnum.URL }> => {
+  expect(card?.type).toBe(CardTypeEnum.URL);
+  return card as Extract<CardListItemDTO, { type: CardTypeEnum.URL }>;
+};
+
 describe('GetUrlCardsUseCase', () => {
   let useCase: GetUrlCardsUseCase;
   let cardQueryRepo: InMemoryCardQueryRepository;
@@ -165,15 +175,15 @@ describe('GetUrlCardsUseCase', () => {
       );
 
       expect(firstCard).toBeDefined();
-      expect(firstCard?.cardContent.title).toBe('First Article');
-      expect(firstCard?.cardContent.author).toBe('John Doe');
+      expect(asUrlCard(firstCard).cardContent.title).toBe('First Article');
+      expect(asUrlCard(firstCard).cardContent.author).toBe('John Doe');
       expect(firstCard?.libraryCount).toBe(1);
       expect(firstCard?.author.id).toBe(curatorId.value);
       expect(firstCard?.author.name).toBe('Test Curator');
       expect(firstCard?.author.handle).toBe('testcurator.bsky.social');
 
       expect(secondCard).toBeDefined();
-      expect(secondCard?.cardContent.title).toBe('Second Article');
+      expect(asUrlCard(secondCard).cardContent.title).toBe('Second Article');
       expect(secondCard?.libraryCount).toBe(1);
       expect(secondCard?.author.id).toBe(curatorId.value);
       expect(secondCard?.author.name).toBe('Test Curator');
@@ -327,7 +337,7 @@ describe('GetUrlCardsUseCase', () => {
       expect(result.isOk()).toBe(true);
       const response = result.unwrap();
       expect(response.cards).toHaveLength(1);
-      expect(response.cards[0]?.cardContent.title).toBe('My Article');
+      expect(asUrlCard(response.cards[0]).cardContent.title).toBe('My Article');
       expect(response.cards[0]?.author.id).toBe(curatorId.value);
       expect(response.cards[0]?.author.name).toBe('Test Curator');
     });
@@ -599,9 +609,15 @@ describe('GetUrlCardsUseCase', () => {
 
       expect(result.isOk()).toBe(true);
       const response = result.unwrap();
-      expect(response.cards[0]?.cardContent.title).toBe('Gamma Article'); // most recent
-      expect(response.cards[1]?.cardContent.title).toBe('Alpha Article');
-      expect(response.cards[2]?.cardContent.title).toBe('Beta Article'); // oldest
+      expect(asUrlCard(response.cards[0]).cardContent.title).toBe(
+        'Gamma Article',
+      ); // most recent
+      expect(asUrlCard(response.cards[1]).cardContent.title).toBe(
+        'Alpha Article',
+      );
+      expect(asUrlCard(response.cards[2]).cardContent.title).toBe(
+        'Beta Article',
+      ); // oldest
       // Verify all cards have author info
       response.cards.forEach((card) => {
         expect(card.author.id).toBe(curatorId.value);
@@ -620,9 +636,15 @@ describe('GetUrlCardsUseCase', () => {
 
       expect(result.isOk()).toBe(true);
       const response = result.unwrap();
-      expect(response.cards[0]?.cardContent.title).toBe('Alpha Article'); // oldest
-      expect(response.cards[1]?.cardContent.title).toBe('Beta Article');
-      expect(response.cards[2]?.cardContent.title).toBe('Gamma Article'); // newest
+      expect(asUrlCard(response.cards[0]).cardContent.title).toBe(
+        'Alpha Article',
+      ); // oldest
+      expect(asUrlCard(response.cards[1]).cardContent.title).toBe(
+        'Beta Article',
+      );
+      expect(asUrlCard(response.cards[2]).cardContent.title).toBe(
+        'Gamma Article',
+      ); // newest
       // Verify all cards have author info
       response.cards.forEach((card) => {
         expect(card.author.id).toBe(curatorId.value);
@@ -741,10 +763,12 @@ describe('GetUrlCardsUseCase', () => {
       expect(result.isOk()).toBe(true);
       const response = result.unwrap();
       expect(response.cards).toHaveLength(1);
-      expect(response.cards[0]?.cardContent.title).toBeUndefined();
-      expect(response.cards[0]?.cardContent.description).toBeUndefined();
-      expect(response.cards[0]?.cardContent.author).toBeUndefined();
-      expect(response.cards[0]?.cardContent.imageUrl).toBeUndefined();
+      expect(asUrlCard(response.cards[0]).cardContent.title).toBeUndefined();
+      expect(
+        asUrlCard(response.cards[0]).cardContent.description,
+      ).toBeUndefined();
+      expect(asUrlCard(response.cards[0]).cardContent.author).toBeUndefined();
+      expect(asUrlCard(response.cards[0]).cardContent.imageUrl).toBeUndefined();
       expect(response.cards[0]?.author.id).toBe(curatorId.value);
       expect(response.cards[0]?.author.name).toBe('Test Curator');
     });

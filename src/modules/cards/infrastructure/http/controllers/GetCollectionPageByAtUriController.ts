@@ -7,6 +7,7 @@ import {
 } from '../../../application/useCases/queries/GetCollectionPageUseCase';
 import { AuthenticatedRequest } from 'src/shared/infrastructure/http/middleware/AuthMiddleware';
 import { CardSortField, SortOrder } from '../../../domain/ICardQueryRepository';
+import { parseCardTypesQuery } from './parseCardTypesQuery';
 
 export class GetCollectionPageByAtUriController extends Controller {
   constructor(
@@ -17,8 +18,16 @@ export class GetCollectionPageByAtUriController extends Controller {
 
   async executeImpl(req: AuthenticatedRequest, res: Response): Promise<any> {
     try {
-      const { handle, recordKey, page, limit, sortBy, sortOrder, urlType } =
-        req.query;
+      const {
+        handle,
+        recordKey,
+        page,
+        limit,
+        sortBy,
+        sortOrder,
+        urlType,
+        cardTypes,
+      } = req.query;
       if (!handle || !recordKey) {
         return this.badRequest(res, 'Handle and recordKey are required');
       }
@@ -33,6 +42,7 @@ export class GetCollectionPageByAtUriController extends Controller {
         sortBy: sortBy as CardSortField,
         sortOrder: sortOrder as SortOrder,
         urlType: urlType as any,
+        cardTypes: parseCardTypesQuery(cardTypes),
       });
 
       if (result.isErr()) {

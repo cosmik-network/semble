@@ -35,6 +35,7 @@ import { collections, collectionCards } from '../schema/collection.sql';
 import { libraryMemberships } from '../schema/libraryMembership.sql';
 import { publishedRecords } from '../schema/publishedRecord.sql';
 import { connections } from '../schema/connection.sql';
+import { annotationSelectors } from '../schema/annotationSelector.sql';
 import { CardMapper, RawUrlCardData } from '../mappers/CardMapper';
 import { CardTypeEnum } from '../../../domain/value-objects/CardType';
 import { toUrlMetadataView } from '../../../domain/value-objects/urlMetadataMapping';
@@ -43,6 +44,7 @@ import {
   fetchUrlLibraryCounts,
   fetchUrlsSavedByUser,
   fetchUrlStats,
+  UrlEngagement,
 } from './urlStatsQueries';
 
 export class UrlCardQueryService {
@@ -71,10 +73,12 @@ export class UrlCardQueryService {
       // Build the sort order
       const orderDirection = sortOrder === SortOrder.ASC ? asc : desc;
 
-      // Build where conditions
+      // Build where conditions — cardTypes defaults to URL only for
+      // backwards compatibility
+      const cardTypes = options.cardTypes ?? [CardTypeEnum.URL];
       const whereConditions = [
         eq(cards.authorId, userId),
-        eq(cards.type, CardTypeEnum.URL),
+        inArray(cards.type, cardTypes),
       ];
 
       if (options.urlType) {
@@ -89,6 +93,7 @@ export class UrlCardQueryService {
             sql`(
               ${cards.contentData}->'metadata'->>'title' ILIKE ${pattern} OR
               ${cards.contentData}->'metadata'->>'description' ILIKE ${pattern} OR
+              ${cards.contentData}->>'note' ILIKE ${pattern} OR
               ${cards.url} ILIKE ${pattern}
             )`,
           );
@@ -97,10 +102,11 @@ export class UrlCardQueryService {
 
       // For LIBRARY_COUNT sorting, we need to handle urlLibraryCount calculation and sorting separately
       if (sortBy === CardSortField.LIBRARY_COUNT) {
-        // Get all URL cards for the user first
-        const allUrlCardsQuery = this.db
+        // Get all cards for the user first
+        const allCardsResult = await this.db
           .select({
             id: cards.id,
+            type: cards.type,
             authorId: cards.authorId,
             url: cards.url,
             publishedRecordUri: publishedRecords.uri,
@@ -116,31 +122,28 @@ export class UrlCardQueryService {
           )
           .where(and(...whereConditions));
 
-        const allUrlCardsResult = await allUrlCardsQuery;
-
         // Filter out cards in collections if uncollected flag is set
-        let filteredUrlCards = allUrlCardsResult;
+        let filteredCards = allCardsResult;
         if (options.uncollected) {
           // Get all cardIds that are in collections added by this user
-          const collectedCardIdsQuery = this.db
+          const collectedCardIdsResult = await this.db
             .select({
               cardId: collectionCards.cardId,
             })
             .from(collectionCards)
             .where(eq(collectionCards.addedBy, userId));
 
-          const collectedCardIdsResult = await collectedCardIdsQuery;
           const collectedCardIds = new Set(
             collectedCardIdsResult.map((row) => row.cardId),
           );
 
           // Filter out cards that are in collections
-          filteredUrlCards = allUrlCardsResult.filter(
+          filteredCards = allCardsResult.filter(
             (card) => !collectedCardIds.has(card.id),
           );
         }
 
-        if (filteredUrlCards.length === 0) {
+        if (filteredCards.length === 0) {
           return {
             items: [],
             totalCount: 0,
@@ -148,13 +151,14 @@ export class UrlCardQueryService {
           };
         }
 
-        const urls = filteredUrlCards.map((card) => card.url || '');
+        const urls = filteredCards.map((card) => card.url || '');
 
-        // Calculate urlLibraryCount for each URL
+        // Calculate urlLibraryCount for each URL (annotations sort by their
+        // source URL's count)
         const urlLibraryCountMap = await fetchUrlLibraryCounts(this.db, urls);
 
         // Combine cards with their urlLibraryCount
-        const cardsWithUrlLibraryCount = filteredUrlCards.map((card) => ({
+        const cardsWithUrlLibraryCount = filteredCards.map((card) => ({
           ...card,
           urlLibraryCount: urlLibraryCountMap.get(card.url || '') || 0,
         }));
@@ -177,104 +181,27 @@ export class UrlCardQueryService {
 
         // Apply pagination
         const startIndex = (page - 1) * limit;
-        const urlCardsResult = cardsWithUrlLibraryCount.slice(
+        const paginatedCards = cardsWithUrlLibraryCount.slice(
           startIndex,
           startIndex + limit,
         );
 
-        // Continue with the rest of the method using urlCardsResult
-        if (urlCardsResult.length === 0) {
+        if (paginatedCards.length === 0) {
           return {
             items: [],
-            totalCount: filteredUrlCards.length,
+            totalCount: filteredCards.length,
             hasMore: false,
           };
         }
 
-        const cardIds = urlCardsResult.map((card) => card.id);
-        const urls_paginated = urlCardsResult.map((card) => card.url || '');
+        const totalCount = filteredCards.length;
+        const hasMore = startIndex + paginatedCards.length < totalCount;
 
-        // Get collections for these cards
-        const collectionsQuery = this.db
-          .select({
-            cardId: collectionCards.cardId,
-            collectionId: collections.id,
-            collectionName: collections.name,
-            authorId: collections.authorId,
-            accessType: collections.accessType,
-          })
-          .from(collectionCards)
-          .innerJoin(
-            collections,
-            eq(collectionCards.collectionId, collections.id),
-          )
-          .where(inArray(collectionCards.cardId, cardIds));
-
-        // Get note cards for these URL cards (same user, parentCardId matches, type = NOTE)
-        const notesQuery = this.db
-          .select({
-            id: cards.id,
-            parentCardId: cards.parentCardId,
-            contentData: cards.contentData,
-          })
-          .from(cards)
-          .where(
-            and(
-              eq(cards.authorId, userId),
-              eq(cards.type, CardTypeEnum.NOTE),
-              inArray(cards.parentCardId, cardIds),
-            ),
-          );
-
-        const [collectionsResult, notesResult, urlEngagementMap] =
-          await Promise.all([
-            collectionsQuery,
-            notesQuery,
-            fetchUrlEngagement(this.db, urls_paginated, callingUserId),
-          ]);
-
-        const totalCount = filteredUrlCards.length;
-        const hasMore = startIndex + urlCardsResult.length < totalCount;
-
-        // Combine the data
-        const rawCardData: RawUrlCardData[] = urlCardsResult.map((card) => {
-          // Find collections for this card
-          const cardCollections = collectionsResult
-            .filter((c) => c.cardId === card.id)
-            .map((c) => ({
-              id: c.collectionId,
-              name: c.collectionName,
-              authorId: c.authorId,
-              accessType: c.accessType,
-            }));
-
-          // Find note for this card
-          const note = notesResult.find((n) => n.parentCardId === card.id);
-
-          return {
-            id: card.id,
-            authorId: card.authorId,
-            url: card.url || '',
-            uri: card.publishedRecordUri || undefined,
-            contentData: card.contentData,
-            libraryCount: card.libraryCount,
-            ...urlEngagementMap.get(card.url || '')!,
-            urlLibraryCount: card.urlLibraryCount,
-            createdAt: card.createdAt,
-            updatedAt: card.updatedAt,
-            collections: cardCollections,
-            note: note
-              ? {
-                  id: note.id,
-                  contentData: note.contentData,
-                }
-              : undefined,
-          };
-        });
-
-        // Map to DTOs
-        const items = rawCardData.map((raw) =>
-          CardMapper.toUrlCardQueryResult(raw),
+        const items = await this.assembleCardItems(
+          paginatedCards,
+          userId,
+          callingUserId,
+          urlLibraryCountMap,
         );
 
         return {
@@ -297,9 +224,10 @@ export class UrlCardQueryService {
         );
       }
 
-      const urlCardsQuery = this.db
+      const urlCardsResult = await this.db
         .select({
           id: cards.id,
+          type: cards.type,
           authorId: cards.authorId,
           url: cards.url,
           publishedRecordUri: publishedRecords.uri,
@@ -318,8 +246,6 @@ export class UrlCardQueryService {
         .limit(limit)
         .offset(offset);
 
-      const urlCardsResult = await urlCardsQuery;
-
       if (urlCardsResult.length === 0) {
         return {
           items: [],
@@ -327,48 +253,6 @@ export class UrlCardQueryService {
           hasMore: false,
         };
       }
-
-      const cardIds = urlCardsResult.map((card) => card.id);
-      const urls = urlCardsResult.map((card) => card.url || '');
-
-      // Get collections for these cards
-      const collectionsQuery = this.db
-        .select({
-          cardId: collectionCards.cardId,
-          collectionId: collections.id,
-          collectionName: collections.name,
-          authorId: collections.authorId,
-          accessType: collections.accessType,
-        })
-        .from(collectionCards)
-        .innerJoin(
-          collections,
-          eq(collectionCards.collectionId, collections.id),
-        )
-        .where(inArray(collectionCards.cardId, cardIds));
-
-      // Get note cards for these URL cards (same user, parentCardId matches, type = NOTE)
-      const notesQuery = this.db
-        .select({
-          id: cards.id,
-          parentCardId: cards.parentCardId,
-          contentData: cards.contentData,
-        })
-        .from(cards)
-        .where(
-          and(
-            eq(cards.authorId, userId),
-            eq(cards.type, CardTypeEnum.NOTE),
-            inArray(cards.parentCardId, cardIds),
-          ),
-        );
-
-      const [collectionsResult, notesResult, urlEngagementMap] =
-        await Promise.all([
-          collectionsQuery,
-          notesQuery,
-          fetchUrlEngagement(this.db, urls, callingUserId),
-        ]);
 
       // Get total count
       const totalCountResult = await this.db
@@ -379,44 +263,10 @@ export class UrlCardQueryService {
       const totalCount = totalCountResult[0]?.count || 0;
       const hasMore = offset + urlCardsResult.length < totalCount;
 
-      // Combine the data
-      const rawCardData: RawUrlCardData[] = urlCardsResult.map((card) => {
-        // Find collections for this card
-        const cardCollections = collectionsResult
-          .filter((c) => c.cardId === card.id)
-          .map((c) => ({
-            id: c.collectionId,
-            name: c.collectionName,
-            authorId: c.authorId,
-            accessType: c.accessType,
-          }));
-
-        // Find note for this card
-        const note = notesResult.find((n) => n.parentCardId === card.id);
-
-        return {
-          id: card.id,
-          authorId: card.authorId,
-          url: card.url || '',
-          uri: card.publishedRecordUri || undefined,
-          contentData: card.contentData,
-          libraryCount: card.libraryCount,
-          ...urlEngagementMap.get(card.url || '')!,
-          createdAt: card.createdAt,
-          updatedAt: card.updatedAt,
-          collections: cardCollections,
-          note: note
-            ? {
-                id: note.id,
-                contentData: note.contentData,
-              }
-            : undefined,
-        };
-      });
-
-      // Map to DTOs
-      const items = rawCardData.map((raw) =>
-        CardMapper.toUrlCardQueryResult(raw),
+      const items = await this.assembleCardItems(
+        urlCardsResult,
+        userId,
+        callingUserId,
       );
 
       return {
@@ -428,6 +278,180 @@ export class UrlCardQueryService {
       console.error('Error in getUrlCardsOfUser:', error);
       throw error;
     }
+  }
+
+  /**
+   * Enriches a page of card rows (URL and/or ANNOTATION) with collections,
+   * notes, selectors, and URL engagement, mapping each row to its DTO variant.
+   * `urlLibraryCountsOverride` supplies pre-computed per-URL library counts
+   * (LIBRARY_COUNT sort path); otherwise counts come from engagement.
+   */
+  private async assembleCardItems(
+    cardRows: Array<{
+      id: string;
+      type: string;
+      authorId: string;
+      url: string | null;
+      publishedRecordUri: string | null;
+      contentData: any;
+      libraryCount: number;
+      createdAt: Date;
+      updatedAt: Date;
+      urlLibraryCount?: number;
+    }>,
+    userId: string,
+    callingUserId: string | undefined,
+    urlLibraryCountsOverride?: Map<string, number>,
+  ): Promise<UrlCardQueryResultDTO[]> {
+    const cardIds = cardRows.map((card) => card.id);
+    const urlCardRows = cardRows.filter(
+      (card) => card.type === CardTypeEnum.URL,
+    );
+    const annotationCardRows = cardRows.filter(
+      (card) => card.type === CardTypeEnum.ANNOTATION,
+    );
+
+    // Get collections for these cards
+    const collectionsQuery = this.db
+      .select({
+        cardId: collectionCards.cardId,
+        collectionId: collections.id,
+        collectionName: collections.name,
+        authorId: collections.authorId,
+        accessType: collections.accessType,
+      })
+      .from(collectionCards)
+      .innerJoin(collections, eq(collectionCards.collectionId, collections.id))
+      .where(inArray(collectionCards.cardId, cardIds));
+
+    // Get note cards for these URL cards (same user, parentCardId matches, type = NOTE)
+    const notesQuery = this.db
+      .select({
+        id: cards.id,
+        parentCardId: cards.parentCardId,
+        contentData: cards.contentData,
+      })
+      .from(cards)
+      .where(
+        and(
+          eq(cards.authorId, userId),
+          eq(cards.type, CardTypeEnum.NOTE),
+          inArray(cards.parentCardId, cardIds),
+        ),
+      );
+
+    // Get selector rows for annotation cards (annotation_selectors child table)
+    const selectorsQuery = annotationCardRows.length
+      ? this.db
+          .select({
+            cardId: annotationSelectors.cardId,
+            selectorType: annotationSelectors.selectorType,
+            ordinal: annotationSelectors.ordinal,
+            exact: annotationSelectors.exact,
+            prefix: annotationSelectors.prefix,
+            suffix: annotationSelectors.suffix,
+          })
+          .from(annotationSelectors)
+          .where(
+            inArray(
+              annotationSelectors.cardId,
+              annotationCardRows.map((card) => card.id),
+            ),
+          )
+      : Promise.resolve([]);
+
+    const urlEngagementPromise = urlCardRows.length
+      ? fetchUrlEngagement(
+          this.db,
+          urlCardRows.map((card) => card.url || ''),
+          callingUserId,
+        )
+      : Promise.resolve(new Map<string, UrlEngagement>());
+
+    const [collectionsResult, notesResult, selectorsResult, urlEngagementMap] =
+      await Promise.all([
+        collectionsQuery,
+        notesQuery,
+        selectorsQuery,
+        urlEngagementPromise,
+      ]);
+
+    const selectorsByCardId = new Map<
+      string,
+      Array<{
+        selectorType: string;
+        ordinal: number;
+        exact: string;
+        prefix: string | null;
+        suffix: string | null;
+      }>
+    >();
+    for (const selector of selectorsResult) {
+      const existing = selectorsByCardId.get(selector.cardId) || [];
+      existing.push(selector);
+      selectorsByCardId.set(selector.cardId, existing);
+    }
+
+    return cardRows.map((card) => {
+      // Collections containing this card
+      const cardCollections = collectionsResult
+        .filter((c) => c.cardId === card.id)
+        .map((c) => ({
+          id: c.collectionId,
+          name: c.collectionName,
+          authorId: c.authorId,
+          accessType: c.accessType,
+        }));
+
+      if (card.type === CardTypeEnum.ANNOTATION) {
+        return {
+          ...CardMapper.toAnnotationCardQueryResult({
+            id: card.id,
+            authorId: card.authorId,
+            url: card.url || '',
+            uri: card.publishedRecordUri || undefined,
+            libraryCount: card.libraryCount,
+            contentData: card.contentData,
+            selectors: selectorsByCardId.get(card.id) || [],
+            createdAt: card.createdAt,
+            updatedAt: card.updatedAt,
+          }),
+          collections: cardCollections,
+        };
+      }
+
+      const engagement =
+        urlEngagementMap.get(card.url || '') ||
+        ({ urlLibraryCount: 0, urlConnectionCount: 0 } as UrlEngagement);
+
+      // Note for this card
+      const note = notesResult.find((n) => n.parentCardId === card.id);
+
+      return CardMapper.toUrlCardQueryResult({
+        id: card.id,
+        authorId: card.authorId,
+        url: card.url || '',
+        uri: card.publishedRecordUri || undefined,
+        contentData: card.contentData,
+        libraryCount: card.libraryCount,
+        urlLibraryCount:
+          card.urlLibraryCount ??
+          urlLibraryCountsOverride?.get(card.url || '') ??
+          engagement.urlLibraryCount,
+        urlInLibrary: engagement.urlInLibrary,
+        urlConnectionCount: engagement.urlConnectionCount,
+        urlIsConnected: engagement.urlIsConnected,
+        createdAt: card.createdAt,
+        updatedAt: card.updatedAt,
+        collections: cardCollections,
+        note: note
+          ? {
+              id: note.id,
+              contentData: note.contentData,
+            }
+          : undefined,
+      });
+    });
   }
 
   async getUrlCardView(

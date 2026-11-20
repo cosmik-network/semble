@@ -7,6 +7,7 @@ import { AddCardToLibraryController } from '../../../../modules/cards/infrastruc
 import { AddCardToCollectionController } from '../../../../modules/cards/infrastructure/http/controllers/AddCardToCollectionController';
 import { UpdateNoteCardController } from '../../../../modules/cards/infrastructure/http/controllers/UpdateNoteCardController';
 import { UpdateUrlCardAssociationsController } from '../../../../modules/cards/infrastructure/http/controllers/UpdateUrlCardAssociationsController';
+import { UpdateAnnotationAssociationsController } from '../../../../modules/cards/infrastructure/http/controllers/UpdateAnnotationAssociationsController';
 import { RemoveCardFromLibraryController } from '../../../../modules/cards/infrastructure/http/controllers/RemoveCardFromLibraryController';
 import { RemoveCardFromCollectionController } from '../../../../modules/cards/infrastructure/http/controllers/RemoveCardFromCollectionController';
 import { GetUrlMetadataController } from '../../../../modules/cards/infrastructure/http/controllers/GetUrlMetadataController';
@@ -130,6 +131,7 @@ export interface Controllers {
   addCardToCollectionController: AddCardToCollectionController;
   updateNoteCardController: UpdateNoteCardController;
   updateUrlCardAssociationsController: UpdateUrlCardAssociationsController;
+  updateAnnotationAssociationsController: UpdateAnnotationAssociationsController;
   removeCardFromLibraryController: RemoveCardFromLibraryController;
   removeCardFromCollectionController: RemoveCardFromCollectionController;
   getUrlMetadataController: GetUrlMetadataController;
@@ -337,6 +339,10 @@ export class ControllerFactory {
       updateUrlCardAssociationsController:
         new UpdateUrlCardAssociationsController(
           useCases.updateUrlCardAssociationsUseCase,
+        ),
+      updateAnnotationAssociationsController:
+        new UpdateAnnotationAssociationsController(
+          useCases.updateAnnotationAssociationsUseCase,
         ),
       removeCardFromLibraryController: new RemoveCardFromLibraryController(
         useCases.removeCardFromLibraryUseCase,

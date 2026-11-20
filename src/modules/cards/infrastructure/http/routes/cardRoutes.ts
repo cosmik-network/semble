@@ -5,6 +5,7 @@ import { AddCardToLibraryController } from '../controllers/AddCardToLibraryContr
 import { AddCardToCollectionController } from '../controllers/AddCardToCollectionController';
 import { UpdateNoteCardController } from '../controllers/UpdateNoteCardController';
 import { UpdateUrlCardAssociationsController } from '../controllers/UpdateUrlCardAssociationsController';
+import { UpdateAnnotationAssociationsController } from '../controllers/UpdateAnnotationAssociationsController';
 import { RemoveCardFromLibraryController } from '../controllers/RemoveCardFromLibraryController';
 import { RemoveCardFromCollectionController } from '../controllers/RemoveCardFromCollectionController';
 import { GetUrlMetadataController } from '../controllers/GetUrlMetadataController';
@@ -34,6 +35,7 @@ export function registerCardRoutes(
   addCardToCollectionController: AddCardToCollectionController,
   updateNoteCardController: UpdateNoteCardController,
   updateUrlCardAssociationsController: UpdateUrlCardAssociationsController,
+  updateAnnotationAssociationsController: UpdateAnnotationAssociationsController,
   removeCardFromLibraryController: RemoveCardFromLibraryController,
   removeCardFromCollectionController: RemoveCardFromCollectionController,
   getUrlMetadataController: GetUrlMetadataController,
@@ -157,6 +159,13 @@ export function registerCardRoutes(
     authMiddleware.ensureAuthenticated(),
     validateBody(cardsContract.urlCardAssociations.body),
     (req, res) => updateUrlCardAssociationsController.execute(req, res),
+  );
+
+  app.post(
+    routes.cards.annotationCardAssociations.path,
+    authMiddleware.ensureAuthenticated(),
+    validateBody(cardsContract.annotationCardAssociations.body),
+    (req, res) => updateAnnotationAssociationsController.execute(req, res),
   );
 
   app.post(

@@ -25,6 +25,19 @@ import { createTestSchema } from '../test-utils/createTestSchema';
 import { CardTypeEnum } from '../../domain/value-objects/CardType';
 import { UrlType } from '../../domain/value-objects/UrlType';
 
+import { CollectionCardQueryResultDTO } from '../../domain/ICardQueryRepository';
+
+// Narrows the card-type union to the URL variant these URL-card fixtures produce
+const asUrlCard = (
+  card: CollectionCardQueryResultDTO | undefined,
+): Extract<CollectionCardQueryResultDTO, { type: CardTypeEnum.URL }> => {
+  expect(card?.type).toBe(CardTypeEnum.URL);
+  return card as Extract<
+    CollectionCardQueryResultDTO,
+    { type: CardTypeEnum.URL }
+  >;
+};
+
 describe('DrizzleCardQueryRepository - getCardsInCollection', () => {
   let container: StartedPostgreSqlContainer;
   let db: PostgresJsDatabase;
@@ -178,18 +191,20 @@ describe('DrizzleCardQueryRepository - getCardsInCollection', () => {
 
       expect(card1Result).toBeDefined();
       expect(card1Result?.type).toBe(CardTypeEnum.URL);
-      expect(card1Result?.cardContent.title).toBe('Collection Article 1');
-      expect(card1Result?.cardContent.description).toBe(
+      expect(asUrlCard(card1Result).cardContent.title).toBe(
+        'Collection Article 1',
+      );
+      expect(asUrlCard(card1Result).cardContent.description).toBe(
         'First article in collection',
       );
-      expect(card1Result?.cardContent.author).toBe('John Doe');
-      expect(card1Result?.cardContent.imageUrl).toBe(
+      expect(asUrlCard(card1Result).cardContent.author).toBe('John Doe');
+      expect(asUrlCard(card1Result).cardContent.imageUrl).toBe(
         'https://example.com/image1.jpg',
       );
 
       expect(card2Result).toBeDefined();
       expect(card2Result?.type).toBe(CardTypeEnum.URL);
-      expect(card2Result?.cardContent.title).toBeUndefined(); // No metadata provided
+      expect(asUrlCard(card2Result).cardContent.title).toBeUndefined(); // No metadata provided
     });
 
     it('should only include notes by collection author, not notes by other users', async () => {
@@ -257,9 +272,13 @@ describe('DrizzleCardQueryRepository - getCardsInCollection', () => {
       const urlCardResult = result.items[0];
 
       // Should only include the note by the collection author, not the other user's note
-      expect(urlCardResult?.note).toBeDefined();
-      expect(urlCardResult?.note?.id).toBe(authorNote.cardId.getStringValue());
-      expect(urlCardResult?.note?.text).toBe('Note by collection author');
+      expect(asUrlCard(urlCardResult).note).toBeDefined();
+      expect(asUrlCard(urlCardResult).note?.id).toBe(
+        authorNote.cardId.getStringValue(),
+      );
+      expect(asUrlCard(urlCardResult).note?.text).toBe(
+        'Note by collection author',
+      );
     });
 
     it('should not include notes when only other users have notes, not collection author', async () => {
@@ -318,7 +337,7 @@ describe('DrizzleCardQueryRepository - getCardsInCollection', () => {
       const urlCardResult = result.items[0];
 
       // Should not include any note since only other users have notes, not the collection author
-      expect(urlCardResult?.note).toBeUndefined();
+      expect(asUrlCard(urlCardResult).note).toBeUndefined();
     });
 
     it('should not include note cards that are not connected to collection URL cards', async () => {
@@ -380,7 +399,7 @@ describe('DrizzleCardQueryRepository - getCardsInCollection', () => {
       const urlCardResult = result.items[0];
 
       // Should not have a note since the note is connected to a different URL card
-      expect(urlCardResult?.note).toBeUndefined();
+      expect(asUrlCard(urlCardResult).note).toBeUndefined();
     });
 
     it('should handle collection with cards from multiple users', async () => {
@@ -583,13 +602,13 @@ describe('DrizzleCardQueryRepository - getCardsInCollection', () => {
 
       // Verify sorting by library count (descending)
       expect(result.items[0]?.url).toBe(url1.value); // Most popular (3 libraries)
-      expect(result.items[0]?.urlLibraryCount).toBe(3);
+      expect(asUrlCard(result.items[0]).urlLibraryCount).toBe(3);
 
       expect(result.items[1]?.url).toBe(url2.value); // Medium popular (2 libraries)
-      expect(result.items[1]?.urlLibraryCount).toBe(2);
+      expect(asUrlCard(result.items[1]).urlLibraryCount).toBe(2);
 
       expect(result.items[2]?.url).toBe(url3.value); // Least popular (1 library)
-      expect(result.items[2]?.urlLibraryCount).toBe(1);
+      expect(asUrlCard(result.items[2]).urlLibraryCount).toBe(1);
     });
 
     it('should handle pagination for collection cards', async () => {
@@ -713,7 +732,7 @@ describe('DrizzleCardQueryRepository - getCardsInCollection', () => {
       );
 
       expect(result.items).toHaveLength(1);
-      expect(result.items[0]?.urlInLibrary).toBeUndefined();
+      expect(asUrlCard(result.items[0]).urlInLibrary).toBeUndefined();
     });
 
     it('should return urlInLibrary as true when callingUserId has the URL in their library', async () => {
@@ -768,7 +787,7 @@ describe('DrizzleCardQueryRepository - getCardsInCollection', () => {
 
       expect(result.items).toHaveLength(1);
       expect(result.items[0]?.url).toBe(sharedUrl);
-      expect(result.items[0]?.urlInLibrary).toBe(true); // otherCurator has this URL
+      expect(asUrlCard(result.items[0]).urlInLibrary).toBe(true); // otherCurator has this URL
     });
 
     it('should return urlInLibrary as false when callingUserId does not have the URL in their library', async () => {
@@ -813,7 +832,7 @@ describe('DrizzleCardQueryRepository - getCardsInCollection', () => {
       );
 
       expect(result.items).toHaveLength(1);
-      expect(result.items[0]?.urlInLibrary).toBe(false); // otherCurator doesn't have this URL
+      expect(asUrlCard(result.items[0]).urlInLibrary).toBe(false); // otherCurator doesn't have this URL
     });
 
     it('should return urlInLibrary as true when the collection author is the same as callingUserId', async () => {
@@ -860,7 +879,7 @@ describe('DrizzleCardQueryRepository - getCardsInCollection', () => {
       );
 
       expect(result.items).toHaveLength(1);
-      expect(result.items[0]?.urlInLibrary).toBe(true); // curator has their own URL
+      expect(asUrlCard(result.items[0]).urlInLibrary).toBe(true); // curator has their own URL
     });
 
     it('should return urlInLibrary correctly when user has multiple cards with the same URL', async () => {
@@ -925,7 +944,7 @@ describe('DrizzleCardQueryRepository - getCardsInCollection', () => {
 
       expect(result.items).toHaveLength(1);
       expect(result.items[0]?.url).toBe(sharedUrl);
-      expect(result.items[0]?.urlInLibrary).toBe(true); // otherCurator has this URL (even with multiple cards)
+      expect(asUrlCard(result.items[0]).urlInLibrary).toBe(true); // otherCurator has this URL (even with multiple cards)
     });
 
     it('should handle multiple URLs in collection with different urlInLibrary values', async () => {
@@ -998,8 +1017,8 @@ describe('DrizzleCardQueryRepository - getCardsInCollection', () => {
       const card1 = result.items.find((item) => item.url === url1.value);
       const card2 = result.items.find((item) => item.url === url2.value);
 
-      expect(card1?.urlInLibrary).toBe(true); // otherCurator has this URL
-      expect(card2?.urlInLibrary).toBe(false); // otherCurator doesn't have this URL
+      expect(asUrlCard(card1).urlInLibrary).toBe(true); // otherCurator has this URL
+      expect(asUrlCard(card2).urlInLibrary).toBe(false); // otherCurator doesn't have this URL
     });
 
     it('should correctly handle urlInLibrary with third user viewing collection', async () => {
@@ -1056,8 +1075,8 @@ describe('DrizzleCardQueryRepository - getCardsInCollection', () => {
 
       expect(result.items).toHaveLength(1);
       expect(result.items[0]?.url).toBe(sharedUrl);
-      expect(result.items[0]?.urlInLibrary).toBe(false); // thirdCurator doesn't have this URL
-      expect(result.items[0]?.urlLibraryCount).toBe(2); // But 2 users have it
+      expect(asUrlCard(result.items[0]).urlInLibrary).toBe(false); // thirdCurator doesn't have this URL
+      expect(asUrlCard(result.items[0]).urlLibraryCount).toBe(2); // But 2 users have it
     });
   });
 

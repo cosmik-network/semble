@@ -12,6 +12,8 @@ export interface CardQueryOptions {
   urlType?: UrlType;
   uncollected?: boolean;
   searchText?: string;
+  /** Card types to include; defaults to URL only (backwards compatible) */
+  cardTypes?: CardTypeEnum[];
 }
 
 export interface SearchUrlsOptions {
@@ -82,7 +84,28 @@ export interface UrlCardView {
   };
 }
 
-export type CollectionCardQueryResultDTO = UrlCardView;
+// Simplified DTO for annotation cards in list views — selectors and note,
+// no URL metadata. Annotations anchor to the URL; there is no parent card.
+export interface AnnotationCardView {
+  id: string;
+  type: CardTypeEnum.ANNOTATION;
+  url: string;
+  uri?: string;
+  libraryCount: number;
+  selectors: {
+    type: string;
+    exact: string;
+    prefix?: string;
+    suffix?: string;
+  }[];
+  note?: string;
+  createdAt: Date;
+  updatedAt: Date;
+  authorId: string;
+}
+
+// Discriminated union of the card types list endpoints can return
+export type CollectionCardQueryResultDTO = UrlCardView | AnnotationCardView;
 // Raw data from repository - minimal, just what's stored
 export interface WithCollections {
   collections: {
@@ -96,7 +119,9 @@ export interface WithCollections {
 export interface WithLibraries {
   libraries: { userId: string }[];
 }
-export type UrlCardQueryResultDTO = UrlCardView & WithCollections;
+export type UrlCardQueryResultDTO =
+  | (UrlCardView & WithCollections)
+  | (AnnotationCardView & WithCollections);
 
 // DTO for single URL card view with library and collection info
 export type UrlCardViewDTO = UrlCardView & WithCollections & WithLibraries;

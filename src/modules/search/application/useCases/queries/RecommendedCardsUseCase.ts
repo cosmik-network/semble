@@ -13,9 +13,12 @@ import {
   ICardQueryRepository,
   SortOrder,
   UrlStats,
+  UrlCardView,
+  UrlCardQueryResultDTO,
 } from '../../../../cards/domain/ICardQueryRepository';
 import { IProfileService } from '../../../../cards/domain/services/IProfileService';
 import { UrlType } from '../../../../cards/domain/value-objects/UrlType';
+import { CardTypeEnum } from '../../../../cards/domain/value-objects/CardType';
 import { GlobalFeedSeedService } from '../../../../feeds/application/services/GlobalFeedSeedService';
 
 export interface RecommendationRankingConfig {
@@ -207,9 +210,14 @@ export class RecommendedCardsUseCase implements UseCase<
     );
 
     // Cards with neither title nor description can't produce a useful query
+    // (annotation cards have no URL metadata, so only URL cards qualify)
     const usableCards = recentCards.items.filter(
-      (card) =>
-        card.cardContent.title?.trim() || card.cardContent.description?.trim(),
+      (card): card is Extract<UrlCardQueryResultDTO, UrlCardView> =>
+        card.type === CardTypeEnum.URL &&
+        Boolean(
+          card.cardContent.title?.trim() ||
+          card.cardContent.description?.trim(),
+        ),
     );
 
     const selectedCards = this.pickRandom(usableCards, SEED_CARD_COUNT);

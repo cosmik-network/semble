@@ -11,6 +11,7 @@ import {
 import { cards } from '../schema/card.sql';
 import { collections, collectionCards } from '../schema/collection.sql';
 import { publishedRecords } from '../schema/publishedRecord.sql';
+import { annotationSelectors } from '../schema/annotationSelector.sql';
 import { CardMapper } from '../mappers/CardMapper';
 import { CardTypeEnum } from '../../../domain/value-objects/CardType';
 import { fetchUrlEngagement, fetchUrlLibraryCounts } from './urlStatsQueries';
@@ -50,10 +51,12 @@ export class CollectionCardQueryService {
 
       const collectionAuthorId = collectionResult[0]!.authorId;
 
-      // Build where conditions
+      // Build where conditions — cardTypes defaults to URL only for
+      // backwards compatibility
+      const cardTypes = options.cardTypes ?? [CardTypeEnum.URL];
       const whereConditions = [
         eq(collectionCards.collectionId, collectionId),
-        eq(cards.type, CardTypeEnum.URL),
+        inArray(cards.type, cardTypes),
       ];
 
       if (options.urlType) {
@@ -64,6 +67,7 @@ export class CollectionCardQueryService {
       const cardsQuery = this.db
         .select({
           id: cards.id,
+          type: cards.type,
           authorId: cards.authorId,
           url: cards.url,
           publishedRecordUri: publishedRecords.uri,
@@ -83,6 +87,7 @@ export class CollectionCardQueryService {
       // For LIBRARY_COUNT sorting, we need to sort by urlLibraryCount after calculating it
       let cardsWithUrlLibraryCount: Array<{
         id: string;
+        type: string;
         authorId: string;
         url: string | null;
         publishedRecordUri: string | null;
@@ -143,6 +148,7 @@ export class CollectionCardQueryService {
       // Execute query based on sort type
       let cardsResult: Array<{
         id: string;
+        type: string;
         authorId: string;
         url: string | null;
         publishedRecordUri: string | null;
@@ -173,6 +179,9 @@ export class CollectionCardQueryService {
 
       const cardIds = cardsResult.map((card) => card.id);
       const urls = cardsResult.map((card) => card.url || '');
+      const annotationCardIds = cardsResult
+        .filter((card) => card.type === CardTypeEnum.ANNOTATION)
+        .map((card) => card.id);
 
       // Get note cards for these URL cards
       // We'll filter by author in the mapping step to match each note's author to its parent card's author
@@ -191,10 +200,43 @@ export class CollectionCardQueryService {
           ),
         );
 
-      const [notesResult, urlEngagementMap] = await Promise.all([
-        notesQuery,
-        fetchUrlEngagement(this.db, urls, callingUserId),
-      ]);
+      // Get selector rows for annotation cards (annotation_selectors child table)
+      const selectorsQuery = annotationCardIds.length
+        ? this.db
+            .select({
+              cardId: annotationSelectors.cardId,
+              selectorType: annotationSelectors.selectorType,
+              ordinal: annotationSelectors.ordinal,
+              exact: annotationSelectors.exact,
+              prefix: annotationSelectors.prefix,
+              suffix: annotationSelectors.suffix,
+            })
+            .from(annotationSelectors)
+            .where(inArray(annotationSelectors.cardId, annotationCardIds))
+        : Promise.resolve([]);
+
+      const [notesResult, selectorsResult, urlEngagementMap] =
+        await Promise.all([
+          notesQuery,
+          selectorsQuery,
+          fetchUrlEngagement(this.db, urls, callingUserId),
+        ]);
+
+      const selectorsByCardId = new Map<
+        string,
+        Array<{
+          selectorType: string;
+          ordinal: number;
+          exact: string;
+          prefix: string | null;
+          suffix: string | null;
+        }>
+      >();
+      for (const selector of selectorsResult) {
+        const existing = selectorsByCardId.get(selector.cardId) || [];
+        existing.push(selector);
+        selectorsByCardId.set(selector.cardId, existing);
+      }
 
       // Get total count
       const totalCountResult = await this.db
@@ -207,8 +249,22 @@ export class CollectionCardQueryService {
       // const offset = (page - 1) * limit;
       const hasMore = offset + cardsResult.length < totalCount;
 
-      // Combine the data
-      const rawCardData = cardsResult.map((card) => {
+      // Combine the data — branch per card type
+      const items: CollectionCardQueryResultDTO[] = cardsResult.map((card) => {
+        if (card.type === CardTypeEnum.ANNOTATION) {
+          return CardMapper.toAnnotationCardQueryResult({
+            id: card.id,
+            authorId: card.authorId,
+            url: card.url || '',
+            uri: card.publishedRecordUri || undefined,
+            libraryCount: card.libraryCount,
+            contentData: card.contentData,
+            selectors: selectorsByCardId.get(card.id) || [],
+            createdAt: card.createdAt,
+            updatedAt: card.updatedAt,
+          });
+        }
+
         // Find note for this card (only notes by the same author as the card)
         const note = notesResult.find(
           (n) => n.parentCardId === card.id && n.authorId === card.authorId,
@@ -216,7 +272,7 @@ export class CollectionCardQueryService {
 
         const engagement = urlEngagementMap.get(card.url || '')!;
 
-        return {
+        return CardMapper.toCollectionCardQueryResult({
           id: card.id,
           authorId: card.authorId,
           url: card.url || '',
@@ -232,13 +288,8 @@ export class CollectionCardQueryService {
                 contentData: note.contentData,
               }
             : undefined,
-        };
+        });
       });
-
-      // Map to DTOs
-      const items = rawCardData.map((raw) =>
-        CardMapper.toCollectionCardQueryResult(raw),
-      );
 
       return {
         items,

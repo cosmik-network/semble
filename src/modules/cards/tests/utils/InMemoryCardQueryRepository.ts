@@ -5,6 +5,7 @@ import {
   CollectionCardQueryResultDTO,
   UrlCardViewDTO,
   UrlCardView,
+  WithCollections,
   PaginatedQueryResult,
   CardSortField,
   SortOrder,
@@ -26,6 +27,10 @@ import { CollectionId } from '../../domain/value-objects/CollectionId';
 import { CuratorId } from '../../domain/value-objects/CuratorId';
 import { UrlOrCardId } from '../../domain/value-objects/UrlOrCardId';
 import { URL } from '../../domain/value-objects/URL';
+
+// The in-memory fake only produces URL cards; UrlCardQueryResultDTO is now a
+// card-type union, so the URL-only shape gets its own name here
+type UrlCardOnlyQueryResultDTO = UrlCardView & WithCollections;
 
 export class InMemoryCardQueryRepository implements ICardQueryRepository {
   constructor(
@@ -156,7 +161,7 @@ export class InMemoryCardQueryRepository implements ICardQueryRepository {
   private async cardToUrlCardQueryResult(
     card: Card,
     callingUserId?: string,
-  ): Promise<UrlCardQueryResultDTO> {
+  ): Promise<UrlCardOnlyQueryResultDTO> {
     if (!card.isUrlCard || !card.content.urlContent) {
       throw new Error('Card is not a URL card');
     }
@@ -453,10 +458,10 @@ export class InMemoryCardQueryRepository implements ICardQueryRepository {
   }
 
   private sortCollectionCards(
-    cards: CollectionCardQueryResultDTO[],
+    cards: UrlCardView[],
     sortBy: CardSortField,
     sortOrder: SortOrder,
-  ): CollectionCardQueryResultDTO[] {
+  ): UrlCardView[] {
     const sorted = [...cards].sort((a, b) => {
       let comparison = 0;
 
@@ -482,8 +487,8 @@ export class InMemoryCardQueryRepository implements ICardQueryRepository {
   }
 
   private toCollectionCardQueryResult(
-    card: UrlCardQueryResultDTO,
-  ): CollectionCardQueryResultDTO {
+    card: UrlCardOnlyQueryResultDTO,
+  ): UrlCardView {
     return {
       id: card.id,
       type: CardTypeEnum.URL,

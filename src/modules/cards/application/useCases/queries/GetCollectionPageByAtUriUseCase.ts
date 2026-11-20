@@ -15,6 +15,7 @@ import {
   SortOrder,
 } from 'src/modules/cards/domain/ICardQueryRepository';
 import { UrlType } from '../../../domain/value-objects/UrlType';
+import { CardTypeEnum } from '../../../domain/value-objects/CardType';
 
 export interface GetCollectionPageByAtUriQuery {
   handle: string;
@@ -25,6 +26,7 @@ export interface GetCollectionPageByAtUriQuery {
   sortBy?: CardSortField;
   sortOrder?: SortOrder;
   urlType?: UrlType;
+  cardTypes?: CardTypeEnum[];
 }
 
 export class GetCollectionPageByAtUriUseCase implements UseCase<
@@ -125,6 +127,7 @@ export class GetCollectionPageByAtUriUseCase implements UseCase<
       sortBy: query.sortBy,
       sortOrder: query.sortOrder,
       urlType: query.urlType,
+      cardTypes: query.cardTypes,
     });
   }
 }

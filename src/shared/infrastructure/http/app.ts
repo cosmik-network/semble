@@ -328,6 +328,7 @@ export const createExpressApp = async (
       controllers.addCardToCollectionController,
       controllers.updateNoteCardController,
       controllers.updateUrlCardAssociationsController,
+      controllers.updateAnnotationAssociationsController,
       controllers.removeCardFromLibraryController,
       controllers.removeCardFromCollectionController,
       controllers.getUrlMetadataController,

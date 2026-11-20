@@ -46,6 +46,8 @@ export const paths = {
   addCardToLibrary: '/network.cosmik.card.addToLibrary',
   addCardToCollection: '/network.cosmik.card.addToCollection',
   urlCardAssociations: '/network.cosmik.card.updateUrlAssociations',
+  annotationCardAssociations:
+    '/network.cosmik.card.updateAnnotationAssociations',
   myUrlCards: '/network.cosmik.card.listMine',
   urlMetadata: '/network.cosmik.card.getUrlMetadata',
   batchUrlStats: '/network.cosmik.card.getUrlStats',
@@ -167,6 +169,11 @@ export const routes = {
     addCardToLibrary: defineRoute(paths.addCardToLibrary, 'POST', true),
     addCardToCollection: defineRoute(paths.addCardToCollection, 'POST', true),
     urlCardAssociations: defineRoute(paths.urlCardAssociations, 'POST', true),
+    annotationCardAssociations: defineRoute(
+      paths.annotationCardAssociations,
+      'POST',
+      true,
+    ),
     myUrlCards: defineRoute(paths.myUrlCards, 'GET', true),
     urlMetadata: defineRoute(paths.urlMetadata, 'GET', false),
     batchUrlStats: defineRoute(paths.batchUrlStats, 'POST', false),

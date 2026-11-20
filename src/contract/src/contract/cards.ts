@@ -13,6 +13,8 @@ import {
   AddCardToCollectionResponseSchema,
   UpdateUrlCardAssociationsRequestSchema,
   UpdateUrlCardAssociationsResponseSchema,
+  UpdateAnnotationAssociationsRequestSchema,
+  UpdateAnnotationAssociationsResponseSchema,
   GetUrlCardsResponseSchema,
   SearchUrlsResponseSchema,
   GetUrlMetadataParamsSchema,
@@ -35,6 +37,7 @@ import {
   RemoveCardFromCollectionResponseSchema,
 } from '@semble/types';
 import { CoercedPaginatedCardSortedQuery } from './shared';
+import { CardTypesParamSchema } from '@semble/types';
 
 const c = initContract();
 
@@ -87,6 +90,15 @@ export const cardsContract = c.router(
       description:
         'Add or remove the card to/from collections. Add a note to the URL card or update the existing note.',
     },
+    annotationCardAssociations: {
+      method: 'POST',
+      path: paths.annotationCardAssociations,
+      body: UpdateAnnotationAssociationsRequestSchema,
+      responses: { 200: UpdateAnnotationAssociationsResponseSchema },
+      summary: 'Update annotation card associations',
+      description:
+        'Add or remove the annotation card to/from collections. Set or clear the annotation note.',
+    },
     myUrlCards: {
       method: 'GET',
       path: paths.myUrlCards,
@@ -94,6 +106,7 @@ export const cardsContract = c.router(
         urlType: UrlTypeSchema.optional(),
         uncollected: z.coerce.boolean().optional(),
         searchText: z.string().optional(),
+        cardTypes: CardTypesParamSchema,
       }),
       responses: { 200: GetUrlCardsResponseSchema },
       summary: 'List my library URL cards',
@@ -214,6 +227,7 @@ export const cardsContract = c.router(
         urlType: UrlTypeSchema.optional(),
         uncollected: z.coerce.boolean().optional(),
         searchText: z.string().optional(),
+        cardTypes: CardTypesParamSchema,
       }),
       responses: { 200: GetUrlCardsResponseSchema },
       summary: "List a user's URL cards",

@@ -7,6 +7,7 @@ import {
 } from '../../../application/useCases/queries/GetCollectionPageUseCase';
 import { AuthenticatedRequest } from '../../../../../shared/infrastructure/http/middleware/AuthMiddleware';
 import { CardSortField, SortOrder } from '../../../domain/ICardQueryRepository';
+import { parseCardTypesQuery } from './parseCardTypesQuery';
 
 export class GetCollectionPageController extends Controller {
   constructor(private getCollectionPageUseCase: GetCollectionPageUseCase) {
@@ -15,8 +16,15 @@ export class GetCollectionPageController extends Controller {
 
   async executeImpl(req: AuthenticatedRequest, res: Response): Promise<any> {
     try {
-      const { collectionId, page, limit, sortBy, sortOrder, urlType } =
-        req.query;
+      const {
+        collectionId,
+        page,
+        limit,
+        sortBy,
+        sortOrder,
+        urlType,
+        cardTypes,
+      } = req.query;
       const callerDid = req.did;
 
       if (!collectionId) {
@@ -31,6 +39,7 @@ export class GetCollectionPageController extends Controller {
         sortBy: sortBy as CardSortField,
         sortOrder: sortOrder as SortOrder,
         urlType: urlType as any,
+        cardTypes: parseCardTypesQuery(cardTypes),
       });
 
       if (result.isErr()) {

@@ -4,6 +4,7 @@ export * from './cards/addToLibrary';
 export * from './cards/addToCollection';
 export * from './cards/updateNote';
 export * from './cards/updateAssociations';
+export * from './cards/updateAnnotationAssociations';
 export * from './cards/removeFromLibrary';
 export * from './cards/removeFromCollections';
 export * from './cards/listMine';

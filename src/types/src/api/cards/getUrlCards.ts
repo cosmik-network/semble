@@ -1,9 +1,9 @@
 import { z } from 'zod';
 import { PaginationSchema, CardSortingSchema } from '../../entities/common';
-import { UrlCardSchema } from '../../entities/card';
+import { CardItemSchema } from '../../entities/card';
 
 export const GetUrlCardsResponseSchema = z.object({
-  cards: z.array(UrlCardSchema),
+  cards: z.array(CardItemSchema),
   pagination: PaginationSchema,
   sorting: CardSortingSchema,
 });

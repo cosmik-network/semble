@@ -6,6 +6,7 @@ import { CuratorId } from '../../../domain/value-objects/CuratorId';
 import { URL } from '../../../domain/value-objects/URL';
 import { UrlMetadata } from '../../../domain/value-objects/UrlMetadata';
 import { PublishedRecordId } from '../../../domain/value-objects/PublishedRecordId';
+import { Selector } from '../../../domain/value-objects/selectors/Selector';
 import { UniqueEntityID } from '../../../../../shared/domain/UniqueEntityID';
 
 export class CardBuilder {
@@ -104,6 +105,39 @@ export class CardBuilder {
     if (contentResult.isErr()) {
       throw new Error(
         `Failed to create note content: ${contentResult.error.message}`,
+      );
+    }
+    this._content = contentResult.value;
+    return this;
+  }
+
+  withAnnotationCard(
+    url: URL,
+    selectors: Array<{
+      exact: string;
+      prefix?: string;
+      suffix?: string;
+    }>,
+    note?: string,
+  ): CardBuilder {
+    this._type = CardTypeEnum.ANNOTATION;
+    this._url = url; // Annotation cards require the URL property
+    const selectorVos = selectors.map((props) => {
+      const selectorResult = Selector.createTextQuote(props);
+      if (selectorResult.isErr()) {
+        throw new Error(
+          `Failed to create selector: ${selectorResult.error.message}`,
+        );
+      }
+      return selectorResult.value;
+    });
+    const contentResult = CardContent.createAnnotationContent(
+      selectorVos,
+      note,
+    );
+    if (contentResult.isErr()) {
+      throw new Error(
+        `Failed to create annotation content: ${contentResult.error.message}`,
       );
     }
     this._content = contentResult.value;

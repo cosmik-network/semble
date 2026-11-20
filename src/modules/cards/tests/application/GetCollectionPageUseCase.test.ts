@@ -16,6 +16,16 @@ import { UniqueEntityID } from '../../../../shared/domain/UniqueEntityID';
 import { ICollectionRepository } from '../../domain/ICollectionRepository';
 import { InMemoryFollowsRepository } from '../../../user/tests/infrastructure/InMemoryFollowsRepository';
 
+import { CollectionPageCardDTO } from '../../application/useCases/queries/GetCollectionPageUseCase';
+
+// Narrows the card-type union to the URL variant these URL-card fixtures produce
+const asUrlCard = (
+  card: CollectionPageCardDTO | undefined,
+): Extract<CollectionPageCardDTO, { type: CardTypeEnum.URL }> => {
+  expect(card?.type).toBe(CardTypeEnum.URL);
+  return card as Extract<CollectionPageCardDTO, { type: CardTypeEnum.URL }>;
+};
+
 describe('GetCollectionPageUseCase', () => {
   let useCase: GetCollectionPageUseCase;
   let collectionRepo: InMemoryCollectionRepository;
@@ -204,11 +214,11 @@ describe('GetCollectionPageUseCase', () => {
       );
 
       expect(firstCard).toBeDefined();
-      expect(firstCard?.cardContent.title).toBe('First Article');
-      expect(firstCard?.cardContent.author).toBe('John Doe');
+      expect(asUrlCard(firstCard).cardContent.title).toBe('First Article');
+      expect(asUrlCard(firstCard).cardContent.author).toBe('John Doe');
 
       expect(secondCard).toBeDefined();
-      expect(secondCard?.cardContent.title).toBe('Second Article');
+      expect(asUrlCard(secondCard).cardContent.title).toBe('Second Article');
     });
 
     it('should include notes in URL cards', async () => {
@@ -294,9 +304,13 @@ describe('GetCollectionPageUseCase', () => {
       expect(response.urlCards).toHaveLength(1);
 
       const responseCard = response.urlCards[0]!;
-      expect(responseCard.cardContent.title).toBe('Article with Note');
-      expect(responseCard.note).toBeDefined();
-      expect(responseCard.note?.text).toBe('This is my note about the article');
+      expect(asUrlCard(responseCard).cardContent.title).toBe(
+        'Article with Note',
+      );
+      expect(asUrlCard(responseCard).note).toBeDefined();
+      expect(asUrlCard(responseCard).note?.text).toBe(
+        'This is my note about the article',
+      );
     });
 
     it('should handle collection without description', async () => {
@@ -583,9 +597,15 @@ describe('GetCollectionPageUseCase', () => {
 
       expect(result.isOk()).toBe(true);
       const response = result.unwrap();
-      expect(response.urlCards[0]?.cardContent.title).toBe('Gamma Article'); // newest updated
-      expect(response.urlCards[1]?.cardContent.title).toBe('Alpha Article'); // middle updated
-      expect(response.urlCards[2]?.cardContent.title).toBe('Beta Article'); // oldest updated
+      expect(asUrlCard(response.urlCards[0]).cardContent.title).toBe(
+        'Gamma Article',
+      ); // newest updated
+      expect(asUrlCard(response.urlCards[1]).cardContent.title).toBe(
+        'Alpha Article',
+      ); // middle updated
+      expect(asUrlCard(response.urlCards[2]).cardContent.title).toBe(
+        'Beta Article',
+      ); // oldest updated
     });
 
     it('should sort by created date ascending', async () => {
@@ -599,9 +619,15 @@ describe('GetCollectionPageUseCase', () => {
 
       expect(result.isOk()).toBe(true);
       const response = result.unwrap();
-      expect(response.urlCards[0]?.cardContent.title).toBe('Alpha Article'); // oldest created
-      expect(response.urlCards[1]?.cardContent.title).toBe('Beta Article'); // middle created
-      expect(response.urlCards[2]?.cardContent.title).toBe('Gamma Article'); // newest created
+      expect(asUrlCard(response.urlCards[0]).cardContent.title).toBe(
+        'Alpha Article',
+      ); // oldest created
+      expect(asUrlCard(response.urlCards[1]).cardContent.title).toBe(
+        'Beta Article',
+      ); // middle created
+      expect(asUrlCard(response.urlCards[2]).cardContent.title).toBe(
+        'Gamma Article',
+      ); // newest created
     });
 
     it('should sort by library count (all URL cards have same count)', async () => {
@@ -856,10 +882,16 @@ describe('GetCollectionPageUseCase', () => {
       expect(result.isOk()).toBe(true);
       const response = result.unwrap();
       expect(response.urlCards).toHaveLength(1);
-      expect(response.urlCards[0]?.cardContent.title).toBeUndefined();
-      expect(response.urlCards[0]?.cardContent.description).toBeUndefined();
-      expect(response.urlCards[0]?.cardContent.author).toBeUndefined();
-      expect(response.urlCards[0]?.cardContent.imageUrl).toBeUndefined();
+      expect(asUrlCard(response.urlCards[0]).cardContent.title).toBeUndefined();
+      expect(
+        asUrlCard(response.urlCards[0]).cardContent.description,
+      ).toBeUndefined();
+      expect(
+        asUrlCard(response.urlCards[0]).cardContent.author,
+      ).toBeUndefined();
+      expect(
+        asUrlCard(response.urlCards[0]).cardContent.imageUrl,
+      ).toBeUndefined();
     });
 
     it('should handle author profile with minimal data', async () => {

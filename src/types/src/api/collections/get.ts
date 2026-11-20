@@ -6,18 +6,22 @@ import {
   UrlTypeSchema,
 } from '../../entities/common';
 import { CollectionSchema } from '../../entities/collection';
-import { UrlCardSchema } from '../../entities/card';
+import { CardItemSchema } from '../../entities/card';
+import { CardTypesParamSchema } from '../cards/listMine';
 
 export const GetCollectionPageParamsSchema =
   PaginatedCardSortedParamsSchema.extend({
     urlType: UrlTypeSchema.optional(),
+    cardTypes: CardTypesParamSchema,
   });
 export type GetCollectionPageParams = z.infer<
   typeof GetCollectionPageParamsSchema
 >;
 
 export const GetCollectionPageResponseSchema = CollectionSchema.extend({
-  urlCards: z.array(UrlCardSchema),
+  // Field kept as `urlCards` for wire compatibility; items are a card-type
+  // union discriminated by `type`
+  urlCards: z.array(CardItemSchema),
   pagination: PaginationSchema,
   sorting: CardSortingSchema,
 });

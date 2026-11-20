@@ -55,3 +55,34 @@ export const UrlCardWithCollectionsAndLibrariesSchema = UrlCardSchema.extend({
 export type UrlCardWithCollectionsAndLibraries = z.infer<
   typeof UrlCardWithCollectionsAndLibrariesSchema
 >;
+
+// An annotation card — a passage (text quote selector) on a URL with an
+// optional note. Anchors to the URL; no parent card.
+export const AnnotationCardSchema = z.object({
+  id: z.string(),
+  type: z.literal('ANNOTATION'),
+  url: z.string(),
+  uri: z.string().optional(),
+  libraryCount: z.number(),
+  selectors: z.array(TextQuoteSelectorSchema),
+  note: z.string().optional(),
+  createdAt: z.string(),
+  updatedAt: z.string(),
+  author: UserSchema,
+});
+export type AnnotationCard = z.infer<typeof AnnotationCardSchema>;
+
+// Discriminated union of card types returned by card list endpoints. The
+// `type` literal narrows: consumers expecting a URL card get compile-time
+// safety on URL-specific fields (cardContent, urlLibraryCount, ...) after
+// checking `card.type === 'URL'`.
+export const CardItemSchema = z.discriminatedUnion('type', [
+  UrlCardSchema,
+  AnnotationCardSchema,
+]);
+export type CardItem = z.infer<typeof CardItemSchema>;
+
+export const isUrlCard = (card: CardItem): card is UrlCard =>
+  card.type === 'URL';
+export const isAnnotationCard = (card: CardItem): card is AnnotationCard =>
+  card.type === 'ANNOTATION';

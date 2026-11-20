@@ -6,8 +6,10 @@ import {
   CardSortField,
   SortOrder,
   UrlCardView,
+  AnnotationCardView,
 } from '../../../domain/ICardQueryRepository';
 import { UrlType } from '../../../domain/value-objects/UrlType';
+import { CardTypeEnum } from '../../../domain/value-objects/CardType';
 import { ICollectionRepository } from '../../../domain/ICollectionRepository';
 import { IProfileService } from '../../../domain/services/IProfileService';
 import { IFollowsRepository } from 'src/modules/user/domain/repositories/IFollowsRepository';
@@ -23,9 +25,12 @@ export interface GetCollectionPageQuery {
   sortBy?: CardSortField;
   sortOrder?: SortOrder;
   urlType?: UrlType;
+  /** Card types to include; defaults to URL only (backwards compatible) */
+  cardTypes?: CardTypeEnum[];
 }
 
-export type CollectionPageUrlCardDTO = UrlCardView;
+// Card-type union discriminated by `type`
+export type CollectionPageCardDTO = UrlCardView | AnnotationCardView;
 export interface GetCollectionPageResult {
   id: string;
   uri?: string;
@@ -37,7 +42,7 @@ export interface GetCollectionPageResult {
     handle: string;
     avatarUrl?: string;
   };
-  urlCards: CollectionPageUrlCardDTO[];
+  urlCards: CollectionPageCardDTO[];
   cardCount: number;
   followerCount: number;
   isFollowing?: boolean;
@@ -139,6 +144,7 @@ export class GetCollectionPageUseCase implements UseCase<
               sortBy,
               sortOrder,
               urlType,
+              cardTypes: query.cardTypes,
             },
             query.callingUserId,
           ),
@@ -207,7 +213,7 @@ export class GetCollectionPageUseCase implements UseCase<
             author,
           };
         })
-        .filter((card) => card !== null) as CollectionPageUrlCardDTO[];
+        .filter((card) => card !== null) as CollectionPageCardDTO[];
 
       // Process follow status (already fetched in parallel above)
       let isFollowing: boolean | undefined = undefined;

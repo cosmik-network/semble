@@ -3,6 +3,7 @@ import { Response } from 'express';
 import { GetUrlCardsUseCase } from '../../../application/useCases/queries/GetUrlCardsUseCase';
 import { AuthenticatedRequest } from '../../../../../shared/infrastructure/http/middleware/AuthMiddleware';
 import { CardSortField, SortOrder } from '../../../domain/ICardQueryRepository';
+import { parseCardTypesQuery } from './parseCardTypesQuery';
 
 export class GetMyUrlCardsController extends Controller {
   constructor(private getUrlCardsUseCase: GetUrlCardsUseCase) {
@@ -20,6 +21,7 @@ export class GetMyUrlCardsController extends Controller {
         urlType,
         uncollected,
         searchText,
+        cardTypes,
       } = req.query;
 
       if (!callerDid) {
@@ -36,6 +38,7 @@ export class GetMyUrlCardsController extends Controller {
         urlType: urlType as any,
         uncollected: uncollected === 'true',
         searchText: searchText as string | undefined,
+        cardTypes: parseCardTypesQuery(cardTypes),
       });
 
       if (result.isErr()) {

@@ -28,6 +28,7 @@ import {
   CoercedPaginatedCardSortedQuery,
   CoercedPaginatedCollectionSortedQuery,
 } from './shared';
+import { CardTypesParamSchema } from '@semble/types';
 
 const c = initContract();
 
@@ -81,6 +82,7 @@ export const collectionsContract = c.router(
       query: CoercedPaginatedCardSortedQuery.extend({
         collectionId: z.string(),
         urlType: UrlTypeSchema.optional(),
+        cardTypes: CardTypesParamSchema,
       }),
       responses: { 200: GetCollectionPageResponseSchema },
       summary: 'Get a collection by ID',
@@ -124,6 +126,7 @@ export const collectionsContract = c.router(
         handle: z.string(),
         recordKey: z.string(),
         urlType: UrlTypeSchema.optional(),
+        cardTypes: CardTypesParamSchema,
       }),
       responses: { 200: GetCollectionPageResponseSchema },
       summary: 'Get a collection by AT URI',

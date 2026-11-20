@@ -15,6 +15,7 @@ import { AddCardToLibraryUseCase } from '../../../../modules/cards/application/u
 import { AddCardToCollectionUseCase } from '../../../../modules/cards/application/useCases/commands/AddCardToCollectionUseCase';
 import { UpdateNoteCardUseCase } from '../../../../modules/cards/application/useCases/commands/UpdateNoteCardUseCase';
 import { UpdateUrlCardAssociationsUseCase } from '../../../../modules/cards/application/useCases/commands/UpdateUrlCardAssociationsUseCase';
+import { UpdateAnnotationAssociationsUseCase } from '../../../../modules/cards/application/useCases/commands/UpdateAnnotationAssociationsUseCase';
 import { RemoveCardFromLibraryUseCase } from '../../../../modules/cards/application/useCases/commands/RemoveCardFromLibraryUseCase';
 import { RemoveCardFromCollectionUseCase } from '../../../../modules/cards/application/useCases/commands/RemoveCardFromCollectionUseCase';
 import { GetUrlMetadataUseCase } from '../../../../modules/cards/application/useCases/queries/GetUrlMetadataUseCase';
@@ -170,6 +171,7 @@ export interface UseCases {
   addCardToCollectionUseCase: AddCardToCollectionUseCase;
   updateNoteCardUseCase: UpdateNoteCardUseCase;
   updateUrlCardAssociationsUseCase: UpdateUrlCardAssociationsUseCase;
+  updateAnnotationAssociationsUseCase: UpdateAnnotationAssociationsUseCase;
   removeCardFromLibraryUseCase: RemoveCardFromLibraryUseCase;
   removeCardFromCollectionUseCase: RemoveCardFromCollectionUseCase;
   getUrlMetadataUseCase: GetUrlMetadataUseCase;
@@ -460,6 +462,13 @@ export class UseCaseFactory {
         services.cardCollectionService,
         services.eventPublisher,
       ),
+      updateAnnotationAssociationsUseCase:
+        new UpdateAnnotationAssociationsUseCase(
+          repositories.cardRepository,
+          services.cardLibraryService,
+          services.cardCollectionService,
+          services.eventPublisher,
+        ),
       removeCardFromLibraryUseCase: new RemoveCardFromLibraryUseCase(
         repositories.cardRepository,
         services.cardLibraryService,

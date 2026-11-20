@@ -25,6 +25,16 @@ import { createTestSchema } from '../test-utils/createTestSchema';
 import { CardTypeEnum } from '../../domain/value-objects/CardType';
 import { UrlType } from '../../domain/value-objects/UrlType';
 
+import { UrlCardQueryResultDTO } from '../../domain/ICardQueryRepository';
+
+// Narrows the card-type union to the URL variant these URL-card fixtures produce
+const asUrlCard = (
+  card: UrlCardQueryResultDTO | undefined,
+): Extract<UrlCardQueryResultDTO, { type: CardTypeEnum.URL }> => {
+  expect(card?.type).toBe(CardTypeEnum.URL);
+  return card as Extract<UrlCardQueryResultDTO, { type: CardTypeEnum.URL }>;
+};
+
 describe('DrizzleCardQueryRepository - getUrlCardsOfUser', () => {
   let container: StartedPostgreSqlContainer;
   let db: PostgresJsDatabase;
@@ -147,18 +157,20 @@ describe('DrizzleCardQueryRepository - getUrlCardsOfUser', () => {
 
       expect(card1Result).toBeDefined();
       expect(card1Result?.type).toBe(CardTypeEnum.URL);
-      expect(card1Result?.cardContent.title).toBe('Example Article 1');
-      expect(card1Result?.cardContent.description).toBe(
+      expect(asUrlCard(card1Result).cardContent.title).toBe(
+        'Example Article 1',
+      );
+      expect(asUrlCard(card1Result).cardContent.description).toBe(
         'A great article about testing',
       );
-      expect(card1Result?.cardContent.author).toBe('John Doe');
-      expect(card1Result?.cardContent.imageUrl).toBe(
+      expect(asUrlCard(card1Result).cardContent.author).toBe('John Doe');
+      expect(asUrlCard(card1Result).cardContent.imageUrl).toBe(
         'https://example.com/image1.jpg',
       );
 
       expect(card2Result).toBeDefined();
       expect(card2Result?.type).toBe(CardTypeEnum.URL);
-      expect(card2Result?.cardContent.title).toBeUndefined(); // No metadata provided
+      expect(asUrlCard(card2Result).cardContent.title).toBeUndefined(); // No metadata provided
     });
 
     it('should include connected note cards', async () => {
@@ -199,9 +211,11 @@ describe('DrizzleCardQueryRepository - getUrlCardsOfUser', () => {
       expect(result.items).toHaveLength(1);
       const urlCardResult = result.items[0];
 
-      expect(urlCardResult?.note).toBeDefined();
-      expect(urlCardResult?.note?.id).toBe(noteCard.cardId.getStringValue());
-      expect(urlCardResult?.note?.text).toBe(
+      expect(asUrlCard(urlCardResult).note).toBeDefined();
+      expect(asUrlCard(urlCardResult).note?.id).toBe(
+        noteCard.cardId.getStringValue(),
+      );
+      expect(asUrlCard(urlCardResult).note?.text).toBe(
         'This is my note about the article',
       );
     });
@@ -474,12 +488,14 @@ describe('DrizzleCardQueryRepository - getUrlCardsOfUser', () => {
       // Check URL metadata
       expect(urlCardResult?.url).toBe(url.value);
       expect(urlCardResult?.type).toBe(CardTypeEnum.URL);
-      expect(urlCardResult?.cardContent.title).toBe('Complex Article');
-      expect(urlCardResult?.cardContent.description).toBe(
+      expect(asUrlCard(urlCardResult).cardContent.title).toBe(
+        'Complex Article',
+      );
+      expect(asUrlCard(urlCardResult).cardContent.description).toBe(
         'An article with notes and collections',
       );
-      expect(urlCardResult?.cardContent.author).toBe('Jane Smith');
-      expect(urlCardResult?.cardContent.imageUrl).toBe(
+      expect(asUrlCard(urlCardResult).cardContent.author).toBe('Jane Smith');
+      expect(asUrlCard(urlCardResult).cardContent.imageUrl).toBe(
         'https://example.com/complex.jpg',
       );
 
@@ -487,9 +503,11 @@ describe('DrizzleCardQueryRepository - getUrlCardsOfUser', () => {
       expect(urlCardResult?.libraryCount).toBe(1);
 
       // Check connected note
-      expect(urlCardResult?.note).toBeDefined();
-      expect(urlCardResult?.note?.id).toBe(noteCard.cardId.getStringValue());
-      expect(urlCardResult?.note?.text).toBe(
+      expect(asUrlCard(urlCardResult).note).toBeDefined();
+      expect(asUrlCard(urlCardResult).note?.id).toBe(
+        noteCard.cardId.getStringValue(),
+      );
+      expect(asUrlCard(urlCardResult).note?.text).toBe(
         'Detailed analysis of the complex article',
       );
 
@@ -614,7 +632,7 @@ describe('DrizzleCardQueryRepository - getUrlCardsOfUser', () => {
 
       expect(result.items).toHaveLength(1);
       expect(result.items[0]?.libraryCount).toBe(1);
-      expect(result.items[0]?.urlLibraryCount).toBe(1);
+      expect(asUrlCard(result.items[0]).urlLibraryCount).toBe(1);
     });
 
     it('should return urlLibraryCount of 3 when three users have cards with the same URL', async () => {
@@ -662,7 +680,7 @@ describe('DrizzleCardQueryRepository - getUrlCardsOfUser', () => {
       expect(result.items).toHaveLength(1);
       expect(result.items[0]?.url).toBe(sharedUrl);
       expect(result.items[0]?.libraryCount).toBe(1); // Only in curator's library
-      expect(result.items[0]?.urlLibraryCount).toBe(3); // 3 users have this URL
+      expect(asUrlCard(result.items[0]).urlLibraryCount).toBe(3); // 3 users have this URL
     });
 
     it('should return different urlLibraryCounts for different URLs', async () => {
@@ -715,10 +733,10 @@ describe('DrizzleCardQueryRepository - getUrlCardsOfUser', () => {
       const card2 = result.items.find((item) => item.url === url2.value);
 
       expect(card1?.libraryCount).toBe(1);
-      expect(card1?.urlLibraryCount).toBe(1);
+      expect(asUrlCard(card1).urlLibraryCount).toBe(1);
 
       expect(card2?.libraryCount).toBe(1);
-      expect(card2?.urlLibraryCount).toBe(2);
+      expect(asUrlCard(card2).urlLibraryCount).toBe(2);
     });
 
     it('should handle urlLibraryCount with multiple cards per user for same URL', async () => {
@@ -764,7 +782,7 @@ describe('DrizzleCardQueryRepository - getUrlCardsOfUser', () => {
 
       expect(result.items).toHaveLength(1);
       expect(result.items[0]?.libraryCount).toBe(1); // Only in first user's library
-      expect(result.items[0]?.urlLibraryCount).toBe(2); // 2 unique users have this URL
+      expect(asUrlCard(result.items[0]).urlLibraryCount).toBe(2); // 2 unique users have this URL
     });
   });
 
@@ -849,7 +867,7 @@ describe('DrizzleCardQueryRepository - getUrlCardsOfUser', () => {
       });
 
       expect(result.items).toHaveLength(1);
-      expect(result.items[0]?.urlInLibrary).toBeUndefined();
+      expect(asUrlCard(result.items[0]).urlInLibrary).toBeUndefined();
     });
 
     it('should return urlInLibrary as true when callingUserId has the URL in their library', async () => {
@@ -890,7 +908,7 @@ describe('DrizzleCardQueryRepository - getUrlCardsOfUser', () => {
 
       expect(result.items).toHaveLength(1);
       expect(result.items[0]?.url).toBe(sharedUrl);
-      expect(result.items[0]?.urlInLibrary).toBe(true); // otherCurator has this URL
+      expect(asUrlCard(result.items[0]).urlInLibrary).toBe(true); // otherCurator has this URL
     });
 
     it('should return urlInLibrary as false when callingUserId does not have the URL in their library', async () => {
@@ -919,7 +937,7 @@ describe('DrizzleCardQueryRepository - getUrlCardsOfUser', () => {
       );
 
       expect(result.items).toHaveLength(1);
-      expect(result.items[0]?.urlInLibrary).toBe(false); // otherCurator doesn't have this URL
+      expect(asUrlCard(result.items[0]).urlInLibrary).toBe(false); // otherCurator doesn't have this URL
     });
 
     it('should return urlInLibrary as true when the card author is the same as callingUserId', async () => {
@@ -948,7 +966,7 @@ describe('DrizzleCardQueryRepository - getUrlCardsOfUser', () => {
       );
 
       expect(result.items).toHaveLength(1);
-      expect(result.items[0]?.urlInLibrary).toBe(true); // curator has their own URL
+      expect(asUrlCard(result.items[0]).urlInLibrary).toBe(true); // curator has their own URL
     });
 
     it('should return urlInLibrary correctly when user has multiple cards with the same URL', async () => {
@@ -999,7 +1017,7 @@ describe('DrizzleCardQueryRepository - getUrlCardsOfUser', () => {
 
       expect(result.items).toHaveLength(1);
       expect(result.items[0]?.url).toBe(sharedUrl);
-      expect(result.items[0]?.urlInLibrary).toBe(true); // otherCurator has this URL (even with multiple cards)
+      expect(asUrlCard(result.items[0]).urlInLibrary).toBe(true); // otherCurator has this URL (even with multiple cards)
     });
 
     it('should handle multiple URLs with different urlInLibrary values', async () => {
@@ -1055,8 +1073,8 @@ describe('DrizzleCardQueryRepository - getUrlCardsOfUser', () => {
       const card1 = result.items.find((item) => item.url === url1.value);
       const card2 = result.items.find((item) => item.url === url2.value);
 
-      expect(card1?.urlInLibrary).toBe(true); // otherCurator has this URL
-      expect(card2?.urlInLibrary).toBe(false); // otherCurator doesn't have this URL
+      expect(asUrlCard(card1).urlInLibrary).toBe(true); // otherCurator has this URL
+      expect(asUrlCard(card2).urlInLibrary).toBe(false); // otherCurator doesn't have this URL
     });
 
     it('should correctly handle urlInLibrary with third user checking two other users URLs', async () => {
@@ -1097,8 +1115,8 @@ describe('DrizzleCardQueryRepository - getUrlCardsOfUser', () => {
 
       expect(result.items).toHaveLength(1);
       expect(result.items[0]?.url).toBe(sharedUrl);
-      expect(result.items[0]?.urlInLibrary).toBe(false); // thirdCurator doesn't have this URL
-      expect(result.items[0]?.urlLibraryCount).toBe(2); // But 2 users have it
+      expect(asUrlCard(result.items[0]).urlInLibrary).toBe(false); // thirdCurator doesn't have this URL
+      expect(asUrlCard(result.items[0]).urlLibraryCount).toBe(2); // But 2 users have it
     });
   });
 
@@ -1197,6 +1215,85 @@ describe('DrizzleCardQueryRepository - getUrlCardsOfUser', () => {
 
       expect(result.items).toHaveLength(0);
       expect(result.totalCount).toBe(0);
+    });
+  });
+
+  describe('cardTypes', () => {
+    it('excludes annotation cards by default', async () => {
+      const url = URL.create('https://example.com/annotated').unwrap();
+      const annotationCard = new CardBuilder()
+        .withCuratorId(curatorId.value)
+        .withAnnotationCard(
+          url,
+          [{ exact: 'the quoted passage', prefix: 'context before, ' }],
+          'my note',
+        )
+        .buildOrThrow();
+      await cardRepository.save(annotationCard);
+      annotationCard.addToLibrary(curatorId);
+      await cardRepository.save(annotationCard);
+
+      const result = await queryRepository.getUrlCardsOfUser(curatorId.value, {
+        page: 1,
+        limit: 10,
+        sortBy: CardSortField.UPDATED_AT,
+        sortOrder: SortOrder.DESC,
+      });
+
+      expect(result.items).toHaveLength(0);
+    });
+
+    it('returns annotation cards with selectors and note when requested', async () => {
+      const url = URL.create('https://example.com/annotated').unwrap();
+      const urlCard = new CardBuilder()
+        .withCuratorId(curatorId.value)
+        .withUrlCard(url)
+        .buildOrThrow();
+      await cardRepository.save(urlCard);
+      urlCard.addToLibrary(curatorId);
+      await cardRepository.save(urlCard);
+
+      const annotationCard = new CardBuilder()
+        .withCuratorId(curatorId.value)
+        .withAnnotationCard(
+          url,
+          [{ exact: 'first passage', prefix: 'a ', suffix: ' here' }],
+          'my note',
+        )
+        .withCreatedAt(new Date('2023-01-02'))
+        .withUpdatedAt(new Date('2023-01-02'))
+        .buildOrThrow();
+      await cardRepository.save(annotationCard);
+      annotationCard.addToLibrary(curatorId);
+      await cardRepository.save(annotationCard);
+
+      const result = await queryRepository.getUrlCardsOfUser(curatorId.value, {
+        page: 1,
+        limit: 10,
+        sortBy: CardSortField.UPDATED_AT,
+        sortOrder: SortOrder.DESC,
+        cardTypes: [CardTypeEnum.URL, CardTypeEnum.ANNOTATION],
+      });
+
+      expect(result.items).toHaveLength(2);
+
+      const annotation = result.items.find(
+        (card) => card.type === CardTypeEnum.ANNOTATION,
+      );
+      expect(annotation).toBeDefined();
+      if (annotation?.type !== CardTypeEnum.ANNOTATION) {
+        throw new Error('expected annotation card');
+      }
+      expect(annotation.url).toBe(url.value);
+      expect(annotation.note).toBe('my note');
+      expect(annotation.selectors).toEqual([
+        {
+          type: 'TextQuoteSelector',
+          exact: 'first passage',
+          prefix: 'a ',
+          suffix: ' here',
+        },
+      ]);
     });
   });
 });
