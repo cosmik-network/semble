@@ -91,7 +91,7 @@ export function ThreadTombstone(props: {
         radius="sm"
         bg="var(--mantine-color-default-hover)"
         px="xs"
-        py={2}
+        py="xs"
       >
         <Group gap={6} wrap="nowrap" mih={20}>
           <Box c="dimmed" display="flex" flex="none">
