@@ -79,6 +79,7 @@ describe('Annotation read use cases', () => {
     cardQueryRepository = new InMemoryCardQueryRepository(
       cardRepository,
       collectionRepository,
+      connectionRepository,
     );
     collectionQueryRepository = new InMemoryCollectionQueryRepository(
       collectionRepository,
@@ -157,6 +158,31 @@ describe('Annotation read use cases', () => {
         'a note',
         undefined,
       ]);
+    });
+
+    it('reports entity-level libraryCount across all cards matching the passage', async () => {
+      // Two cards on the same passage, one on a different passage
+      await createAnnotationCard(curator1, { note: 'a note' });
+      await createAnnotationCard(curator2);
+      await createAnnotationCard(curator1, { exact: 'a different passage' });
+
+      const result = await getAnnotationsForUrl.execute({
+        url: TEST_URL,
+        ...defaultOptions,
+      });
+
+      expect(result.isOk()).toBe(true);
+      const annotations = result.unwrap().annotations;
+      const samePassage = annotations.filter(
+        (a) => a.selectors[0]!.exact === PASSAGE,
+      );
+      const otherPassage = annotations.filter(
+        (a) => a.selectors[0]!.exact === 'a different passage',
+      );
+      // Both same-passage cards see the aggregate (2 users), not the
+      // card-level count (1); the other passage only counts itself
+      expect(samePassage.map((a) => a.libraryCount)).toEqual([2, 2]);
+      expect(otherPassage[0]!.libraryCount).toBe(1);
     });
 
     it('rejects an invalid URL', async () => {
@@ -339,6 +365,16 @@ describe('Annotation read use cases', () => {
         'https://example.com/other',
       );
       expect(connections[0]!.connection.curator.handle).toBe('curator1');
+
+      // Entity-level connection count shows up on the annotation card views
+      const annotationsResult = await getAnnotationsForUrl.execute({
+        url: TEST_URL,
+        ...defaultOptions,
+      });
+      expect(annotationsResult.isOk()).toBe(true);
+      expect(annotationsResult.unwrap().annotations[0]!.connectionCount).toBe(
+        1,
+      );
     });
 
     it('does not return connections for non-matching cards', async () => {

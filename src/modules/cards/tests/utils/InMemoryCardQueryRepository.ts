@@ -235,11 +235,13 @@ export class InMemoryCardQueryRepository implements ICardQueryRepository {
         author: card.content.urlContent.metadata?.author,
         imageUrl: card.content.urlContent.metadata?.imageUrl,
       },
-      libraryCount: this.getLibraryCountForCard(card.cardId.getStringValue()),
+      // Entity-level: mirrors urlLibraryCount until it is phased out
+      libraryCount: this.getUrlLibraryCount(url),
       urlLibraryCount: this.getUrlLibraryCount(url),
       urlInLibrary,
       urlConnectionCount,
       urlIsConnected,
+      connectionCount: urlConnectionCount,
       createdAt: card.createdAt,
       updatedAt: card.updatedAt,
       authorId: card.curatorId.value,
@@ -599,11 +601,12 @@ export class InMemoryCardQueryRepository implements ICardQueryRepository {
         author: card.content.urlContent!.metadata?.author,
         imageUrl: card.content.urlContent!.metadata?.imageUrl,
       },
-      libraryCount: this.getLibraryCountForCard(card.cardId.getStringValue()),
+      libraryCount: this.getUrlLibraryCount(url),
       urlLibraryCount: this.getUrlLibraryCount(url),
       urlInLibrary,
       urlConnectionCount,
       urlIsConnected,
+      connectionCount: urlConnectionCount,
       createdAt: card.createdAt,
       updatedAt: card.updatedAt,
       authorId: card.curatorId.value,
@@ -662,9 +665,8 @@ export class InMemoryCardQueryRepository implements ICardQueryRepository {
                 author: card.content.urlContent.metadata?.author,
                 imageUrl: card.content.urlContent.metadata?.imageUrl,
               },
-              libraryCount: this.getLibraryCountForCard(
-                card.cardId.getStringValue(),
-              ),
+              // Entity-level: mirrors urlLibraryCount until it is phased out
+              libraryCount: urlLibraryCount,
               urlLibraryCount,
               urlInLibrary: true,
               createdAt: card.createdAt,
@@ -799,13 +801,26 @@ export class InMemoryCardQueryRepository implements ICardQueryRepository {
     return sorted;
   }
 
-  private toAnnotationView(card: Card): AnnotationCardView {
+  private async toAnnotationView(card: Card): Promise<AnnotationCardView> {
     const annotationContent = card.content.annotationContent;
+    const url = card.url?.value ?? '';
+    const normalizedExact =
+      annotationContent?.textQuoteSelector?.normalizedExact;
+
+    // Entity-level counts across all cards matching this passage
+    const libraryCount = normalizedExact
+      ? this.getMatchingAnnotationLibraryCount(url, normalizedExact)
+      : card.libraryCount;
+    const connectionCount = normalizedExact
+      ? await this.getMatchingAnnotationConnectionCount(url, normalizedExact)
+      : 0;
+
     return {
       id: card.cardId.getStringValue(),
       type: CardTypeEnum.ANNOTATION,
-      url: card.url?.value ?? '',
-      libraryCount: card.libraryCount,
+      url,
+      libraryCount,
+      connectionCount,
       selectors: (annotationContent?.selectors ?? []).map((selector) => ({
         type: 'TextQuoteSelector',
         exact: selector.textQuoteSelector?.exact ?? '',
@@ -817,6 +832,41 @@ export class InMemoryCardQueryRepository implements ICardQueryRepository {
       updatedAt: card.updatedAt,
       authorId: card.curatorId.value,
     };
+  }
+
+  private getMatchingAnnotationLibraryCount(
+    url: string,
+    exactNormalized: string,
+  ): number {
+    const uniqueUsers = new Set<string>();
+    for (const card of this.getMatchingAnnotationCards(url, exactNormalized)) {
+      for (const membership of card.libraryMemberships) {
+        uniqueUsers.add(membership.curatorId.value);
+      }
+    }
+    return uniqueUsers.size;
+  }
+
+  private async getMatchingAnnotationConnectionCount(
+    url: string,
+    exactNormalized: string,
+  ): Promise<number> {
+    if (!this.connectionRepository) {
+      return 0;
+    }
+
+    let count = 0;
+    for (const card of this.getMatchingAnnotationCards(url, exactNormalized)) {
+      const endpoint = UrlOrCardId.createFromCard(card.cardId).unwrap();
+      const [sourceResult, targetResult] = await Promise.all([
+        this.connectionRepository.findBySource(endpoint),
+        this.connectionRepository.findByTarget(endpoint),
+      ]);
+      count +=
+        (sourceResult.isOk() ? sourceResult.value.length : 0) +
+        (targetResult.isOk() ? targetResult.value.length : 0);
+    }
+    return count;
   }
 
   private sortAnnotationCards(
@@ -880,10 +930,14 @@ export class InMemoryCardQueryRepository implements ICardQueryRepository {
     const startIndex = (options.page - 1) * options.limit;
     const endIndex = startIndex + options.limit;
 
-    return {
-      items: annotationCards
+    const views = await Promise.all(
+      annotationCards
         .slice(startIndex, endIndex)
         .map((card) => this.toAnnotationView(card)),
+    );
+
+    return {
+      items: views,
       totalCount: annotationCards.length,
       hasMore: endIndex < annotationCards.length,
     };
@@ -940,12 +994,13 @@ export class InMemoryCardQueryRepository implements ICardQueryRepository {
       options.sortOrder,
     );
 
-    const libraries: LibraryForAnnotationDTO[] = annotationCards.flatMap(
-      (card) =>
-        card.libraryMemberships.map((link) => ({
+    const libraries: LibraryForAnnotationDTO[] = await Promise.all(
+      annotationCards.flatMap((card) =>
+        card.libraryMemberships.map(async (link) => ({
           userId: link.curatorId.value,
-          card: this.toAnnotationView(card),
+          card: await this.toAnnotationView(card),
         })),
+      ),
     );
 
     const startIndex = (options.page - 1) * options.limit;

@@ -70,11 +70,18 @@ export interface UrlCardView {
     doi?: string;
     isbn?: string;
   };
+  /**
+   * Entity-level library count: distinct users with any URL card for this
+   * URL (same value as urlLibraryCount). Supersedes the card-level count;
+   * urlLibraryCount stays for backwards compatibility until phased out.
+   */
   libraryCount: number;
   urlLibraryCount: number;
   urlInLibrary?: boolean;
   urlConnectionCount?: number;
   urlIsConnected?: boolean;
+  /** Entity-level connection count: connections with this URL as an endpoint */
+  connectionCount?: number;
   createdAt: Date;
   updatedAt: Date;
   authorId: string; // NEW - needed to enrich with author profile
@@ -91,7 +98,14 @@ export interface AnnotationCardView {
   type: CardTypeEnum.ANNOTATION;
   url: string;
   uri?: string;
+  /**
+   * Entity-level library count: distinct users with any annotation card
+   * matching this passage (url + normalized exact text), not saves of this
+   * individual card.
+   */
   libraryCount: number;
+  /** Connections where any passage-matching annotation card is an endpoint */
+  connectionCount?: number;
   selectors: {
     type: string;
     exact: string;

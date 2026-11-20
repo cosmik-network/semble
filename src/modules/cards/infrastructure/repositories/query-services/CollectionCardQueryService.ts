@@ -15,6 +15,10 @@ import { annotationSelectors } from '../schema/annotationSelector.sql';
 import { CardMapper } from '../mappers/CardMapper';
 import { CardTypeEnum } from '../../../domain/value-objects/CardType';
 import { fetchUrlEngagement, fetchUrlLibraryCounts } from './urlStatsQueries';
+import {
+  fetchAnnotationEngagement,
+  annotationEngagementKey,
+} from './annotationEngagementQueries';
 
 export class CollectionCardQueryService {
   constructor(private db: PostgresJsDatabase) {}
@@ -208,6 +212,7 @@ export class CollectionCardQueryService {
               selectorType: annotationSelectors.selectorType,
               ordinal: annotationSelectors.ordinal,
               exact: annotationSelectors.exact,
+              exactNormalized: annotationSelectors.exactNormalized,
               prefix: annotationSelectors.prefix,
               suffix: annotationSelectors.suffix,
             })
@@ -228,6 +233,7 @@ export class CollectionCardQueryService {
           selectorType: string;
           ordinal: number;
           exact: string;
+          exactNormalized: string;
           prefix: string | null;
           suffix: string | null;
         }>
@@ -237,6 +243,26 @@ export class CollectionCardQueryService {
         existing.push(selector);
         selectorsByCardId.set(selector.cardId, existing);
       }
+
+      // Entity-level engagement per annotation passage (url + normalized
+      // exact) — library/connection counts across all matching cards
+      const annotationEngagementKeys = cardsResult
+        .filter((card) => card.type === CardTypeEnum.ANNOTATION)
+        .map((card) => {
+          const selector = (selectorsByCardId.get(card.id) || []).find(
+            (s) => s.selectorType === 'TextQuoteSelector',
+          );
+          return selector && card.url
+            ? { url: card.url, exactNormalized: selector.exactNormalized }
+            : null;
+        })
+        .filter((key): key is { url: string; exactNormalized: string } =>
+          Boolean(key),
+        );
+      const annotationEngagementMap = await fetchAnnotationEngagement(
+        this.db,
+        annotationEngagementKeys,
+      );
 
       // Get total count
       const totalCountResult = await this.db
@@ -252,12 +278,27 @@ export class CollectionCardQueryService {
       // Combine the data — branch per card type
       const items: CollectionCardQueryResultDTO[] = cardsResult.map((card) => {
         if (card.type === CardTypeEnum.ANNOTATION) {
+          // Entity-level counts across all cards matching this passage
+          const quoteSelector = (selectorsByCardId.get(card.id) || []).find(
+            (s) => s.selectorType === 'TextQuoteSelector',
+          );
+          const engagement =
+            quoteSelector && card.url
+              ? annotationEngagementMap.get(
+                  annotationEngagementKey(
+                    card.url,
+                    quoteSelector.exactNormalized,
+                  ),
+                )
+              : undefined;
+
           return CardMapper.toAnnotationCardQueryResult({
             id: card.id,
             authorId: card.authorId,
             url: card.url || '',
             uri: card.publishedRecordUri || undefined,
-            libraryCount: card.libraryCount,
+            libraryCount: engagement?.libraryCount ?? card.libraryCount,
+            connectionCount: engagement?.connectionCount ?? 0,
             contentData: card.contentData,
             selectors: selectorsByCardId.get(card.id) || [],
             createdAt: card.createdAt,
@@ -278,8 +319,10 @@ export class CollectionCardQueryService {
           url: card.url || '',
           uri: card.publishedRecordUri || undefined,
           contentData: card.contentData,
-          libraryCount: card.libraryCount,
+          // Entity-level: mirrors urlLibraryCount until it is phased out
+          libraryCount: engagement.urlLibraryCount,
           ...engagement,
+          connectionCount: engagement.urlConnectionCount,
           createdAt: card.createdAt,
           updatedAt: card.updatedAt,
           note: note

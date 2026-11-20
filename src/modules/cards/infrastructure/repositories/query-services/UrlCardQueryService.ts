@@ -46,6 +46,10 @@ import {
   fetchUrlStats,
   UrlEngagement,
 } from './urlStatsQueries';
+import {
+  fetchAnnotationEngagement,
+  annotationEngagementKey,
+} from './annotationEngagementQueries';
 
 export class UrlCardQueryService {
   constructor(private db: PostgresJsDatabase) {}
@@ -348,6 +352,7 @@ export class UrlCardQueryService {
             selectorType: annotationSelectors.selectorType,
             ordinal: annotationSelectors.ordinal,
             exact: annotationSelectors.exact,
+            exactNormalized: annotationSelectors.exactNormalized,
             prefix: annotationSelectors.prefix,
             suffix: annotationSelectors.suffix,
           })
@@ -382,6 +387,7 @@ export class UrlCardQueryService {
         selectorType: string;
         ordinal: number;
         exact: string;
+        exactNormalized: string;
         prefix: string | null;
         suffix: string | null;
       }>
@@ -391,6 +397,24 @@ export class UrlCardQueryService {
       existing.push(selector);
       selectorsByCardId.set(selector.cardId, existing);
     }
+
+    // Entity-level engagement per annotation passage (url + normalized
+    // exact) — library/connection counts across all matching cards
+    const annotationEngagementMap = await fetchAnnotationEngagement(
+      this.db,
+      annotationCardRows
+        .map((card) => {
+          const selector = (selectorsByCardId.get(card.id) || []).find(
+            (s) => s.selectorType === 'TextQuoteSelector',
+          );
+          return selector && card.url
+            ? { url: card.url, exactNormalized: selector.exactNormalized }
+            : null;
+        })
+        .filter((key): key is { url: string; exactNormalized: string } =>
+          Boolean(key),
+        ),
+    );
 
     return cardRows.map((card) => {
       // Collections containing this card
@@ -404,13 +428,28 @@ export class UrlCardQueryService {
         }));
 
       if (card.type === CardTypeEnum.ANNOTATION) {
+        // Entity-level counts across all cards matching this passage
+        const quoteSelector = (selectorsByCardId.get(card.id) || []).find(
+          (s) => s.selectorType === 'TextQuoteSelector',
+        );
+        const engagement =
+          quoteSelector && card.url
+            ? annotationEngagementMap.get(
+                annotationEngagementKey(
+                  card.url,
+                  quoteSelector.exactNormalized,
+                ),
+              )
+            : undefined;
+
         return {
           ...CardMapper.toAnnotationCardQueryResult({
             id: card.id,
             authorId: card.authorId,
             url: card.url || '',
             uri: card.publishedRecordUri || undefined,
-            libraryCount: card.libraryCount,
+            libraryCount: engagement?.libraryCount ?? card.libraryCount,
+            connectionCount: engagement?.connectionCount ?? 0,
             contentData: card.contentData,
             selectors: selectorsByCardId.get(card.id) || [],
             createdAt: card.createdAt,
@@ -423,6 +462,10 @@ export class UrlCardQueryService {
       const engagement =
         urlEngagementMap.get(card.url || '') ||
         ({ urlLibraryCount: 0, urlConnectionCount: 0 } as UrlEngagement);
+      const entityLibraryCount =
+        card.urlLibraryCount ??
+        urlLibraryCountsOverride?.get(card.url || '') ??
+        engagement.urlLibraryCount;
 
       // Note for this card
       const note = notesResult.find((n) => n.parentCardId === card.id);
@@ -433,14 +476,13 @@ export class UrlCardQueryService {
         url: card.url || '',
         uri: card.publishedRecordUri || undefined,
         contentData: card.contentData,
-        libraryCount: card.libraryCount,
-        urlLibraryCount:
-          card.urlLibraryCount ??
-          urlLibraryCountsOverride?.get(card.url || '') ??
-          engagement.urlLibraryCount,
+        // Entity-level: mirrors urlLibraryCount until it is phased out
+        libraryCount: entityLibraryCount,
+        urlLibraryCount: entityLibraryCount,
         urlInLibrary: engagement.urlInLibrary,
         urlConnectionCount: engagement.urlConnectionCount,
         urlIsConnected: engagement.urlIsConnected,
+        connectionCount: engagement.urlConnectionCount,
         createdAt: card.createdAt,
         updatedAt: card.updatedAt,
         collections: cardCollections,
@@ -626,11 +668,13 @@ export class UrlCardQueryService {
         url: card.url || '',
         uri: card.publishedRecordUri || undefined,
         contentData: card.contentData,
-        libraryCount: card.libraryCount,
+        // Entity-level: mirrors urlLibraryCount until it is phased out
+        libraryCount: urlLibraryCount,
         urlLibraryCount,
         urlInLibrary,
         urlConnectionCount,
         urlIsConnected,
+        connectionCount: urlConnectionCount,
         createdAt: card.createdAt,
         updatedAt: card.updatedAt,
         inLibraries: libraryResult.map((lib) => ({ userId: lib.userId })),
@@ -766,7 +810,8 @@ export class UrlCardQueryService {
               ...lib.contentData?.metadata,
               url: lib.contentData?.url,
             }),
-            libraryCount: lib.libraryCount,
+            // Entity-level: mirrors urlLibraryCount until it is phased out
+            libraryCount: urlLibraryCount,
             urlLibraryCount,
             urlInLibrary: true, // By definition, if it's in this result, it's in a library
             createdAt: lib.createdAt,

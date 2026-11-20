@@ -15,6 +15,10 @@ import { libraryMemberships } from '../schema/libraryMembership.sql';
 import { annotationSelectors } from '../schema/annotationSelector.sql';
 import { publishedRecords } from '../schema/publishedRecord.sql';
 import { CardMapper } from '../mappers/CardMapper';
+import {
+  fetchAnnotationEngagement,
+  annotationEngagementKey,
+} from './annotationEngagementQueries';
 
 export class AnnotationCardQueryService {
   constructor(private db: PostgresJsDatabase) {}
@@ -329,6 +333,7 @@ export class AnnotationCardQueryService {
         selectorType: annotationSelectors.selectorType,
         ordinal: annotationSelectors.ordinal,
         exact: annotationSelectors.exact,
+        exactNormalized: annotationSelectors.exactNormalized,
         prefix: annotationSelectors.prefix,
         suffix: annotationSelectors.suffix,
       })
@@ -343,19 +348,48 @@ export class AnnotationCardQueryService {
       selectorsByCard.set(selectorRow.cardId, list);
     }
 
-    return rows.map((row) =>
-      CardMapper.toAnnotationCardQueryResult({
+    // Entity-level engagement per passage — library/connection counts across
+    // all matching annotation cards, not just this page's rows
+    const engagementMap = await fetchAnnotationEngagement(
+      this.db,
+      rows
+        .map((row) => {
+          const selector = (selectorsByCard.get(row.id) ?? []).find(
+            (s) => s.selectorType === 'TextQuoteSelector',
+          );
+          return selector
+            ? { url: row.url, exactNormalized: selector.exactNormalized }
+            : null;
+        })
+        .filter((key): key is { url: string; exactNormalized: string } =>
+          Boolean(key),
+        ),
+    );
+
+    return rows.map((row) => {
+      // Entity-level counts across all cards matching this passage
+      const quoteSelector = (selectorsByCard.get(row.id) ?? []).find(
+        (s) => s.selectorType === 'TextQuoteSelector',
+      );
+      const engagement = quoteSelector
+        ? engagementMap.get(
+            annotationEngagementKey(row.url, quoteSelector.exactNormalized),
+          )
+        : undefined;
+
+      return CardMapper.toAnnotationCardQueryResult({
         id: row.id,
         authorId: row.authorId,
         url: row.url,
         uri: row.publishedRecordUri || undefined,
-        libraryCount: row.libraryCount,
+        libraryCount: engagement?.libraryCount ?? row.libraryCount,
+        connectionCount: engagement?.connectionCount ?? 0,
         contentData: row.contentData,
         selectors: selectorsByCard.get(row.id) ?? [],
         createdAt: row.createdAt,
         updatedAt: row.updatedAt,
-      }),
-    );
+      });
+    });
   }
 
   private getSortColumn(sortBy: CardSortField) {

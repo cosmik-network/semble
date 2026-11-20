@@ -122,6 +122,7 @@ export interface RawUrlCardData {
   urlInLibrary?: boolean;
   urlConnectionCount?: number;
   urlIsConnected?: boolean;
+  connectionCount?: number;
   createdAt: Date;
   updatedAt: Date;
   collections: {
@@ -472,6 +473,7 @@ export class CardMapper {
       urlInLibrary: raw.urlInLibrary,
       urlConnectionCount: raw.urlConnectionCount,
       urlIsConnected: raw.urlIsConnected,
+      connectionCount: raw.connectionCount,
       createdAt: raw.createdAt,
       updatedAt: raw.updatedAt,
       authorId: raw.authorId,
@@ -488,6 +490,7 @@ export class CardMapper {
     url: string;
     uri?: string;
     libraryCount: number;
+    connectionCount?: number;
     contentData: any; // AnnotationContentData { note? }
     selectors: Array<{
       selectorType: string;
@@ -505,6 +508,7 @@ export class CardMapper {
       url: raw.url,
       uri: raw.uri,
       libraryCount: raw.libraryCount,
+      connectionCount: raw.connectionCount,
       selectors: [...raw.selectors]
         .sort((a, b) => a.ordinal - b.ordinal)
         .map((s) => ({
@@ -531,6 +535,7 @@ export class CardMapper {
     urlInLibrary?: boolean;
     urlConnectionCount?: number;
     urlIsConnected?: boolean;
+    connectionCount?: number;
     createdAt: Date;
     updatedAt: Date;
     note?: {
@@ -563,6 +568,7 @@ export class CardMapper {
       urlInLibrary: raw.urlInLibrary,
       urlConnectionCount: raw.urlConnectionCount,
       urlIsConnected: raw.urlIsConnected,
+      connectionCount: raw.connectionCount,
       createdAt: raw.createdAt,
       updatedAt: raw.updatedAt,
       authorId: raw.authorId,
@@ -582,6 +588,7 @@ export class CardMapper {
     urlInLibrary?: boolean;
     urlConnectionCount?: number;
     urlIsConnected?: boolean;
+    connectionCount?: number;
     createdAt: Date;
     updatedAt: Date;
     inLibraries: {
@@ -623,6 +630,7 @@ export class CardMapper {
       urlInLibrary: raw.urlInLibrary,
       urlConnectionCount: raw.urlConnectionCount,
       urlIsConnected: raw.urlIsConnected,
+      connectionCount: raw.connectionCount,
       createdAt: raw.createdAt,
       updatedAt: raw.updatedAt,
       authorId: raw.authorId,
