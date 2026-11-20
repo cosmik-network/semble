@@ -97,14 +97,17 @@ export default function AddConnectionForm(props: Props) {
   const swapClicks = useRef(0);
   const searchedLinks = useRef(false);
 
-  const handleUrlSelect =
-    (field: 'sourceUrl' | 'targetUrl') =>
-    (url: string, method?: ConnectionLinkInputMethod, inLibrary?: boolean) => {
-      if (url && method) linkPicks.current.set(url, { method, inLibrary });
-      form.setFieldValue(field, url);
-    };
+  const handleUrlSelect = (
+    field: 'sourceUrl' | 'targetUrl',
+    url: string,
+    method?: ConnectionLinkInputMethod,
+    inLibrary?: boolean,
+  ) => {
+    if (url && method) linkPicks.current.set(url, { method, inLibrary });
+    form.setFieldValue(field, url);
+  };
 
-  const handleRawInput = (raw: typeof rawSourceInput) => (value: string) => {
+  const handleRawInput = (raw: typeof rawSourceInput, value: string) => {
     raw.current = value;
     // Pasting a link also runs a search; only words count as searching
     if (value.trim() && !isValidUrl(value.trim())) {
@@ -168,7 +171,7 @@ export default function AddConnectionForm(props: Props) {
     if (!form.values.sourceUrl && rawSourceInput.current) {
       try {
         new URL(rawSourceInput.current);
-        handleUrlSelect('sourceUrl')(rawSourceInput.current, 'pasted');
+        handleUrlSelect('sourceUrl', rawSourceInput.current, 'pasted');
       } catch {
         // not a valid URL, let validation handle it
       }
@@ -176,7 +179,7 @@ export default function AddConnectionForm(props: Props) {
     if (!form.values.targetUrl && rawTargetInput.current) {
       try {
         new URL(rawTargetInput.current);
-        handleUrlSelect('targetUrl')(rawTargetInput.current, 'pasted');
+        handleUrlSelect('targetUrl', rawTargetInput.current, 'pasted');
       } catch {
         // not a valid URL, let validation handle it
       }
@@ -292,8 +295,10 @@ export default function AddConnectionForm(props: Props) {
         placeholder="Search or paste a link"
         value={form.values.sourceUrl}
         error={form.errors.sourceUrl}
-        onUrlSelect={handleUrlSelect('sourceUrl')}
-        onInputChange={handleRawInput(rawSourceInput)}
+        onUrlSelect={(url, method, inLibrary) =>
+          handleUrlSelect('sourceUrl', url, method, inLibrary)
+        }
+        onInputChange={(value) => handleRawInput(rawSourceInput, value)}
       />
       {form.errors.sourceUrl && (
         <Text size="sm" c="red" mt="xs">
@@ -312,8 +317,10 @@ export default function AddConnectionForm(props: Props) {
         placeholder="Search or paste a link"
         value={form.values.targetUrl}
         error={form.errors.targetUrl}
-        onUrlSelect={handleUrlSelect('targetUrl')}
-        onInputChange={handleRawInput(rawTargetInput)}
+        onUrlSelect={(url, method, inLibrary) =>
+          handleUrlSelect('targetUrl', url, method, inLibrary)
+        }
+        onInputChange={(value) => handleRawInput(rawTargetInput, value)}
       />
       {form.errors.targetUrl && (
         <Text size="sm" c="red" mt="xs">

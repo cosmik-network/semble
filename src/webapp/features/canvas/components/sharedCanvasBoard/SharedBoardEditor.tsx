@@ -72,13 +72,12 @@ function connectionEndsOf(editor: Editor): ConnectionEnd[] {
   return Array.from(byUrl, ([url, shapeIds]) => ({ url, shapeIds }));
 }
 
-type Status = 'loading' | 'ready' | 'newer-version' | 'missing' | 'failed';
+type Status = 'loading' | 'ready' | 'newer-version' | 'missing';
 
 export default function SharedBoardEditor(props: { shareToken: string }) {
   const colorScheme = useComputedColorScheme();
   const [editor, setEditor] = useState<Editor | null>(null);
-  const [status, setStatus] = useState<Status>('loading');
-  const [name, setName] = useState<string | null>(null);
+  const [loaded, setLoaded] = useState(false);
   const [arrowView, setArrowView] = useState<
     ReturnType<typeof attachArrows>['view'] | null
   >(null);
@@ -106,11 +105,12 @@ export default function SharedBoardEditor(props: { shareToken: string }) {
     staleTime: Infinity,
   });
 
+  const name = opened.data?.record.name ?? DEFAULT_CANVAS_NAME;
   const components = useMemo<TLComponents>(
     () => ({
       MenuPanel: () => (
         <SharedHeader
-          name={name ?? DEFAULT_CANVAS_NAME}
+          name={name}
           author={author.data ?? null}
         />
       ),
@@ -124,32 +124,37 @@ export default function SharedBoardEditor(props: { shareToken: string }) {
     [name, author.data, arrowView],
   );
 
-  useEffect(() => {
-    if (opened.isError) {
-      // A revoked, mistyped or never-existed token
-      setStatus('missing');
-    }
-  }, [opened.isError]);
+  // Showing it would take migrating down, which tldraw can't do
+  const tooNew = useMemo(() => {
+    const document = opened.data?.document;
+    return (
+      !!editor &&
+      !!document &&
+      isNewerSchema(document.schema, editor.store.schema.serialize())
+    );
+  }, [editor, opened.data]);
+
+  // A revoked, mistyped or never-existed token reads as missing
+  const status: Status = opened.isError
+    ? 'missing'
+    : tooNew
+      ? 'newer-version'
+      : loaded
+        ? 'ready'
+        : 'loading';
 
   useEffect(() => {
-    if (!editor || !opened.data) return;
+    if (!editor || !opened.data || tooNew) return;
     const { record, document } = opened.data;
-    // Showing it would take migrating down, which tldraw can't do
-    if (
-      document &&
-      isNewerSchema(document.schema, editor.store.schema.serialize())
-    ) {
-      setStatus('newer-version');
-      return;
-    }
-    setName(record.name);
     loadSnapshot(editor.store, {
       document: (document ?? undefined) as TLStoreSnapshot | undefined,
     });
     editor.clearHistory();
     editor.updateInstanceState({ isReadonly: true });
     editor.zoomToFit({ animation: { duration: 0 } });
-    setStatus('ready');
+    // Mirrors the store we just loaded into, so the skeleton can go
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setLoaded(true);
 
     // Arrows follow from the links' connections, never from the document, so
     // they're drawn here like a reading tab draws its own
@@ -185,7 +190,7 @@ export default function SharedBoardEditor(props: { shareToken: string }) {
       setArrowView(null);
       arrows.detach();
     };
-  }, [editor, opened.data]);
+  }, [editor, opened.data, tooNew]);
 
   useEffect(() => {
     editor?.user.updateUserPreferences({ colorScheme });
@@ -219,13 +224,8 @@ export default function SharedBoardEditor(props: { shareToken: string }) {
             <Text fw={500}>
               {status === 'newer-version'
                 ? 'This canvas was saved by a newer version of Semble.'
-                : status === 'missing'
-                  ? "This link isn't valid, or sharing was turned off."
-                  : "Couldn't open this canvas."}
+                : "This link isn't valid, or sharing was turned off."}
             </Text>
-            {status === 'failed' && (
-              <Button onClick={() => window.location.reload()}>Reload</Button>
-            )}
           </Stack>
         </Center>
       )}
