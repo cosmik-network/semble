@@ -1,5 +1,7 @@
 import { IConnectionPublisher } from 'src/modules/cards/application/ports/IConnectionPublisher';
+import { ICardRepository } from 'src/modules/cards/domain/ICardRepository';
 import { Connection } from 'src/modules/cards/domain/Connection';
+import { UrlOrCardId } from 'src/modules/cards/domain/value-objects/UrlOrCardId';
 import { Result, ok, err } from 'src/shared/core/Result';
 import { UseCaseError } from 'src/shared/core/UseCaseError';
 import { PublishedRecordId } from 'src/modules/cards/domain/value-objects/PublishedRecordId';
@@ -13,7 +15,31 @@ export class ATProtoConnectionPublisher implements IConnectionPublisher {
   constructor(
     private readonly agentService: IAgentService,
     private readonly connectionCollection: string,
+    private readonly cardRepository: ICardRepository,
   ) {}
+
+  /**
+   * The card's AT URI for a CARD endpoint — the card's own published record,
+   * the same card-id→AT-URI conversion collection links do. It's also what
+   * AtUriResolutionService.resolveCardId resolves back to a card id on
+   * firehose ingestion. Undefined for URL endpoints, unknown cards, or cards
+   * without a published record (the mapper then falls back to the local id).
+   */
+  private async cardRecordUri(
+    endpoint: UrlOrCardId,
+  ): Promise<string | undefined> {
+    if (!endpoint.isCard || !endpoint.cardId) {
+      return undefined;
+    }
+    const cardResult = await this.cardRepository.findById(endpoint.cardId);
+    if (cardResult.isErr() || !cardResult.value) {
+      console.warn(
+        `ATProtoConnectionPublisher: CARD endpoint ${endpoint.cardId.getStringValue()} does not resolve to a card; publishing the local id`,
+      );
+      return undefined;
+    }
+    return cardResult.value.publishedRecordId?.getValue().uri;
+  }
 
   async publish(
     connection: Connection,
@@ -51,10 +77,18 @@ export class ATProtoConnectionPublisher implements IConnectionPublisher {
         return err(new Error('No authenticated session found for curator'));
       }
 
+      // CARD endpoints reference the card's AT URI, not the local card id
+      const [sourceCardUri, targetCardUri] = await Promise.all([
+        this.cardRecordUri(connection.source),
+        this.cardRecordUri(connection.target),
+      ]);
+
       if (connection.publishedRecordId) {
         // Update existing connection record
-        const connectionRecordDTO =
-          ConnectionMapper.toCreateRecordDTO(connection);
+        const connectionRecordDTO = ConnectionMapper.toCreateRecordDTO(
+          connection,
+          { source: sourceCardUri, target: targetCardUri },
+        );
         connectionRecordDTO.$type = this.connectionCollection as any;
 
         const publishedRecordId = connection.publishedRecordId.getValue();
@@ -77,8 +111,10 @@ export class ATProtoConnectionPublisher implements IConnectionPublisher {
         );
       } else {
         // Create new connection record
-        const connectionRecordDTO =
-          ConnectionMapper.toCreateRecordDTO(connection);
+        const connectionRecordDTO = ConnectionMapper.toCreateRecordDTO(
+          connection,
+          { source: sourceCardUri, target: targetCardUri },
+        );
         connectionRecordDTO.$type = this.connectionCollection as any;
 
         const createResult = await agent.com.atproto.repo.createRecord({

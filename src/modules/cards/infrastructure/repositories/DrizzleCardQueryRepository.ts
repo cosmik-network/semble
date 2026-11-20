@@ -102,6 +102,12 @@ export class DrizzleCardQueryRepository implements ICardQueryRepository {
     return this.annotationCardQueryService.getAnnotationsForUrl(url, options);
   }
 
+  async getAnnotationCardById(
+    cardId: string,
+  ): Promise<AnnotationCardView | null> {
+    return this.annotationCardQueryService.getAnnotationCardById(cardId);
+  }
+
   async getMatchingAnnotationCardIds(
     url: string,
     exactNormalized: string,

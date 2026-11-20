@@ -23,6 +23,8 @@ import {
   GetBatchUrlStatsResponseSchema,
   GetUrlStatusForMyLibraryParamsSchema,
   GetUrlStatusForMyLibraryResponseSchema,
+  GetAnnotationStatusForMyLibraryParamsSchema,
+  GetAnnotationStatusForMyLibraryResponseSchema,
   GetLibrariesForUrlParamsSchema,
   GetLibrariesForUrlResponseSchema,
   GetNoteCardsForUrlParamsSchema,
@@ -147,6 +149,15 @@ export const cardsContract = c.router(
       summary: 'Check if a given URL has been saved to your library',
       description:
         "Returns whether a URL is already saved in the authenticated user's library, along with all collections the user added it to.",
+    },
+    annotationLibraryStatus: {
+      method: 'GET',
+      path: paths.annotationLibraryStatus,
+      query: GetAnnotationStatusForMyLibraryParamsSchema,
+      responses: { 200: GetAnnotationStatusForMyLibraryResponseSchema },
+      summary: 'Check if a given annotation has been saved to your library',
+      description:
+        'Returns whether the authenticated user has an annotation card matching the passage (url + exact text), along with the card and all collections the user added it to.',
     },
     librariesForUrl: {
       method: 'GET',

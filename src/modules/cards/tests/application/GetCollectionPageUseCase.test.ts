@@ -805,6 +805,7 @@ describe('GetCollectionPageUseCase', () => {
         getProfileCardStats: jest.fn(),
         getBatchLatestCardCreatedAt: jest.fn(),
         getAnnotationsForUrl: jest.fn(),
+        getAnnotationCardById: jest.fn().mockResolvedValue(null),
         getMatchingAnnotationCardIds: jest.fn().mockResolvedValue([]),
         getNotesForAnnotation: jest.fn(),
         getLibrariesForAnnotation: jest.fn(),

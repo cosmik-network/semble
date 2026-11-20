@@ -308,6 +308,9 @@ export interface ICardQueryRepository {
     options: CardQueryOptions,
   ): Promise<PaginatedQueryResult<AnnotationCardView>>;
 
+  /** A single annotation card by id, with entity-level engagement counts */
+  getAnnotationCardById(cardId: string): Promise<AnnotationCardView | null>;
+
   /**
    * Ids of annotation cards matching a passage: same URL and a
    * TextQuoteSelector whose normalized exact equals `exactNormalized`.

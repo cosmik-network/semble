@@ -548,6 +548,7 @@ export class ServiceFactory {
         : new ATProtoConnectionPublisher(
             atProtoAgentService,
             collections.connection,
+            repositories.cardRepository,
           );
 
     const followPublisher = disablePdsPublishing

@@ -1,11 +1,16 @@
 import { CreateConnectionUseCase } from '../../application/useCases/commands/CreateConnectionUseCase';
 import { InMemoryConnectionRepository } from '../utils/InMemoryConnectionRepository';
+import { InMemoryCardRepository } from '../utils/InMemoryCardRepository';
 import { FakeConnectionPublisher } from '../utils/FakeConnectionPublisher';
 import { FakeEventPublisher } from '../utils/FakeEventPublisher';
 import { FakeMetadataService } from '../utils/FakeMetadataService';
 import { ConnectionTypeEnum } from '../../domain/value-objects/ConnectionType';
 import { UrlOrCardIdType } from '../../domain/value-objects/UrlOrCardId';
 import { PublishedRecordId } from '../../domain/value-objects/PublishedRecordId';
+import { CardBuilder } from '../utils/builders/CardBuilder';
+import { CuratorId } from '../../domain/value-objects/CuratorId';
+import { URL } from '../../domain/value-objects/URL';
+import { CardTypeEnum } from '../../domain/value-objects/CardType';
 
 const CURATOR = 'did:plc:testcurator123456789';
 const OTHER_CURATOR = 'did:plc:othercurator98765432';
@@ -15,6 +20,7 @@ const URL_B = 'https://example.com/b';
 describe('CreateConnectionUseCase', () => {
   let useCase: CreateConnectionUseCase;
   let connectionRepository: InMemoryConnectionRepository;
+  let cardRepository: InMemoryCardRepository;
   let connectionPublisher: FakeConnectionPublisher;
   let metadataService: FakeMetadataService;
   let eventPublisher: FakeEventPublisher;
@@ -22,12 +28,15 @@ describe('CreateConnectionUseCase', () => {
   beforeEach(() => {
     connectionRepository = InMemoryConnectionRepository.getInstance();
     connectionRepository.clear();
+    cardRepository = InMemoryCardRepository.getInstance();
+    cardRepository.clear();
     connectionPublisher = new FakeConnectionPublisher();
     metadataService = new FakeMetadataService();
     eventPublisher = new FakeEventPublisher();
 
     useCase = new CreateConnectionUseCase(
       connectionRepository,
+      cardRepository,
       connectionPublisher,
       metadataService,
       eventPublisher,
@@ -208,6 +217,75 @@ describe('CreateConnectionUseCase', () => {
       });
 
       expect(connectionRepository.getAllConnections()).toHaveLength(2);
+    });
+  });
+
+  describe('CARD endpoints', () => {
+    const createAnnotationCard = async (): Promise<string> => {
+      const card = new CardBuilder()
+        .withCuratorId(CURATOR)
+        .withAnnotationCard(URL.create(URL_A).unwrap(), [
+          { exact: 'the quoted passage' },
+        ])
+        .build();
+      if (card instanceof Error) {
+        throw new Error(`Failed to create card: ${card.message}`);
+      }
+      card.addToLibrary(CuratorId.create(CURATOR).unwrap());
+      await cardRepository.save(card);
+      return card.cardId.getStringValue();
+    };
+
+    it('creates a connection from an existing annotation card to a URL', async () => {
+      const cardId = await createAnnotationCard();
+
+      const result = await create({
+        sourceType: UrlOrCardIdType.CARD,
+        sourceValue: cardId,
+      });
+
+      expect(result.isOk()).toBe(true);
+      const stored = connectionRepository.getAllConnections();
+      expect(stored).toHaveLength(1);
+      expect(stored[0]!.source.stringValue).toBe(cardId);
+    });
+
+    it('rejects a CARD endpoint that does not reference an existing card', async () => {
+      const result = await create({
+        sourceType: UrlOrCardIdType.CARD,
+        sourceValue: 'bogus-card-id',
+      });
+
+      expect(result.isErr()).toBe(true);
+      expect(result.isErr() && result.error.message).toContain(
+        'Source card not found',
+      );
+      expect(connectionRepository.getAllConnections()).toHaveLength(0);
+    });
+
+    it('checks the target endpoint too', async () => {
+      const result = await create({
+        targetType: UrlOrCardIdType.CARD,
+        targetValue: 'bogus-card-id',
+      });
+
+      expect(result.isErr()).toBe(true);
+      expect(result.isErr() && result.error.message).toContain(
+        'Target card not found',
+      );
+    });
+
+    it('skips the existence check for firehose-mirrored records', async () => {
+      const result = await create({
+        sourceType: UrlOrCardIdType.CARD,
+        sourceValue: 'at://did:plc:someone/at.margin.note/late-arrival',
+        publishedRecordId: PublishedRecordId.create({
+          uri: `at://${CURATOR}/network.cosmik.connection/rec3`,
+          cid: 'cid3',
+        }),
+      });
+
+      expect(result.isOk()).toBe(true);
     });
   });
 });

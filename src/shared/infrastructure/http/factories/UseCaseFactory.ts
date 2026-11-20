@@ -45,6 +45,7 @@ import { GetTaggedItemsUseCase } from 'src/modules/cards/application/useCases/qu
 import { GetOpenCollectionsWithContributorUseCase } from 'src/modules/cards/application/useCases/queries/GetOpenCollectionsWithContributorUseCase';
 import { GetCollectionPageByAtUriUseCase } from 'src/modules/cards/application/useCases/queries/GetCollectionPageByAtUriUseCase';
 import { GetUrlStatusForMyLibraryUseCase } from '../../../../modules/cards/application/useCases/queries/GetUrlStatusForMyLibraryUseCase';
+import { GetAnnotationStatusForMyLibraryUseCase } from '../../../../modules/cards/application/useCases/queries/GetAnnotationStatusForMyLibraryUseCase';
 import { GetLibrariesForUrlUseCase } from '../../../../modules/cards/application/useCases/queries/GetLibrariesForUrlUseCase';
 import { GetCollectionsForUrlUseCase } from '../../../../modules/cards/application/useCases/queries/GetCollectionsForUrlUseCase';
 import { GetRecommendedCollectionsForUrlUseCase } from '../../../../modules/cards/application/useCases/queries/GetRecommendedCollectionsForUrlUseCase';
@@ -195,6 +196,7 @@ export interface UseCases {
   getTaggedItemsUseCase: GetTaggedItemsUseCase;
   getOpenCollectionsWithContributorUseCase: GetOpenCollectionsWithContributorUseCase;
   getUrlStatusForMyLibraryUseCase: GetUrlStatusForMyLibraryUseCase;
+  getAnnotationStatusForMyLibraryUseCase: GetAnnotationStatusForMyLibraryUseCase;
   getLibrariesForUrlUseCase: GetLibrariesForUrlUseCase;
   getCollectionsForUrlUseCase: GetCollectionsForUrlUseCase;
   getRecommendedCollectionsForUrlUseCase: GetRecommendedCollectionsForUrlUseCase;
@@ -556,6 +558,15 @@ export class UseCaseFactory {
         repositories.followsRepository,
         services.eventPublisher,
       ),
+      getAnnotationStatusForMyLibraryUseCase:
+        new GetAnnotationStatusForMyLibraryUseCase(
+          repositories.cardRepository,
+          repositories.cardQueryRepository,
+          repositories.collectionQueryRepository,
+          services.profileService,
+          repositories.followsRepository,
+          services.eventPublisher,
+        ),
       getLibrariesForUrlUseCase: new GetLibrariesForUrlUseCase(
         repositories.cardQueryRepository,
         services.profileService,
@@ -615,6 +626,7 @@ export class UseCaseFactory {
       ),
       createConnectionUseCase: new CreateConnectionUseCase(
         repositories.connectionRepository,
+        repositories.cardRepository,
         services.connectionPublisher,
         services.metadataService,
         services.eventPublisher,
@@ -821,6 +833,7 @@ export class UseCaseFactory {
     // Connection use cases
     const createConnectionUseCase = new CreateConnectionUseCase(
       repositories.connectionRepository,
+      repositories.cardRepository,
       services.connectionPublisher,
       services.metadataService,
       services.eventPublisher,

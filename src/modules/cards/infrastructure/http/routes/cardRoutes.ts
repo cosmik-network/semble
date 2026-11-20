@@ -15,6 +15,7 @@ import { GetLibrariesForCardController } from '../controllers/GetLibrariesForCar
 import { GetMyUrlCardsController } from '../controllers/GetMyUrlCardsController';
 import { GetUserUrlCardsController } from '../controllers/GetUserUrlCardsController';
 import { GetUrlStatusForMyLibraryController } from '../controllers/GetUrlStatusForMyLibraryController';
+import { GetAnnotationStatusForMyLibraryController } from '../controllers/GetAnnotationStatusForMyLibraryController';
 import { GetLibrariesForUrlController } from '../controllers/GetLibrariesForUrlController';
 import { GetNoteCardsForUrlController } from '../controllers/GetNoteCardsForUrlController';
 import { GetAnnotationsForUrlController } from '../controllers/GetAnnotationsForUrlController';
@@ -47,6 +48,7 @@ export function registerCardRoutes(
   getMyUrlCardsController: GetMyUrlCardsController,
   getUserUrlCardsController: GetUserUrlCardsController,
   getUrlStatusForMyLibraryController: GetUrlStatusForMyLibraryController,
+  getAnnotationStatusForMyLibraryController: GetAnnotationStatusForMyLibraryController,
   getLibrariesForUrlController: GetLibrariesForUrlController,
   getNoteCardsForUrlController: GetNoteCardsForUrlController,
   getAnnotationsForUrlController: GetAnnotationsForUrlController,
@@ -88,6 +90,13 @@ export function registerCardRoutes(
     authMiddleware.ensureAuthenticated(),
     validateQuery(cardsContract.urlLibraryStatus.query),
     (req, res) => getUrlStatusForMyLibraryController.execute(req, res),
+  );
+
+  app.get(
+    routes.cards.annotationLibraryStatus.path,
+    authMiddleware.ensureAuthenticated(),
+    validateQuery(cardsContract.annotationLibraryStatus.query),
+    (req, res) => getAnnotationStatusForMyLibraryController.execute(req, res),
   );
 
   app.get(

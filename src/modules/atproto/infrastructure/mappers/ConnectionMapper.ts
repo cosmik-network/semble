@@ -8,11 +8,21 @@ export class ConnectionMapper {
   static readonly connectionType =
     new EnvironmentConfigService().getAtProtoCollections().connection;
 
-  static toCreateRecordDTO(connection: Connection): ConnectionRecordDTO {
+  /**
+   * CARD endpoints publish as the referenced card's AT URI (its published
+   * record), the same conversion from card id to AT URI that collection
+   * links do — the bare local card id is meaningless outside this database.
+   * cardRecordUris carries the resolved URIs; values fall back to the local
+   * stringValue when a card has no published record.
+   */
+  static toCreateRecordDTO(
+    connection: Connection,
+    cardRecordUris?: { source?: string; target?: string },
+  ): ConnectionRecordDTO {
     return {
       $type: this.connectionType as any,
-      source: connection.source.stringValue,
-      target: connection.target.stringValue,
+      source: cardRecordUris?.source ?? connection.source.stringValue,
+      target: cardRecordUris?.target ?? connection.target.stringValue,
       connectionType: connection.type?.value,
       note: connection.note?.value,
       createdAt: connection.createdAt.toISOString(),

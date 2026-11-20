@@ -217,7 +217,9 @@ describe('Annotation read use cases', () => {
         'first note',
         'second note',
       ]);
-      expect(notes[0]!.author.handle).toBe('curator1');
+      // Order depends on createdAt milliseconds, so assert per-note, not [0]
+      const first = notes.find((n) => n.note === 'first note')!;
+      expect(first.author.handle).toBe('curator1');
     });
 
     it('matches on normalized exact text', async () => {

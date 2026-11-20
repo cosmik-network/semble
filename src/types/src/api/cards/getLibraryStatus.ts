@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { UrlCardSchema } from '../../entities/card';
+import { UrlCardSchema, AnnotationCardSchema } from '../../entities/card';
 import { CollectionSchema } from '../../entities/collection';
 
 export const GetUrlStatusForMyLibraryParamsSchema = z.object({
@@ -15,4 +15,20 @@ export const GetUrlStatusForMyLibraryResponseSchema = z.object({
 });
 export type GetUrlStatusForMyLibraryResponse = z.infer<
   typeof GetUrlStatusForMyLibraryResponseSchema
+>;
+
+export const GetAnnotationStatusForMyLibraryParamsSchema = z.object({
+  url: z.string(),
+  exact: z.string(),
+});
+export type GetAnnotationStatusForMyLibraryParams = z.infer<
+  typeof GetAnnotationStatusForMyLibraryParamsSchema
+>;
+
+export const GetAnnotationStatusForMyLibraryResponseSchema = z.object({
+  card: AnnotationCardSchema.optional(),
+  collections: z.array(CollectionSchema).optional(),
+});
+export type GetAnnotationStatusForMyLibraryResponse = z.infer<
+  typeof GetAnnotationStatusForMyLibraryResponseSchema
 >;

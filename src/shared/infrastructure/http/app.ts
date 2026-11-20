@@ -337,6 +337,7 @@ export const createExpressApp = async (
       controllers.getMyUrlCardsController,
       controllers.getUserUrlCardsController,
       controllers.getUrlStatusForMyLibraryController,
+      controllers.getAnnotationStatusForMyLibraryController,
       controllers.getLibrariesForUrlController,
       controllers.getNoteCardsForUrlController,
       controllers.getAnnotationsForUrlController,

@@ -79,6 +79,46 @@ export class AnnotationCardQueryService {
   }
 
   /**
+   * A single annotation card by id, with entity-level engagement counts.
+   * Null when the id doesn't resolve to an annotation card.
+   */
+  async getAnnotationCardById(
+    cardId: string,
+  ): Promise<AnnotationCardView | null> {
+    try {
+      const rows = await this.db
+        .select({
+          id: cards.id,
+          authorId: cards.authorId,
+          url: cards.url,
+          publishedRecordUri: publishedRecords.uri,
+          contentData: cards.contentData,
+          libraryCount: cards.libraryCount,
+          createdAt: cards.createdAt,
+          updatedAt: cards.updatedAt,
+        })
+        .from(cards)
+        .leftJoin(
+          publishedRecords,
+          eq(cards.publishedRecordId, publishedRecords.id),
+        )
+        .where(
+          and(eq(cards.id, cardId), eq(cards.type, CardTypeEnum.ANNOTATION)),
+        );
+
+      if (rows.length === 0) {
+        return null;
+      }
+
+      const views = await this.assembleAnnotationViews(rows);
+      return views[0] ?? null;
+    } catch (error) {
+      console.error('Error in getAnnotationCardById:', error);
+      throw error;
+    }
+  }
+
+  /**
    * Ids of annotation cards matching a passage: same URL and a
    * TextQuoteSelector whose normalized exact equals `exactNormalized`.
    */

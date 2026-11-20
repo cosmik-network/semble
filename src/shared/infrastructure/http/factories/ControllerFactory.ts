@@ -53,6 +53,7 @@ import { GetTaggedItemsController } from 'src/modules/cards/infrastructure/http/
 import { GetOpenCollectionsWithContributorController } from 'src/modules/cards/infrastructure/http/controllers/GetOpenCollectionsWithContributorController';
 import { GetCollectionPageByAtUriController } from 'src/modules/cards/infrastructure/http/controllers/GetCollectionPageByAtUriController';
 import { GetUrlStatusForMyLibraryController } from '../../../../modules/cards/infrastructure/http/controllers/GetUrlStatusForMyLibraryController';
+import { GetAnnotationStatusForMyLibraryController } from '../../../../modules/cards/infrastructure/http/controllers/GetAnnotationStatusForMyLibraryController';
 import { GetLibrariesForUrlController } from '../../../../modules/cards/infrastructure/http/controllers/GetLibrariesForUrlController';
 import { GetRecommendedCollectionsForUrlController } from '../../../../modules/cards/infrastructure/http/controllers/GetRecommendedCollectionsForUrlController';
 import { GetCollectionsForUrlController } from '../../../../modules/cards/infrastructure/http/controllers/GetCollectionsForUrlController';
@@ -157,6 +158,7 @@ export interface Controllers {
   getTaggedItemsController: GetTaggedItemsController;
   getOpenCollectionsWithContributorController: GetOpenCollectionsWithContributorController;
   getUrlStatusForMyLibraryController: GetUrlStatusForMyLibraryController;
+  getAnnotationStatusForMyLibraryController: GetAnnotationStatusForMyLibraryController;
   getLibrariesForUrlController: GetLibrariesForUrlController;
   getCollectionsForUrlController: GetCollectionsForUrlController;
   getRecommendedCollectionsForUrlController: GetRecommendedCollectionsForUrlController;
@@ -415,6 +417,10 @@ export class ControllerFactory {
       getUrlStatusForMyLibraryController:
         new GetUrlStatusForMyLibraryController(
           useCases.getUrlStatusForMyLibraryUseCase,
+        ),
+      getAnnotationStatusForMyLibraryController:
+        new GetAnnotationStatusForMyLibraryController(
+          useCases.getAnnotationStatusForMyLibraryUseCase,
         ),
       getLibrariesForUrlController: new GetLibrariesForUrlController(
         useCases.getLibrariesForUrlUseCase,

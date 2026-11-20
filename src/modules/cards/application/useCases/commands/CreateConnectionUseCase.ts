@@ -4,8 +4,10 @@ import { UseCaseError } from '../../../../../shared/core/UseCaseError';
 import { AppError } from '../../../../../shared/core/AppError';
 import { IEventPublisher } from '../../../../../shared/application/events/IEventPublisher';
 import { IConnectionRepository } from '../../../domain/IConnectionRepository';
+import { ICardRepository } from '../../../domain/ICardRepository';
 import { Connection } from '../../../domain/Connection';
 import { CuratorId } from '../../../domain/value-objects/CuratorId';
+import { CardId } from '../../../domain/value-objects/CardId';
 import { PublishedRecordId } from '../../../domain/value-objects/PublishedRecordId';
 import { IConnectionPublisher } from '../../ports/IConnectionPublisher';
 import { AuthenticationError } from '../../../../../shared/core/AuthenticationError';
@@ -53,6 +55,7 @@ export class CreateConnectionUseCase extends BaseUseCase<
 > {
   constructor(
     private connectionRepository: IConnectionRepository,
+    private cardRepository: ICardRepository,
     private connectionPublisher: IConnectionPublisher,
     private metadataService: IMetadataService,
     eventPublisher: IEventPublisher,
@@ -103,6 +106,36 @@ export class CreateConnectionUseCase extends BaseUseCase<
         );
       }
       const target = targetResult.value;
+
+      // CARD endpoints must reference an existing card. Only enforced for
+      // user-initiated creates: firehose-mirrored records (publishedRecordId
+      // set) can legitimately arrive before the referenced card's record.
+      if (!request.publishedRecordId) {
+        const cardEndpoints: Array<{
+          role: 'source' | 'target';
+          cardId: CardId;
+        }> = [];
+        if (source.isCard && source.cardId) {
+          cardEndpoints.push({ role: 'source', cardId: source.cardId });
+        }
+        if (target.isCard && target.cardId) {
+          cardEndpoints.push({ role: 'target', cardId: target.cardId });
+        }
+
+        for (const { role, cardId } of cardEndpoints) {
+          const cardResult = await this.cardRepository.findById(cardId);
+          if (cardResult.isErr()) {
+            return err(AppError.UnexpectedError.create(cardResult.error));
+          }
+          if (!cardResult.value) {
+            return err(
+              new ValidationError(
+                `${role === 'source' ? 'Source' : 'Target'} card not found: ${cardId.getStringValue()}`,
+              ),
+            );
+          }
+        }
+      }
 
       // Create connection type - defaults to RELATED when not provided
       const typeResult = request.connectionType

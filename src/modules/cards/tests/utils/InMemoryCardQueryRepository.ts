@@ -943,6 +943,15 @@ export class InMemoryCardQueryRepository implements ICardQueryRepository {
     };
   }
 
+  async getAnnotationCardById(
+    cardId: string,
+  ): Promise<AnnotationCardView | null> {
+    const card = this.cardRepository
+      .getAllCards()
+      .find((c) => c.isAnnotationCard && c.cardId.getStringValue() === cardId);
+    return card ? this.toAnnotationView(card) : null;
+  }
+
   async getMatchingAnnotationCardIds(
     url: string,
     exactNormalized: string,

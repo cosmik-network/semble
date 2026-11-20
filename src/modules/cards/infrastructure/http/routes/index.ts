@@ -16,6 +16,7 @@ import { GetLibrariesForCardController } from '../controllers/GetLibrariesForCar
 import { GetMyUrlCardsController } from '../controllers/GetMyUrlCardsController';
 import { GetUserUrlCardsController } from '../controllers/GetUserUrlCardsController';
 import { GetUrlStatusForMyLibraryController } from '../controllers/GetUrlStatusForMyLibraryController';
+import { GetAnnotationStatusForMyLibraryController } from '../controllers/GetAnnotationStatusForMyLibraryController';
 import { GetLibrariesForUrlController } from '../controllers/GetLibrariesForUrlController';
 import { GetNoteCardsForUrlController } from '../controllers/GetNoteCardsForUrlController';
 import { GetAnnotationsForUrlController } from '../controllers/GetAnnotationsForUrlController';
@@ -59,6 +60,7 @@ export function registerCardsModuleRoutes(
   getMyUrlCardsController: GetMyUrlCardsController,
   getUserUrlCardsController: GetUserUrlCardsController,
   getUrlStatusForMyLibraryController: GetUrlStatusForMyLibraryController,
+  getAnnotationStatusForMyLibraryController: GetAnnotationStatusForMyLibraryController,
   getLibrariesForUrlController: GetLibrariesForUrlController,
   getNoteCardsForUrlController: GetNoteCardsForUrlController,
   getAnnotationsForUrlController: GetAnnotationsForUrlController,
@@ -101,6 +103,7 @@ export function registerCardsModuleRoutes(
     getMyUrlCardsController,
     getUserUrlCardsController,
     getUrlStatusForMyLibraryController,
+    getAnnotationStatusForMyLibraryController,
     getLibrariesForUrlController,
     getNoteCardsForUrlController,
     getAnnotationsForUrlController,

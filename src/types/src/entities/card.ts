@@ -19,11 +19,16 @@ export const UrlCardSchema = z.object({
   url: z.string(),
   uri: z.string().optional(),
   cardContent: UrlMetadataSchema,
+  // Entity-level: distinct users with any URL card for this URL (same value
+  // as urlLibraryCount, which it supersedes)
   libraryCount: z.number(),
   urlLibraryCount: z.number(),
   urlInLibrary: z.boolean().optional(),
   urlConnectionCount: z.number().optional(),
   urlIsConnected: z.boolean().optional(),
+  // Entity-level: connections with this URL as an endpoint (same value as
+  // urlConnectionCount, which it supersedes)
+  connectionCount: z.number().optional(),
   createdAt: z.string(),
   updatedAt: z.string(),
   author: UserSchema,
@@ -63,7 +68,11 @@ export const AnnotationCardSchema = z.object({
   type: z.literal('ANNOTATION'),
   url: z.string(),
   uri: z.string().optional(),
+  // Entity-level: distinct users with any annotation card matching this
+  // passage (url + normalized exact text)
   libraryCount: z.number(),
+  // Connections where any passage-matching annotation card is an endpoint
+  connectionCount: z.number().optional(),
   selectors: z.array(TextQuoteSelectorSchema),
   note: z.string().optional(),
   createdAt: z.string(),

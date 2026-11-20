@@ -103,11 +103,47 @@ export class ProcessConnectionFirehoseEventUseCase implements UseCase<
       const sourceType = inferUrlOrCardIdType(request.record.source);
       const targetType = inferUrlOrCardIdType(request.record.target);
 
+      // CARD endpoints arrive as the card's AT URI; resolve back to the local
+      // card id the connection row stores. An unresolvable URI means the card
+      // record hasn't been ingested (or is unknown to us) — skip the event
+      // rather than store a reference that matches no card.
+      let sourceValue = request.record.source;
+      if (sourceType === UrlOrCardIdType.CARD) {
+        const sourceCardId = await this.atUriResolutionService.resolveCardId(
+          request.record.source,
+        );
+        if (sourceCardId.isErr() || !sourceCardId.value) {
+          if (ENABLE_FIREHOSE_LOGGING) {
+            console.warn(
+              `[FirehoseWorker] Failed to resolve source card - user: ${curatorDid}, cardUri: ${request.record.source}, connectionUri: ${request.atUri}`,
+            );
+          }
+          return ok(undefined);
+        }
+        sourceValue = sourceCardId.value.getStringValue();
+      }
+
+      let targetValue = request.record.target;
+      if (targetType === UrlOrCardIdType.CARD) {
+        const targetCardId = await this.atUriResolutionService.resolveCardId(
+          request.record.target,
+        );
+        if (targetCardId.isErr() || !targetCardId.value) {
+          if (ENABLE_FIREHOSE_LOGGING) {
+            console.warn(
+              `[FirehoseWorker] Failed to resolve target card - user: ${curatorDid}, cardUri: ${request.record.target}, connectionUri: ${request.atUri}`,
+            );
+          }
+          return ok(undefined);
+        }
+        targetValue = targetCardId.value.getStringValue();
+      }
+
       const result = await this.createConnectionUseCase.execute({
         sourceType,
-        sourceValue: request.record.source,
+        sourceValue,
         targetType,
-        targetValue: request.record.target,
+        targetValue,
         connectionType: request.record.connectionType as any, // Cast to ConnectionTypeEnum
         note: request.record.note,
         curatorId: curatorDid,
