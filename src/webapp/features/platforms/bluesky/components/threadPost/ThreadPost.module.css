@@ -1,0 +1,81 @@
+/* Bluesky's thread geometry: 2px lines, 42px list and 24px tree avatars */
+
+.post,
+.treePost,
+.topLevel {
+  --thread-line: light-dark(
+    var(--mantine-color-gray-4),
+    var(--mantine-color-dark-3)
+  );
+  position: relative;
+  transition: background-color 0.3s ease;
+  scroll-margin-block: 4rem;
+}
+
+.post {
+  padding-inline: var(--mantine-spacing-md);
+}
+
+.treePost {
+  padding-top: var(--mantine-spacing-xs);
+  border-radius: var(--mantine-radius-sm);
+}
+
+.post[data-highlighted],
+.treePost[data-highlighted] {
+  background: var(--mantine-color-default-hover);
+}
+
+/* Inset edge so light avatars don't bleed into the background */
+.avatar {
+  outline: 1px solid light-dark(oklch(0 0 0 / 0.1), oklch(1 0 0 / 0.1));
+  outline-offset: -1px;
+}
+
+/* Tree branches: an elbow into each child, and the line running on past
+   every child but the last */
+
+.topLevel {
+  padding: var(--mantine-spacing-xs) var(--mantine-spacing-md)
+    var(--mantine-spacing-sm);
+}
+
+.branch {
+  position: relative;
+}
+
+.branchThrough,
+.branchElbow {
+  position: absolute;
+  left: -17px;
+  top: 0;
+}
+
+.branchThrough {
+  bottom: 0;
+  width: 2px;
+  background: var(--thread-line);
+}
+
+.branchElbow {
+  width: 13px;
+  height: 21px;
+  border-left: 2px solid var(--thread-line);
+  border-bottom: 2px solid var(--thread-line);
+  border-bottom-left-radius: var(--mantine-radius-sm);
+}
+
+.showMoreRow {
+  display: flex;
+  align-items: center;
+  gap: var(--mantine-spacing-sm);
+  width: 100%;
+  padding: var(--mantine-spacing-md);
+  color: var(--mantine-color-dimmed);
+}
+
+@media (hover: hover) {
+  .showMoreRow:hover {
+    background: var(--mantine-color-default-hover);
+  }
+}

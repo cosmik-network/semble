@@ -25,6 +25,7 @@ export interface UserSettings {
   bskyHandle: string | null;
   /** Sources whose iframe embeds load without asking. Missing means ask. */
   externalEmbeds: Partial<Record<EmbedSource, boolean>>;
+  threadView: 'tree' | 'list';
 }
 
 export const defaultSettings: UserSettings = {
@@ -43,6 +44,7 @@ export const defaultSettings: UserSettings = {
   includeKnownBots: false,
   bskyHandle: null,
   externalEmbeds: {},
+  threadView: 'tree',
 };
 
 /**
