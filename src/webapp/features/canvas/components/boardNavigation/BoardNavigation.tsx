@@ -30,6 +30,7 @@ import {
 } from 'tldraw';
 import type { CanvasController } from '../../controller/canvasController';
 import { withProxiedExportImages } from '../../lib/proxiedExportImages';
+import { withExportTitle } from '../../controller/boardExports';
 import classes from './BoardNavigation.module.css';
 
 interface Props {
@@ -108,12 +109,14 @@ async function screenshotView(editor: Editor) {
   if (ids.length === 0) return;
   try {
     await withProxiedExportImages(() =>
-      exportAs(editor, ids, {
-        format: 'png',
-        bounds: viewport,
-        padding: 0,
-        background: true,
-      }),
+      withExportTitle(editor, () =>
+        exportAs(editor, ids, {
+          format: 'png',
+          bounds: viewport,
+          padding: 0,
+          background: true,
+        }),
+      ),
     );
   } catch (error) {
     console.warn(error);

@@ -10,7 +10,7 @@ import {
 } from '@mantine/core';
 import { notifications } from '@mantine/notifications';
 import { useQueryClient } from '@tanstack/react-query';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   Editor,
   Tldraw,
@@ -32,10 +32,10 @@ import { CanvasMediaRevealsProvider } from '../../lib/canvasMediaRevealsContext'
 import { CanvasServerProvider } from '../../lib/canvasServerContext';
 import { apiCanvasServer } from '../../server/apiCanvasServer';
 import type { CanvasServer } from '../../server/canvasServer';
-import {
-  CollectionFrameShapeUtil,
-  includeCollectionFramesInExports,
-} from '../../shapes/collectionFrame/CollectionFrameShapeUtil';
+import { CollectionFrameShapeUtil } from '../../shapes/collectionFrame/CollectionFrameShapeUtil';
+import { attachBoardExports } from '../../controller/boardExports';
+import useCanvas from '../../lib/queries/useCanvas';
+import { DEFAULT_CANVAS_NAME } from '../../storage/canvasStorage';
 import { ConnectionArrowShapeUtil } from '../../shapes/connectionArrow/ConnectionArrowShapeUtil';
 import { getShapeVisibility } from '../../shapes/shapeVisibility';
 import { LinkCardShapeUtil } from '../../shapes/linkCard/LinkCardShapeUtil';
@@ -142,8 +142,13 @@ export default function BoardEditor(props: Props) {
   const [ownerDid, setOwnerDid] = useState<string>();
   if (user && !ownerDid) setOwnerDid(user.id);
   const [editor, setEditor] = useState<Editor | null>(null);
+  const { data: canvas } = useCanvas(props.canvasId);
+  const title = useRef(DEFAULT_CANVAS_NAME);
+  useEffect(() => {
+    title.current = canvas?.name ?? DEFAULT_CANVAS_NAME;
+  }, [canvas?.name]);
   const onMount = useCallback((mounted: Editor) => {
-    includeCollectionFramesInExports(mounted);
+    attachBoardExports(mounted, () => title.current);
     setEditor(mounted);
   }, []);
   const [status, setStatus] = useState<Status>('loading');

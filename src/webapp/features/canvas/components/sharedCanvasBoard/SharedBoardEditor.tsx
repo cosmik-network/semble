@@ -4,7 +4,7 @@ import 'tldraw/tldraw.css';
 import { Button, Center, Stack, Text } from '@mantine/core';
 import { useComputedColorScheme } from '@mantine/core';
 import { useQuery } from '@tanstack/react-query';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   Editor,
   Tldraw,
@@ -26,10 +26,8 @@ import { CanvasCopiesProvider } from '../../lib/canvasCopiesContext';
 import { CanvasMediaRevealsProvider } from '../../lib/canvasMediaRevealsContext';
 import { CanvasServerProvider } from '../../lib/canvasServerContext';
 import { sharedCanvasServer } from '../../server/sharedCanvasServer';
-import {
-  CollectionFrameShapeUtil,
-  includeCollectionFramesInExports,
-} from '../../shapes/collectionFrame/CollectionFrameShapeUtil';
+import { CollectionFrameShapeUtil } from '../../shapes/collectionFrame/CollectionFrameShapeUtil';
+import { attachBoardExports } from '../../controller/boardExports';
 import { ConnectionArrowShapeUtil } from '../../shapes/connectionArrow/ConnectionArrowShapeUtil';
 import { getShapeVisibility } from '../../shapes/shapeVisibility';
 import {
@@ -80,10 +78,6 @@ type Status = 'loading' | 'ready' | 'newer-version' | 'missing';
 export default function SharedBoardEditor(props: { shareToken: string }) {
   const colorScheme = useComputedColorScheme();
   const [editor, setEditor] = useState<Editor | null>(null);
-  const onMount = useCallback((mounted: Editor) => {
-    includeCollectionFramesInExports(mounted);
-    setEditor(mounted);
-  }, []);
   const [loaded, setLoaded] = useState(false);
   const [arrowView, setArrowView] = useState<
     ReturnType<typeof attachArrows>['view'] | null
@@ -113,6 +107,14 @@ export default function SharedBoardEditor(props: { shareToken: string }) {
   });
 
   const name = opened.data?.record.name ?? DEFAULT_CANVAS_NAME;
+  const title = useRef(name);
+  useEffect(() => {
+    title.current = name;
+  }, [name]);
+  const onMount = useCallback((mounted: Editor) => {
+    attachBoardExports(mounted, () => title.current);
+    setEditor(mounted);
+  }, []);
   const components = useMemo<TLComponents>(
     () => ({
       MenuPanel: () => (
