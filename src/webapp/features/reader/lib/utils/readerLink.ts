@@ -1,6 +1,14 @@
+export interface LinkSource {
+  handle: string;
+  avatar?: string;
+  postUri: string;
+}
+
 export interface ReaderLink {
   href: string;
   text: string;
+  /** Posts that shared the link, in thread order */
+  sources?: LinkSource[];
 }
 
 export function normalizeUrl(url: string): string {
