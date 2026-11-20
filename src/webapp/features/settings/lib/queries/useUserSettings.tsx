@@ -44,7 +44,7 @@ export const defaultSettings: UserSettings = {
   includeKnownBots: false,
   bskyHandle: null,
   externalEmbeds: {},
-  threadView: 'tree',
+  threadView: 'list',
 };
 
 /**

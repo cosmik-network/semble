@@ -19,8 +19,8 @@ export default function ThreadViewControls(props: Props) {
       value={props.view}
       onChange={(value) => props.onViewChange(value as ThreadViewMode)}
       data={[
-        { value: 'tree', label: 'Tree' },
         { value: 'list', label: 'List' },
+        { value: 'tree', label: 'Tree' },
       ]}
     />
   );
