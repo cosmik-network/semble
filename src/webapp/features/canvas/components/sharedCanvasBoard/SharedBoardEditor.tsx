@@ -4,7 +4,7 @@ import 'tldraw/tldraw.css';
 import { Button, Center, Stack, Text } from '@mantine/core';
 import { useComputedColorScheme } from '@mantine/core';
 import { useQuery } from '@tanstack/react-query';
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   Editor,
   Tldraw,
@@ -26,7 +26,10 @@ import { CanvasCopiesProvider } from '../../lib/canvasCopiesContext';
 import { CanvasMediaRevealsProvider } from '../../lib/canvasMediaRevealsContext';
 import { CanvasServerProvider } from '../../lib/canvasServerContext';
 import { sharedCanvasServer } from '../../server/sharedCanvasServer';
-import { CollectionFrameShapeUtil } from '../../shapes/collectionFrame/CollectionFrameShapeUtil';
+import {
+  CollectionFrameShapeUtil,
+  includeCollectionFramesInExports,
+} from '../../shapes/collectionFrame/CollectionFrameShapeUtil';
 import { ConnectionArrowShapeUtil } from '../../shapes/connectionArrow/ConnectionArrowShapeUtil';
 import { getShapeVisibility } from '../../shapes/shapeVisibility';
 import {
@@ -77,6 +80,10 @@ type Status = 'loading' | 'ready' | 'newer-version' | 'missing';
 export default function SharedBoardEditor(props: { shareToken: string }) {
   const colorScheme = useComputedColorScheme();
   const [editor, setEditor] = useState<Editor | null>(null);
+  const onMount = useCallback((mounted: Editor) => {
+    includeCollectionFramesInExports(mounted);
+    setEditor(mounted);
+  }, []);
   const [loaded, setLoaded] = useState(false);
   const [arrowView, setArrowView] = useState<
     ReturnType<typeof attachArrows>['view'] | null
@@ -109,10 +116,7 @@ export default function SharedBoardEditor(props: { shareToken: string }) {
   const components = useMemo<TLComponents>(
     () => ({
       MenuPanel: () => (
-        <SharedHeader
-          name={name}
-          author={author.data ?? null}
-        />
+        <SharedHeader name={name} author={author.data ?? null} />
       ),
       SharePanel: SharedLogoCard,
       // Quick add stays out on a read-only board
@@ -208,7 +212,7 @@ export default function SharedBoardEditor(props: { shareToken: string }) {
                   shapeUtils={shapeUtils}
                   getShapeVisibility={getShapeVisibility}
                   components={components}
-                  onMount={setEditor}
+                  onMount={onMount}
                 >
                   {popupCard && <SharedSelectionPopup popupCard={popupCard} />}
                 </Tldraw>

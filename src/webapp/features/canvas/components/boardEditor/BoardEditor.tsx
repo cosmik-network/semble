@@ -10,7 +10,7 @@ import {
 } from '@mantine/core';
 import { notifications } from '@mantine/notifications';
 import { useQueryClient } from '@tanstack/react-query';
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   Editor,
   Tldraw,
@@ -32,7 +32,10 @@ import { CanvasMediaRevealsProvider } from '../../lib/canvasMediaRevealsContext'
 import { CanvasServerProvider } from '../../lib/canvasServerContext';
 import { apiCanvasServer } from '../../server/apiCanvasServer';
 import type { CanvasServer } from '../../server/canvasServer';
-import { CollectionFrameShapeUtil } from '../../shapes/collectionFrame/CollectionFrameShapeUtil';
+import {
+  CollectionFrameShapeUtil,
+  includeCollectionFramesInExports,
+} from '../../shapes/collectionFrame/CollectionFrameShapeUtil';
 import { ConnectionArrowShapeUtil } from '../../shapes/connectionArrow/ConnectionArrowShapeUtil';
 import { getShapeVisibility } from '../../shapes/shapeVisibility';
 import { LinkCardShapeUtil } from '../../shapes/linkCard/LinkCardShapeUtil';
@@ -139,6 +142,10 @@ export default function BoardEditor(props: Props) {
   const [ownerDid, setOwnerDid] = useState<string>();
   if (user && !ownerDid) setOwnerDid(user.id);
   const [editor, setEditor] = useState<Editor | null>(null);
+  const onMount = useCallback((mounted: Editor) => {
+    includeCollectionFramesInExports(mounted);
+    setEditor(mounted);
+  }, []);
   const [status, setStatus] = useState<Status>('loading');
   const [controller, setController] = useState<CanvasController | null>(null);
   const [cardModal, setCardModal] = useState<CardModal | null>(null);
@@ -268,7 +275,7 @@ export default function BoardEditor(props: Props) {
                   components={components}
                   overrides={overrides}
                   options={options}
-                  onMount={setEditor}
+                  onMount={onMount}
                 >
                   {controller && (
                     <ConnectionPicker

@@ -13,6 +13,7 @@ import {
 import {
   FRAME_FOOTER_HEIGHT,
   collectionFrameMeta,
+  collectionFrameOf,
   type CollectionFrameMeta,
   isCollapsed,
 } from '../../model/collectionFrames';
@@ -40,6 +41,23 @@ const collapsedFrame = (shape: TLShape) => {
 export function isInCollapsedFrame(editor: Editor, shape: TLShape) {
   const parent = editor.getShape(shape.parentId);
   return parent?.type === 'frame' && collapsedFrame(parent);
+}
+
+// tldraw leaves a frame out of its own export when it's the only shape
+// exported, drawing just its children. Repeating the id gets past that check
+// without drawing the frame twice, so a collection frame keeps its header.
+export function includeCollectionFramesInExports(editor: Editor) {
+  const getSvgElement = editor.getSvgElement.bind(editor);
+  editor.getSvgElement = (shapes, opts) => {
+    if (shapes.length === 1) {
+      const shape =
+        typeof shapes[0] === 'string' ? editor.getShape(shapes[0]) : shapes[0];
+      if (shape && collectionFrameOf(shape)) {
+        return getSvgElement([shape.id, shape.id], opts);
+      }
+    }
+    return getSvgElement(shapes, opts);
+  };
 }
 
 // Keeps the shape type frame, which the editor relies on for clipping
