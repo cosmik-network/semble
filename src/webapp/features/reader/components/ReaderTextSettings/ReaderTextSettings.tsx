@@ -19,6 +19,12 @@ export const READER_WIDTH_OPTIONS: { value: ReaderWidth; label: string }[] = [
   { value: 'wide', label: 'Wide' },
 ];
 
+export const READER_CONTAINER_SIZE: Record<ReaderWidth, 'xs' | 'sm' | 'md'> = {
+  narrow: 'xs',
+  cozy: 'sm',
+  wide: 'md',
+};
+
 export interface ReaderSettings {
   fontSize: number;
   width: ReaderWidth;
@@ -34,6 +40,8 @@ export const DEFAULT_READER_SETTINGS: ReaderSettings = {
 interface Props {
   settings: ReaderSettings;
   onChange: (settings: ReaderSettings) => void;
+  /** Off where links aren't rendered as reader links */
+  showLinksOption?: boolean;
 }
 
 export default function ReaderTextSettings(props: Props) {
@@ -79,23 +87,27 @@ export default function ReaderTextSettings(props: Props) {
             data={READER_WIDTH_OPTIONS}
           />
         </Group>
-        <Divider />
-        <Group justify="space-between" align="center">
-          <Text size="sm" fw={600}>
-            Links
-          </Text>
-          <SegmentedControl
-            size="xs"
-            value={settings.showLinks ? 'show' : 'hide'}
-            onChange={(value) =>
-              props.onChange({ ...settings, showLinks: value === 'show' })
-            }
-            data={[
-              { value: 'show', label: 'Show' },
-              { value: 'hide', label: 'Hide' },
-            ]}
-          />
-        </Group>
+        {props.showLinksOption !== false && (
+          <>
+            <Divider />
+            <Group justify="space-between" align="center">
+              <Text size="sm" fw={600}>
+                Links
+              </Text>
+              <SegmentedControl
+                size="xs"
+                value={settings.showLinks ? 'show' : 'hide'}
+                onChange={(value) =>
+                  props.onChange({ ...settings, showLinks: value === 'show' })
+                }
+                data={[
+                  { value: 'show', label: 'Show' },
+                  { value: 'hide', label: 'Hide' },
+                ]}
+              />
+            </Group>
+          </>
+        )}
       </Stack>
     </Popover.Dropdown>
   );

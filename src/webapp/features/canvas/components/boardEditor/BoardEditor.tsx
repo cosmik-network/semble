@@ -10,7 +10,7 @@ import {
 } from '@mantine/core';
 import { notifications } from '@mantine/notifications';
 import { useQueryClient } from '@tanstack/react-query';
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   Editor,
   Tldraw,
@@ -33,13 +33,18 @@ import { CanvasServerProvider } from '../../lib/canvasServerContext';
 import { apiCanvasServer } from '../../server/apiCanvasServer';
 import type { CanvasServer } from '../../server/canvasServer';
 import { CollectionFrameShapeUtil } from '../../shapes/collectionFrame/CollectionFrameShapeUtil';
+import { attachBoardExports } from '../../controller/boardExports';
+import useCanvas from '../../lib/queries/useCanvas';
+import { DEFAULT_CANVAS_NAME } from '../../storage/canvasStorage';
 import { ConnectionArrowShapeUtil } from '../../shapes/connectionArrow/ConnectionArrowShapeUtil';
 import { getShapeVisibility } from '../../shapes/shapeVisibility';
 import { LinkCardShapeUtil } from '../../shapes/linkCard/LinkCardShapeUtil';
 import { canvasStorage } from '../../storage/browserCanvasStorage';
 import BoardContextMenu from '../boardContextMenu/BoardContextMenu';
 import BoardHeader from '../boardHeader/BoardHeader';
-import BoardNavigation from '../boardNavigation/BoardNavigation';
+import BoardNavigation, {
+  ShowUiButton,
+} from '../boardNavigation/BoardNavigation';
 import SelectedArrowPill from '../arrowPill/SelectedArrowPill';
 import BoardToolbar from '../boardToolbar/BoardToolbar';
 import CardModals, { type CardModal } from '../cardModals/CardModals';
@@ -139,6 +144,15 @@ export default function BoardEditor(props: Props) {
   const [ownerDid, setOwnerDid] = useState<string>();
   if (user && !ownerDid) setOwnerDid(user.id);
   const [editor, setEditor] = useState<Editor | null>(null);
+  const { data: canvas } = useCanvas(props.canvasId);
+  const title = useRef(DEFAULT_CANVAS_NAME);
+  useEffect(() => {
+    title.current = canvas?.name ?? DEFAULT_CANVAS_NAME;
+  }, [canvas?.name]);
+  const onMount = useCallback((mounted: Editor) => {
+    attachBoardExports(mounted, () => title.current);
+    setEditor(mounted);
+  }, []);
   const [status, setStatus] = useState<Status>('loading');
   const [controller, setController] = useState<CanvasController | null>(null);
   const [cardModal, setCardModal] = useState<CardModal | null>(null);
@@ -268,8 +282,9 @@ export default function BoardEditor(props: Props) {
                   components={components}
                   overrides={overrides}
                   options={options}
-                  onMount={setEditor}
+                  onMount={onMount}
                 >
+                  <ShowUiButton />
                   {controller && (
                     <ConnectionPicker
                       picker={controller.connectionPicker}

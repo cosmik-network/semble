@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, type ReactNode } from 'react';
 import {
   ActionIcon,
   Badge,
@@ -23,6 +23,10 @@ interface Props {
   linkCount?: number;
   onOpenLinks: () => void;
   onClose: () => void;
+  /** Rendered after the links button */
+  extraControls?: ReactNode;
+  showLinksOption?: boolean;
+  emptyLinksLabel?: string;
 }
 
 /** The pill floating over the bottom of the reader. */
@@ -85,13 +89,14 @@ export default function ReaderToolbar(props: Props) {
               <ReaderTextSettings
                 settings={props.settings}
                 onChange={props.onSettingsChange}
+                showLinksOption={props.showLinksOption}
               />
             </Popover>
 
             <Tooltip
               label={
                 props.linkCount === 0
-                  ? 'No links found in this article'
+                  ? (props.emptyLinksLabel ?? 'No links found in this article')
                   : 'View all links'
               }
               withArrow
@@ -122,6 +127,8 @@ export default function ReaderToolbar(props: Props) {
                 Links
               </Button>
             </Tooltip>
+
+            {props.extraControls}
           </Group>
 
           <Tooltip label="Close" withArrow position="top">

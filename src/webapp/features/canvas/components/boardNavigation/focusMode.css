@@ -1,0 +1,4 @@
+/* The board draws its own button to bring the UI back (ShowUiButton) */
+.tlui-focus-button {
+  display: none;
+}
