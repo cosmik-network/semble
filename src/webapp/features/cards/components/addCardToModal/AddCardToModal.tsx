@@ -71,7 +71,6 @@ export default function AddCardToModal(props: Props) {
         message: 'Please wait',
         position: 'top-center',
         autoClose: false,
-        withCloseButton: false,
       });
 
       props.onClose();
@@ -98,7 +97,6 @@ export default function AddCardToModal(props: Props) {
         message: 'Please wait',
         position: 'top-center',
         autoClose: false,
-        withCloseButton: false,
       });
 
       props.onClose();

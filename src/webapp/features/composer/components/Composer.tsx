@@ -167,7 +167,6 @@ export default function Composer(props: Props) {
       message: 'Please wait',
       position: 'top-center',
       autoClose: false,
-      withCloseButton: false,
     });
 
     // Close drawer immediately
