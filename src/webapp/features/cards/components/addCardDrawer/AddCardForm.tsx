@@ -146,7 +146,6 @@ export default function AddCardForm(props: Props) {
       message: 'Please wait',
       position: 'top-center',
       autoClose: false,
-      withCloseButton: false,
     });
 
     // Close drawer immediately
