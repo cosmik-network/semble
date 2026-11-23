@@ -226,13 +226,17 @@ export default function Composer(props: Props) {
         opened={props.isOpen}
         onClose={handleClose}
         withCloseButton={false}
-        size={'37rem'}
         padding={'sm'}
         position="bottom"
         overlayProps={DEFAULT_OVERLAY_PROPS}
         styles={{
           body: { flex: 1, display: 'flex', flexDirection: 'column' },
-          content: { display: 'flex', flexDirection: 'column' },
+          content: {
+            display: 'flex',
+            flexDirection: 'column',
+            height: 'auto',
+            minHeight: 'min(37rem, 100%)',
+          },
         }}
       >
         <Drawer.Header>
