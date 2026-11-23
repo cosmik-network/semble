@@ -31,9 +31,10 @@ const MAX_INDENT = 5;
 const VISIBLE_REPLIES = 3;
 
 export interface ThreadRenderContext {
-  rootAuthorDid?: string;
   postOrigin: string;
   fontSize: number;
+  /** Position labels like 2/5 for the author's own thread */
+  threadNumbers: ReadonlyMap<string, string>;
   /** The focused post and its ancestors, which must stay expanded */
   revealPath: ReadonlySet<string>;
   loading: ReadonlySet<string>;
@@ -171,7 +172,7 @@ function TreeNodeView(props: {
           post={entry.post}
           postOrigin={props.ctx.postOrigin}
           fontSize={props.ctx.fontSize}
-          isThreadAuthor={entry.post.author.did === props.ctx.rootAuthorDid}
+          threadNumber={props.ctx.threadNumbers.get(entry.uri)}
           childLine={indent && items.length > 0}
         />
       )}
@@ -239,7 +240,7 @@ function RootPost(props: { node: TreeNode; ctx: ThreadRenderContext }) {
       post={entry.post}
       postOrigin={props.ctx.postOrigin}
       fontSize={props.ctx.fontSize}
-      isThreadAuthor
+      threadNumber={props.ctx.threadNumbers.get(entry.uri)}
     />
   );
 }
@@ -330,7 +331,7 @@ export function ThreadList(props: {
             post={entry.post}
             postOrigin={props.ctx.postOrigin}
             fontSize={props.ctx.fontSize}
-            isThreadAuthor={entry.post.author.did === props.ctx.rootAuthorDid}
+            threadNumber={props.ctx.threadNumbers.get(entry.uri)}
             parentLine={parentLine}
             childLine={childLine}
             replyingTo={

@@ -24,6 +24,7 @@ import {
   extractThreadLinks,
   flattenThread,
   isHiddenFromLoggedOut,
+  numberSelfThread,
   postOriginOf,
   type ThreadIndex,
 } from '../../lib/thread';
@@ -103,6 +104,11 @@ export default function BlueskyThreadReader(props: ReaderBodyProps) {
     () => (index ? buildThreadView(index, { hiddenUris }) : null),
     [index, hiddenUris],
   );
+  const threadNumbers = useMemo(
+    () =>
+      view?.root ? numberSelfThread(view.root) : new Map<string, string>(),
+    [view],
+  );
   const listItems = useMemo(
     () => (view && index ? flattenThread(view, index, hiddenShown) : []),
     [view, index, hiddenShown],
@@ -138,9 +144,9 @@ export default function BlueskyThreadReader(props: ReaderBodyProps) {
   }, [props.opened, hasIndex, focusedUri, focus?.at, userSettings.threadView]);
 
   const ctx: ThreadRenderContext = {
-    rootAuthorDid: rootPost?.author.did,
     postOrigin: postOriginOf(props.url),
     fontSize: props.settings.fontSize,
+    threadNumbers,
     revealPath,
     loading: thread.loading,
     failed: thread.failed,

@@ -9,6 +9,7 @@ import { getFormattedDate } from '@/lib/utils/time';
 import BlueskyPlatformIcon from '../blueskyPlatformIcon/BlueskyPlatformIcon';
 import ContentHider from '../contentHider/ContentHider';
 import PostEmbed from '../postEmbed/PostEmbed';
+import ThreadNumber from '../threadNumber/ThreadNumber';
 import {
   getModerationReasonText,
   getPostModerationUI,
@@ -20,6 +21,8 @@ interface Props {
   /** The post's bsky.app or blacksky.community URL */
   url: string;
   textProps?: Partial<TextProps>;
+  /** Position in the author's self-thread, like 1/5 */
+  threadNumber?: string;
 }
 
 /** A Bluesky post as the semble page shows it. Hook-free so server and client can both render it. */
@@ -81,9 +84,12 @@ export default function BlueskySemblePostCard(props: Props) {
             )}
           </Stack>
         </ContentHider>
-        <Text c={'gray'} fz={'sm'} fw={500}>
-          {getFormattedDate(props.post.indexedAt)}
-        </Text>
+        <Group gap="xs" justify="space-between" wrap="nowrap">
+          <Text c={'gray'} fz={'sm'} fw={500}>
+            {getFormattedDate(props.post.indexedAt)}
+          </Text>
+          <ThreadNumber value={props.threadNumber} />
+        </Group>
       </Stack>
     </Card>
   );
