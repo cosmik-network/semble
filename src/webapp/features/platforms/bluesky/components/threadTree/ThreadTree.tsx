@@ -1,8 +1,16 @@
 'use client';
 
 import { useState, type ReactNode } from 'react';
-import { Box, Button, ThemeIcon, UnstyledButton } from '@mantine/core';
-import { TbCirclePlus, TbEyeOff } from 'react-icons/tb';
+import {
+  Box,
+  Button,
+  Divider,
+  Group,
+  Text,
+  ThemeIcon,
+  UnstyledButton,
+} from '@mantine/core';
+import { TbCirclePlus, TbEyeOff, TbMessageCircle } from 'react-icons/tb';
 import {
   getPostUrl,
   type ListItem,
@@ -184,6 +192,32 @@ function TreeNodeView(props: {
   );
 }
 
+function RepliesDivider() {
+  return (
+    <Box px="md" py="sm">
+      <Divider
+        variant="dashed"
+        labelPosition="center"
+        label={
+          <Group
+            gap={6}
+            px="sm"
+            py={4}
+            bg="var(--mantine-color-default-hover)"
+            style={{ borderRadius: 'var(--mantine-radius-xl)' }}
+            c="gray"
+          >
+            <TbMessageCircle size={14} strokeWidth={(1.75 * 24) / 14} />
+            <Text fz="sm" fw={500} inherit>
+              Replies
+            </Text>
+          </Group>
+        }
+      />
+    </Box>
+  );
+}
+
 function RootPost(props: { node: TreeNode; ctx: ThreadRenderContext }) {
   const entry = props.node.entry;
   const tombstone = tombstoneOf(props.node);
@@ -222,6 +256,7 @@ export function ThreadTree(props: {
   return (
     <Box>
       <RootPost node={props.root} ctx={props.ctx} />
+      {(replies.length > 0 || props.root.hasMore) && <RepliesDivider />}
       {replies.map((child) => (
         <Box key={child.entry.uri} className={classes.topLevel}>
           <TreeNodeView node={child} depth={1} ctx={props.ctx} />
@@ -257,6 +292,9 @@ export function ThreadList(props: {
           return (
             <Box key={entry.uri}>
               <RootPost node={item.node} ctx={props.ctx} />
+              {(props.items.length > 1 || item.node.hasMore) && (
+                <RepliesDivider />
+              )}
               {item.node.hasMore && (
                 <Box px="md" pb="sm">
                   <LoadMore node={item.node} ctx={props.ctx} />
