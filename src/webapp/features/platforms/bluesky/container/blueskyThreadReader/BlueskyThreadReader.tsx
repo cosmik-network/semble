@@ -85,7 +85,7 @@ export default function BlueskyThreadReader(props: ReaderBodyProps) {
   const contentRef = useRef<HTMLDivElement>(null);
   const { setViewport, maskImage, updateFade } = useScrollFade();
 
-  // Only the saved reply is highlighted; a jump just scrolls
+  // The saved reply is scrolled to on open
   const savedUri =
     data && data.anchorUri !== data.rootUri ? data.anchorUri : null;
   const focusedUri = focus?.uri ?? savedUri;
@@ -141,7 +141,6 @@ export default function BlueskyThreadReader(props: ReaderBodyProps) {
     rootAuthorDid: rootPost?.author.did,
     postOrigin: postOriginOf(props.url),
     fontSize: props.settings.fontSize,
-    highlightedUri: savedUri,
     revealPath,
     loading: thread.loading,
     failed: thread.failed,

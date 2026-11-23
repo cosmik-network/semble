@@ -276,7 +276,6 @@ interface PostProps {
   postOrigin: string;
   fontSize: number;
   isThreadAuthor: boolean;
-  highlighted: boolean;
 }
 
 /** The thread's root, drawn like the post on its semble page */
@@ -285,7 +284,6 @@ export function ThreadAnchorPost(props: PostProps) {
     <Box
       data-post-uri={props.post.uri}
       className={classes.post}
-      data-highlighted={props.highlighted || undefined}
       py="md"
     >
       <BlueskySemblePostCard
@@ -310,7 +308,6 @@ export function ThreadLinearPost(
     <Box
       data-post-uri={props.post.uri}
       className={classes.post}
-      data-highlighted={props.highlighted || undefined}
     >
       <Group h={12} w={LINEAR_AVATAR} justify="center" align="flex-start">
         {props.parentLine && <Box w={2} h={8} bg={THREAD_LINE} />}
@@ -368,7 +365,6 @@ export function ThreadTreePost(props: PostProps & { childLine: boolean }) {
     <Box
       data-post-uri={props.post.uri}
       className={classes.treePost}
-      data-highlighted={props.highlighted || undefined}
     >
       <PostMeta
         post={props.post}

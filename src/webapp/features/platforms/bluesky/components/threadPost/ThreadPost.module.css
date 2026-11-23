@@ -8,7 +8,6 @@
     var(--mantine-color-dark-3)
   );
   position: relative;
-  transition: background-color 0.3s ease;
   scroll-margin-block: 4rem;
 }
 
@@ -19,11 +18,6 @@
 .treePost {
   padding-top: var(--mantine-spacing-xs);
   border-radius: var(--mantine-radius-sm);
-}
-
-.post[data-highlighted],
-.treePost[data-highlighted] {
-  background: var(--mantine-color-default-hover);
 }
 
 /* Inset edge so light avatars don't bleed into the background */
