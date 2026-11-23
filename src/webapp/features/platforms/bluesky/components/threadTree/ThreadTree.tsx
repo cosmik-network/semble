@@ -26,7 +26,6 @@ export interface ThreadRenderContext {
   rootAuthorDid?: string;
   postOrigin: string;
   fontSize: number;
-  highlightedUri: string | null;
   /** The focused post and its ancestors, which must stay expanded */
   revealPath: ReadonlySet<string>;
   loading: ReadonlySet<string>;
@@ -165,7 +164,6 @@ function TreeNodeView(props: {
           postOrigin={props.ctx.postOrigin}
           fontSize={props.ctx.fontSize}
           isThreadAuthor={entry.post.author.did === props.ctx.rootAuthorDid}
-          highlighted={entry.uri === props.ctx.highlightedUri}
           childLine={indent && items.length > 0}
         />
       )}
@@ -208,7 +206,6 @@ function RootPost(props: { node: TreeNode; ctx: ThreadRenderContext }) {
       postOrigin={props.ctx.postOrigin}
       fontSize={props.ctx.fontSize}
       isThreadAuthor
-      highlighted={entry.uri === props.ctx.highlightedUri}
     />
   );
 }
@@ -296,7 +293,6 @@ export function ThreadList(props: {
             postOrigin={props.ctx.postOrigin}
             fontSize={props.ctx.fontSize}
             isThreadAuthor={entry.post.author.did === props.ctx.rootAuthorDid}
-            highlighted={entry.uri === props.ctx.highlightedUri}
             parentLine={parentLine}
             childLine={childLine}
             replyingTo={
