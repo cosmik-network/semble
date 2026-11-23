@@ -3,11 +3,12 @@
 import 'tldraw/tldraw.css';
 import { Button, Center, Stack, Text } from '@mantine/core';
 import { useComputedColorScheme } from '@mantine/core';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   Editor,
   Tldraw,
+  createShapeId,
   loadSnapshot,
   type TLComponents,
   type TLShapeId,
@@ -16,15 +17,31 @@ import {
 import { createSembleClient } from '@/services/client.apiClient';
 import { getCollectionPageUrl } from '@/lib/utils/link';
 import { attachArrows } from '../../controller/arrows';
+import {
+  attachCollectionFrames,
+  type CollectionFrames,
+} from '../../controller/collectionFrames';
+import { combineOutcomes, type FetchOutcome } from '../../controller/linkCards';
 import { createMediaReveals } from '../../controller/mediaReveals';
 import { createPopupCard } from '../../controller/popupCard';
 import type { ConnectionEnd, FetchedConnections } from '../../model/arrows';
 import { collectionFrameOf } from '../../model/collectionFrames';
-import { LINK_CARD_TYPE } from '../../model/linkCards';
+import {
+  ENTRY_META_KEY,
+  LINK_CARD_TYPE,
+  LINK_CARD_WIDTH,
+  linkCardHeight,
+  linkCardParts,
+} from '../../model/linkCards';
+import { canvasKeys } from '../../lib/canvasKeys';
+import { jsonMeta } from '../../lib/jsonMeta';
+import { createLineCounter } from '../../lib/lineCounter';
+import { showCanvasError } from '../../lib/showCanvasError';
 import { CanvasCollectionFramesProvider } from '../../lib/canvasCollectionFramesContext';
 import { CanvasCopiesProvider } from '../../lib/canvasCopiesContext';
 import { CanvasMediaRevealsProvider } from '../../lib/canvasMediaRevealsContext';
 import { CanvasServerProvider } from '../../lib/canvasServerContext';
+import { linkQuery, type LinkInfo } from '../../server/canvasServer';
 import { sharedCanvasServer } from '../../server/sharedCanvasServer';
 import { CollectionFrameShapeUtil } from '../../shapes/collectionFrame/CollectionFrameShapeUtil';
 import { attachBoardExports } from '../../controller/boardExports';
@@ -85,6 +102,9 @@ export default function SharedBoardEditor(props: { shareToken: string }) {
     ReturnType<typeof attachArrows>['view'] | null
   >(null);
   const [mediaReveals] = useState(createMediaReveals);
+  const [collectionFrames, setCollectionFrames] =
+    useState<CollectionFrames | null>(null);
+  const queryClient = useQueryClient();
   const popupCard = useMemo(
     () => (editor ? createPopupCard(editor, getCollectionPageUrl) : null),
     [editor],
@@ -175,30 +195,100 @@ export default function SharedBoardEditor(props: { shareToken: string }) {
       fetchedConnections: () => fetched,
     });
     setArrowView(arrows.view);
-    const urls = Array.from(
-      new Set(connectionEndsOf(editor).map((end) => end.url)),
-    );
     let detached = false;
-    void sharedCanvasServer.getLinks(urls).then((links) => {
-      if (detached) return;
-      links.forEach((link, url) => {
-        if (link.connections) {
-          fetched.set(url, {
-            connections: link.connections,
-            fetchedAt: Date.now(),
-          });
+
+    // Through the cache the cards read, so a card and its arrows share a fetch
+    async function fetchLinks(urls: string[]): Promise<FetchOutcome> {
+      const outcomes = await Promise.all(
+        urls.map(async (url): Promise<FetchOutcome> => {
+          try {
+            const link = await queryClient.fetchQuery(
+              linkQuery(sharedCanvasServer, url),
+            );
+            if (link.connections) {
+              fetched.set(url, {
+                connections: link.connections,
+                fetchedAt: Date.now(),
+              });
+            }
+            return 'fetched';
+          } catch (error) {
+            console.warn(error);
+            return 'failed';
+          }
+        }),
+      );
+      if (!detached) arrows.reconcile();
+      return combineOutcomes(outcomes);
+    }
+    void fetchLinks(
+      Array.from(new Set(connectionEndsOf(editor).map((end) => end.url))),
+    );
+
+    // Loading more is the one change a viewer makes, and only in their tab
+    const lines = createLineCounter(editor);
+    const cardHeight: Parameters<
+      typeof attachCollectionFrames
+    >[0]['cardHeight'] = (url, entry) =>
+      linkCardHeight(
+        linkCardParts(
+          queryClient.getQueryData<LinkInfo>(canvasKeys.link(url)),
+          lines.count,
+          entry,
+        ),
+      );
+    const frames = attachCollectionFrames({
+      editor,
+      server: sharedCanvasServer,
+      viewerDid: record.ownerDid,
+      collectionPageUrl: getCollectionPageUrl,
+      fetchLinks,
+      cardHeight,
+      // Loading more fetches the links before placing them, so each card is
+      // placed at its height
+      placeLinks(places) {
+        const cards = places.map((place) => {
+          const h = cardHeight(place.url, place.entry?.card ?? null);
+          return {
+            id: place.id ?? createShapeId(),
+            type: LINK_CARD_TYPE,
+            x: place.at.x - LINK_CARD_WIDTH / 2,
+            y: place.at.y - h / 2,
+            props: { url: place.url, h, cardId: place.entry?.cardId ?? null },
+            ...(place.entry && {
+              meta: { [ENTRY_META_KEY]: jsonMeta(place.entry.card) },
+            }),
+          };
+        });
+        editor.createShapes(cards);
+        return cards.map((card) => card.id);
+      },
+      placeLink: () => {},
+      countLines: lines.count,
+      rename: async () => {},
+      onFailed: showCanvasError,
+      onAlreadyInCollection: () => {},
+      onProgress: () => {},
+      canPlace: () => !detached,
+      writeReadonly(change) {
+        editor.updateInstanceState({ isReadonly: false });
+        try {
+          change();
+        } finally {
+          editor.updateInstanceState({ isReadonly: true });
         }
-      });
-      arrows.reconcile();
+      },
     });
-    // Frames count as ends only once their meta has been placed, which it is
-    // in a saved document; still, a frame's links arrive with the rest
+    setCollectionFrames(frames);
+
     return () => {
       detached = true;
       setArrowView(null);
+      setCollectionFrames(null);
+      frames.detach();
       arrows.detach();
     };
-  }, [editor, opened.data, tooNew]);
+  }, [editor, opened.data, tooNew, queryClient]);
 
   useEffect(() => {
     editor?.user.updateUserPreferences({ colorScheme });
@@ -210,7 +300,9 @@ export default function SharedBoardEditor(props: { shareToken: string }) {
         <CanvasServerProvider server={sharedCanvasServer}>
           <CanvasCopiesProvider copies={null}>
             <CanvasMediaRevealsProvider mediaReveals={mediaReveals}>
-              <CanvasCollectionFramesProvider collectionFrames={null}>
+              <CanvasCollectionFramesProvider
+                collectionFrames={collectionFrames}
+              >
                 <Tldraw
                   licenseKey={process.env.NEXT_PUBLIC_TLDRAW_LICENSE_KEY}
                   shapeUtils={shapeUtils}

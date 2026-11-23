@@ -5,7 +5,6 @@ import { AppBskyFeedDefs, AppBskyFeedPost } from '@atproto/api';
 import {
   Anchor,
   Avatar,
-  Badge,
   Box,
   Group,
   Paper,
@@ -21,6 +20,7 @@ import BotLabel from '@/features/profile/components/botLabel/BotLabel';
 import { getFormattedDate, getRelativeTime } from '@/lib/utils/time';
 import PostEmbed from '../postEmbed/PostEmbed';
 import ContentHider from '../contentHider/ContentHider';
+import ThreadNumber from '../threadNumber/ThreadNumber';
 import {
   getModerationReasonText,
   getPostModerationUI,
@@ -141,26 +141,10 @@ export function postTombstone(
   return null;
 }
 
-function AuthorBadges(props: {
-  post: AppBskyFeedDefs.PostView;
-  isThreadAuthor: boolean;
-}) {
-  return (
-    <>
-      {isBotAccount(props.post.author) && <BotLabel />}
-      {props.isThreadAuthor && (
-        <Badge size="xs" variant="light" color="gray" flex="none">
-          Author
-        </Badge>
-      )}
-    </>
-  );
-}
-
 function PostMeta(props: {
   post: AppBskyFeedDefs.PostView;
   postOrigin: string;
-  isThreadAuthor: boolean;
+  threadNumber?: string;
   avatar?: boolean;
   light?: boolean;
 }) {
@@ -223,7 +207,8 @@ function PostMeta(props: {
           · {getRelativeTime(createdAt)}
         </Anchor>
       </Tooltip>
-      <AuthorBadges post={props.post} isThreadAuthor={props.isThreadAuthor} />
+      {isBotAccount(props.post.author) && <BotLabel />}
+      <ThreadNumber value={props.threadNumber} />
     </Group>
   );
 }
@@ -275,21 +260,18 @@ interface PostProps {
   post: AppBskyFeedDefs.PostView;
   postOrigin: string;
   fontSize: number;
-  isThreadAuthor: boolean;
+  threadNumber?: string;
 }
 
 /** The thread's root, drawn like the post on its semble page */
 export function ThreadAnchorPost(props: PostProps) {
   return (
-    <Box
-      data-post-uri={props.post.uri}
-      className={classes.post}
-      py="md"
-    >
+    <Box data-post-uri={props.post.uri} className={classes.post} py="md">
       <BlueskySemblePostCard
         post={props.post}
         url={getPostUrl(props.post, props.postOrigin)}
         textProps={{ fz: `${props.fontSize}px`, lh: 1.5 }}
+        threadNumber={props.threadNumber}
       />
     </Box>
   );
@@ -305,10 +287,7 @@ export function ThreadLinearPost(
   },
 ) {
   return (
-    <Box
-      data-post-uri={props.post.uri}
-      className={classes.post}
-    >
+    <Box data-post-uri={props.post.uri} className={classes.post}>
       <Group h={12} w={LINEAR_AVATAR} justify="center" align="flex-start">
         {props.parentLine && <Box w={2} h={8} bg={THREAD_LINE} />}
       </Group>
@@ -332,7 +311,7 @@ export function ThreadLinearPost(
           <PostMeta
             post={props.post}
             postOrigin={props.postOrigin}
-            isThreadAuthor={props.isThreadAuthor}
+            threadNumber={props.threadNumber}
             light
           />
           {props.replyingTo && (
@@ -362,14 +341,11 @@ export function ThreadLinearPost(
 /** Tree view reply: small avatar inline with the name */
 export function ThreadTreePost(props: PostProps & { childLine: boolean }) {
   return (
-    <Box
-      data-post-uri={props.post.uri}
-      className={classes.treePost}
-    >
+    <Box data-post-uri={props.post.uri} className={classes.treePost}>
       <PostMeta
         post={props.post}
         postOrigin={props.postOrigin}
-        isThreadAuthor={props.isThreadAuthor}
+        threadNumber={props.threadNumber}
         avatar
       />
       <Group gap={0} wrap="nowrap" align="stretch">

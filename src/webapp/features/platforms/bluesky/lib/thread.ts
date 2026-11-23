@@ -195,6 +195,35 @@ export function buildThreadView(
   return { root: build(rootEntry), hidden };
 }
 
+/**
+ * Numbers the root author's self-thread: the root, then each reply the author
+ * made to their own previous post. The total is left off while the chain's
+ * tail still has unloaded replies.
+ */
+export function numberSelfThread(root: TreeNode): Map<string, string> {
+  if (root.entry.kind !== 'post') return new Map();
+  const authorDid = root.entry.post.author.did;
+
+  const chain = [root];
+  for (;;) {
+    const next = chain[chain.length - 1].children.find(
+      (child) =>
+        child.entry.kind === 'post' &&
+        child.entry.post.author.did === authorDid,
+    );
+    if (!next) break;
+    chain.push(next);
+  }
+
+  const numbers = new Map<string, string>();
+  if (chain.length < 2) return numbers;
+  const total = chain[chain.length - 1].hasMore ? null : chain.length;
+  chain.forEach((node, i) => {
+    numbers.set(node.entry.uri, total ? `${i + 1}/${total}` : `${i + 1}`);
+  });
+  return numbers;
+}
+
 /** Every node in a subtree, depth first */
 export function walkTree(node: TreeNode): TreeNode[] {
   return [node, ...node.children.flatMap(walkTree)];

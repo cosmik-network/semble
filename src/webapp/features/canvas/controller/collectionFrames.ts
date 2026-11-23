@@ -75,6 +75,9 @@ export interface CollectionFramesDeps {
   onProgress(progress: SeedProgress | null): void;
   // False once the board is closed or another tab writes it
   canPlace(): boolean;
+  // A read-only board, which still loads more of a frame, lets the frames'
+  // own changes through here
+  writeReadonly?(change: () => void): void;
 }
 
 export type CollectionFrameShape = TLFrameShape & {
@@ -128,6 +131,7 @@ const entryCard = (
 // them on request. Nothing here writes to the server.
 export function attachCollectionFrames(deps: CollectionFramesDeps) {
   const { editor } = deps;
+  const write = deps.writeReadonly ?? ((change: () => void) => change());
   const frames = computed('collection frames', () =>
     collectionFramesOn(editor),
   );
@@ -578,26 +582,28 @@ export function attachCollectionFrames(deps: CollectionFramesDeps) {
         frameHeightFor(layout.bottom),
       );
       editor.markHistoryStoppingPoint('load more entries');
-      editor.run(() => {
-        editor.updateShape<TLFrameShape>({
-          id: frameId,
-          type: 'frame',
-          props: {
-            name: page.collection.name,
-            h: isCollapsed(meta) ? headerHeight : h,
-          },
-          meta: withMeta({
-            ...meta,
-            collection: page.collection,
-            entries: { ...meta.entries, ...layout.entries },
-            pages: before.pages + 1,
-            hasMore: page.hasMore,
-            headerHeight,
-            expandedHeight: isCollapsed(meta) ? h : null,
-          }),
-        });
-        placeCopies(frameId, layout);
-      });
+      write(() =>
+        editor.run(() => {
+          editor.updateShape<TLFrameShape>({
+            id: frameId,
+            type: 'frame',
+            props: {
+              name: page.collection.name,
+              h: isCollapsed(meta) ? headerHeight : h,
+            },
+            meta: withMeta({
+              ...meta,
+              collection: page.collection,
+              entries: { ...meta.entries, ...layout.entries },
+              pages: before.pages + 1,
+              hasMore: page.hasMore,
+              headerHeight,
+              expandedHeight: isCollapsed(meta) ? h : null,
+            }),
+          });
+          placeCopies(frameId, layout);
+        }),
+      );
     } catch (error) {
       console.warn(error);
       deps.onFailed("Couldn't load more of this collection. Try again.");
@@ -615,8 +621,10 @@ export function attachCollectionFrames(deps: CollectionFramesDeps) {
 
   // Remote changes, so never in undo
   const outsideUndo = (change: () => void) =>
-    editor.store.mergeRemoteChanges(() =>
-      editor.run(change, { history: 'ignore' }),
+    write(() =>
+      editor.store.mergeRemoteChanges(() =>
+        editor.run(change, { history: 'ignore' }),
+      ),
     );
 
   // Its frame goes with the copies it placed, copies dragged out become free,
@@ -837,6 +845,7 @@ export function attachCollectionFrames(deps: CollectionFramesDeps) {
     showHidden,
     toggleCollapsed,
     isLoadingMore: (frameId: TLShapeId) => loading.get().has(frameId),
+    loadsMoreWhenReadonly: !!deps.writeReadonly,
     detach() {
       detached = true;
       unlistenCreated();
