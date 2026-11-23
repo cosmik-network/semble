@@ -34,7 +34,8 @@ export default function CollectionSelectorItem(props: Props) {
       checked={props.checked}
       onChange={(checked) => props.onChange(checked, props.collection)}
     >
-      <Group justify="space-between" wrap="nowrap">
+      <Group wrap="nowrap">
+        <CheckboxIndicator checked={props.checked} />
         <Group gap={'xs'} flex={1} wrap="nowrap">
           {props.collection.accessType === CollectionAccessType.OPEN && (
             <ThemeIcon variant="light" radius={'xl'} size={'xs'} color="green">
@@ -56,7 +57,6 @@ export default function CollectionSelectorItem(props: Props) {
           alt={`${props.collection.author?.handle}'s avatar`}
           size={'sm'}
         />
-        <CheckboxIndicator checked={props.checked} />
       </Group>
     </CheckboxCard>
   );
