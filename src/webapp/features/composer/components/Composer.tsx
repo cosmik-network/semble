@@ -515,7 +515,7 @@ export default function Composer(props: Props) {
         withCloseButton={false}
         position="bottom"
         padding={'sm'}
-        size={'30rem'}
+        styles={{ content: { height: 'auto' } }}
         zIndex={202}
         overlayProps={{ ...DEFAULT_OVERLAY_PROPS, zIndex: 201 }}
       >
