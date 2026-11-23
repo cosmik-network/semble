@@ -26,7 +26,8 @@ export default function CreateCollectionDrawer(props: Props) {
       size={'31rem'}
       padding={'sm'}
       position="bottom"
-      overlayProps={DEFAULT_OVERLAY_PROPS}
+      zIndex={204}
+      overlayProps={{ ...DEFAULT_OVERLAY_PROPS, zIndex: 203 }}
     >
       <Drawer.Header>
         <Drawer.Title fz={'xl'} fw={600} mx={'auto'}>

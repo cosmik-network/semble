@@ -314,8 +314,9 @@ export default function AddCardForm(props: Props) {
         withCloseButton={false}
         position="bottom"
         padding={'sm'}
-        size={'30rem'}
-        overlayProps={DEFAULT_OVERLAY_PROPS}
+        styles={{ content: { height: 'auto' } }}
+        zIndex={202}
+        overlayProps={{ ...DEFAULT_OVERLAY_PROPS, zIndex: 201 }}
       >
         <Drawer.Header>
           <Drawer.Title fz={'xl'} fw={600} mx={'auto'}>
