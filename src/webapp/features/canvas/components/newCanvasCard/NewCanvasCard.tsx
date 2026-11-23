@@ -1,3 +1,5 @@
+'use client';
+
 import { Card, Center, Stack, Text } from '@mantine/core';
 import Link from 'next/link';
 import { FiPlus } from 'react-icons/fi';
