@@ -516,7 +516,8 @@ export default function Composer(props: Props) {
         position="bottom"
         padding={'sm'}
         size={'30rem'}
-        overlayProps={DEFAULT_OVERLAY_PROPS}
+        zIndex={202}
+        overlayProps={{ ...DEFAULT_OVERLAY_PROPS, zIndex: 201 }}
       >
         <Drawer.Header>
           <Drawer.Title fz={'xl'} fw={600} mx={'auto'}>
