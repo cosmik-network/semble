@@ -55,6 +55,9 @@ export default function CollectionFrameFace(props: Props) {
   // An exported image leaves out the frame's controls
   const exporting = !!useSvgExportContext();
   const controls = !readonly && !exporting;
+  // A shared board loads more too, though nothing else on it can change
+  const loadControl =
+    !exporting && (!readonly || !!collectionFrames?.loadsMoreWhenReadonly);
   const loadingMore = useValue(
     'loading more',
     () => collectionFrames?.isLoadingMore(props.id) ?? false,
@@ -183,7 +186,7 @@ export default function CollectionFrameFace(props: Props) {
               Show hidden ({footer.hidden})
             </Button>
           )}
-          {footer.canLoadMore && controls && (
+          {footer.canLoadMore && loadControl && (
             <Button
               className={classes.control}
               variant="default"
