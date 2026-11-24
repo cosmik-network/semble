@@ -58,9 +58,9 @@ export default function CollectionFrameFace(props: Props) {
   // A shared board loads more too, though nothing else on it can change
   const loadControl =
     !exporting && (!readonly || !!collectionFrames?.loadsMoreWhenReadonly);
-  const loadingMore = useValue(
-    'loading more',
-    () => collectionFrames?.isLoadingMore(props.id) ?? false,
+  const loading = useValue(
+    'loading',
+    () => collectionFrames?.loadingOf(props.id) ?? null,
     [collectionFrames, props.id],
   );
   const collection = props.meta.collection;
@@ -186,13 +186,29 @@ export default function CollectionFrameFace(props: Props) {
               Show hidden ({footer.hidden})
             </Button>
           )}
+          {footer.canShowLess && loadControl && (
+            <Button
+              className={classes.control}
+              variant="subtle"
+              color="gray"
+              radius="xl"
+              size="compact-sm"
+              loading={loading === 'less'}
+              disabled={loading === 'more'}
+              onPointerDown={stopEventPropagation}
+              onClick={() => collectionFrames?.showLess(props.id)}
+            >
+              Show less
+            </Button>
+          )}
           {footer.canLoadMore && loadControl && (
             <Button
               className={classes.control}
               variant="default"
               radius="xl"
               size="compact-sm"
-              loading={loadingMore}
+              loading={loading === 'more'}
+              disabled={loading === 'less'}
               onPointerDown={stopEventPropagation}
               onClick={() => collectionFrames?.loadMore(props.id)}
             >

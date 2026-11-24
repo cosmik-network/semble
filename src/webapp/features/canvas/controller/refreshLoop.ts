@@ -25,7 +25,7 @@ export interface RefreshLoopDeps {
     urls: string[],
     options: { force?: boolean },
   ): Promise<FetchOutcome>;
-  // Puts collection frames back to their collections' first pages
+  // Brings the pages collection frames have loaded up to date
   refreshFrames(options: RefreshOptions): Promise<FetchOutcome>;
   // Runs the timed refresh every so often; setInterval unless given
   everyTimedRefresh?(refresh: () => void, ms: number): () => void;
