@@ -18,8 +18,8 @@ export default function AddCardDrawer(props: Props) {
       opened={props.isOpen}
       onClose={props.onClose}
       withCloseButton={false}
-      size={'30.5rem'}
       padding={'sm'}
+      styles={{ content: { height: 'auto' } }}
       position="bottom"
       overlayProps={DEFAULT_OVERLAY_PROPS}
     >
