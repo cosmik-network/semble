@@ -358,6 +358,23 @@ export function attachCollectionFrames(deps: CollectionFramesDeps) {
       limit: COLLECTION_PAGE_SIZE,
     });
 
+  // Every page the frame has loaded, as one
+  async function fetchLoaded(
+    collectionId: string,
+    pages: number,
+  ): Promise<CollectionPage | null> {
+    const fetched = await Promise.all(
+      Array.from({ length: pages }, (_, i) => fetchPage(collectionId, i + 1)),
+    );
+    if (fetched.some((page) => !page)) return null;
+    const loaded = fetched as CollectionPage[];
+    return {
+      ...loaded[0],
+      entries: loaded.flatMap((page) => page.entries),
+      hasMore: loaded[loaded.length - 1].hasMore,
+    };
+  }
+
   const show = (id: TLShapeId) => {
     const bounds = editor.getShapePageBounds(id);
     if (bounds) editor.zoomToBounds(bounds, { targetZoom: 1, immediate: true });
@@ -538,10 +555,11 @@ export function attachCollectionFrames(deps: CollectionFramesDeps) {
     }
   }
 
-  const loading = atom('loading frames', new Set<TLShapeId>());
-  const setLoading = (id: TLShapeId, on: boolean) => {
-    const next = new Set(loading.get());
-    if (on) next.add(id);
+  type Loading = 'more' | 'less';
+  const loading = atom('loading frames', new Map<TLShapeId, Loading>());
+  const setLoading = (id: TLShapeId, on: Loading | null) => {
+    const next = new Map(loading.get());
+    if (on) next.set(id, on);
     else next.delete(id);
     loading.set(next);
   };
@@ -553,7 +571,7 @@ export function attachCollectionFrames(deps: CollectionFramesDeps) {
     if (!before?.hasMore || loading.get().has(frameId) || !deps.canPlace()) {
       return;
     }
-    setLoading(frameId, true);
+    setLoading(frameId, 'more');
     try {
       const page = await fetchPage(before.collection.id, before.pages + 1);
       if (!page) {
@@ -562,7 +580,6 @@ export function attachCollectionFrames(deps: CollectionFramesDeps) {
       }
       await deps.fetchLinks(page.entries.map((entry) => entry.url));
       const meta = metaOf(frameId);
-      // A refresh meanwhile put the frame back to its first page
       if (!meta || meta.pages !== before.pages || !deps.canPlace()) return;
       const frame = editor.getShape<TLFrameShape>(frameId)!;
       const placing = page.entries.filter(
@@ -608,7 +625,47 @@ export function attachCollectionFrames(deps: CollectionFramesDeps) {
       console.warn(error);
       deps.onFailed("Couldn't load more of this collection. Try again.");
     } finally {
-      setLoading(frameId, false);
+      setLoading(frameId, null);
+    }
+  }
+
+  // Back to the first page, dropping the copies Load more put in the frame.
+  // One step of undo.
+  async function showLess(frameId: TLShapeId) {
+    const before = metaOf(frameId);
+    if (
+      !before ||
+      before.pages < 2 ||
+      loading.get().has(frameId) ||
+      !deps.canPlace()
+    ) {
+      return;
+    }
+    setLoading(frameId, 'less');
+    // A refresh already under way would bring the other pages back
+    refreshing.set(frameId, ++refreshes);
+    try {
+      const page = await fetchPage(before.collection.id, 1);
+      if (page) await deps.fetchLinks(page.entries.map((entry) => entry.url));
+      const meta = metaOf(frameId);
+      if (!meta || meta.pages !== before.pages || !deps.canPlace()) return;
+      if (!page) {
+        removeCollection(frameId);
+        return;
+      }
+      fetchedAt.set(frameId, Date.now());
+      editor.markHistoryStoppingPoint('show less entries');
+      write(() =>
+        editor.run(() => {
+          editor.updateShape(frameMetaOf(frameId, { ...meta, pages: 1 }));
+          showLoaded(frameId, page, (change) => change());
+        }),
+      );
+    } catch (error) {
+      console.warn(error);
+      deps.onFailed("Couldn't show less of this collection. Try again.");
+    } finally {
+      setLoading(frameId, null);
     }
   }
 
@@ -645,9 +702,10 @@ export function attachCollectionFrames(deps: CollectionFramesDeps) {
     });
   }
 
-  // Back to the first page: its new entries at the top, above what's in the
-  // frame, and copies in the frame whose entries aren't on it removed
-  function showFirstPage(
+  // The pages it has loaded as they are now: new entries at the top, above
+  // what's in the frame, and copies in the frame whose entries aren't on them
+  // removed
+  function showLoaded(
     frameId: TLShapeId,
     page: CollectionPage,
     write = outsideUndo,
@@ -709,7 +767,6 @@ export function attachCollectionFrames(deps: CollectionFramesDeps) {
           ...meta,
           collection,
           entries,
-          pages: 1,
           hasMore: page.hasMore,
           headerHeight,
         }),
@@ -747,7 +804,7 @@ export function attachCollectionFrames(deps: CollectionFramesDeps) {
     refreshing.set(frameId, asked);
     let page: CollectionPage | null;
     try {
-      page = await fetchPage(meta.collection.id, 1);
+      page = await fetchLoaded(meta.collection.id, meta.pages);
       if (page) await deps.fetchLinks(page.entries.map((entry) => entry.url));
     } catch (error) {
       console.warn(error);
@@ -761,7 +818,7 @@ export function attachCollectionFrames(deps: CollectionFramesDeps) {
       return 'nothing-fetched';
     }
     fetchedAt.set(frameId, Date.now());
-    if (page) showFirstPage(frameId, page);
+    if (page) showLoaded(frameId, page);
     else removeCollection(frameId);
     return 'fetched';
   }
@@ -782,14 +839,14 @@ export function attachCollectionFrames(deps: CollectionFramesDeps) {
     );
   }
 
-  // One step of undo with the copies it places, those still on the first
-  // page, so undo hides them again
+  // One step of undo with the copies it places, those still on the loaded
+  // pages, so undo hides them again
   async function showHidden(frameId: TLShapeId) {
     const before = metaOf(frameId);
     if (!before?.hidden.length || !deps.canPlace()) return;
     let page: CollectionPage | null;
     try {
-      page = await fetchPage(before.collection.id, 1);
+      page = await fetchLoaded(before.collection.id, before.pages);
     } catch (error) {
       console.warn(error);
       deps.onFailed("Couldn't show the hidden entries. Try again.");
@@ -806,7 +863,7 @@ export function attachCollectionFrames(deps: CollectionFramesDeps) {
     editor.markHistoryStoppingPoint('show hidden entries');
     editor.run(() => {
       editor.updateShape(frameMetaOf(frameId, { ...meta, hidden: [] }));
-      showFirstPage(frameId, page, (change) => change());
+      showLoaded(frameId, page, (change) => change());
     });
   }
 
@@ -843,8 +900,9 @@ export function attachCollectionFrames(deps: CollectionFramesDeps) {
     loadMore,
     refresh,
     showHidden,
+    showLess,
     toggleCollapsed,
-    isLoadingMore: (frameId: TLShapeId) => loading.get().has(frameId),
+    loadingOf: (frameId: TLShapeId) => loading.get().get(frameId) ?? null,
     loadsMoreWhenReadonly: !!deps.writeReadonly,
     detach() {
       detached = true;

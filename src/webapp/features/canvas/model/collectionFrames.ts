@@ -48,6 +48,7 @@ export interface CollectionFrameFooter {
   shown: number;
   total: number;
   canLoadMore: boolean;
+  canShowLess: boolean;
   hidden: number;
 }
 
@@ -61,6 +62,7 @@ export const frameFooter = (
       : total,
     total,
     canLoadMore: meta.hasMore,
+    canShowLess: meta.pages > 1,
     hidden: meta.hidden.length,
   };
 };
@@ -133,30 +135,31 @@ export interface FrameCopy {
 }
 
 export interface FrameRefresh {
-  // On the first page, not on the board and not hidden, most recent first
+  // On the loaded pages, not on the board and not hidden, most recent first
   placing: CollectionEntry[];
-  // Kept copies whose entries are on the first page, to show it as it is now
+  // Kept copies whose entries are on the loaded pages, to show them as they
+  // are now
   updating: { shapeId: string; entry: CollectionEntry }[];
   removing: string[];
   // Dragged out of the frame, and their entries left the collection
   freeing: string[];
   // The entries the frame keeps or places, most recent first: the first
-  // page's, then those dragged out that slid off it
+  // pages', then those dragged out that slid off them
   ranked: string[];
 }
 
-// Puts a frame back to the collection's first page. A copy dragged out of the
-// frame whose entry isn't on it is freed only once an entry ranked below it
+// Brings a frame's loaded pages up to date. A copy dragged out of the frame
+// whose entry isn't on them is freed only once an entry ranked below it
 // still is: the entry left the collection rather than slid down.
 export function refreshFrame(
   hidden: string[],
   copies: FrameCopy[],
-  firstPage: CollectionEntry[],
+  loaded: CollectionEntry[],
 ): FrameRefresh {
-  const onPage = new Map(firstPage.map((entry) => [entry.cardId, entry]));
+  const onPage = new Map(loaded.map((entry) => [entry.cardId, entry]));
   const onBoard = new Set(copies.map((copy) => copy.cardId));
   const result: FrameRefresh = {
-    placing: firstPage.filter(
+    placing: loaded.filter(
       ({ cardId }) => !onBoard.has(cardId) && !hidden.includes(cardId),
     ),
     updating: [],
@@ -175,7 +178,7 @@ export function refreshFrame(
   });
   const placing = new Set(result.placing.map(({ cardId }) => cardId));
   result.ranked = [
-    ...firstPage
+    ...loaded
       .map(({ cardId }) => cardId)
       .filter((cardId) => onBoard.has(cardId) || placing.has(cardId)),
     ...slidOff,

@@ -1989,6 +1989,7 @@ describe('open in canvas from a collection', () => {
       shown: 10,
       total: 12,
       canLoadMore: true,
+      canShowLess: false,
       hidden: 0,
     });
   });
@@ -2102,6 +2103,7 @@ describe('open in canvas from a collection', () => {
       shown: 20,
       total: 25,
       canLoadMore: true,
+      canShowLess: true,
       hidden: 0,
     });
   });
@@ -2134,6 +2136,7 @@ describe('open in canvas from a collection', () => {
       shown: 4,
       total: 4,
       canLoadMore: false,
+      canShowLess: false,
       hidden: 0,
     });
   });
@@ -2152,6 +2155,46 @@ describe('open in canvas from a collection', () => {
     expect(board.frameFooter(frame.id)).toMatchObject({
       shown: 10,
     });
+  });
+
+  it('should go back to the first page on Show less, fitting the frame to it', async () => {
+    // Arrange
+    board = await createTestBoard({ server: withEntries(25), ...OPENED });
+    const [frame] = board.frames();
+    const firstHeight = board.editor.getShape<TLFrameShape>(frame.id)!.props.h;
+    await board.collectionFrames.loadMore(frame.id);
+    await board.collectionFrames.loadMore(frame.id);
+
+    // Act
+    await board.collectionFrames.showLess(frame.id);
+
+    // Assert
+    expect(shownCards(frame.id)).toEqual(
+      Array.from({ length: 10 }, (_, i) => `card-${i}`).sort(),
+    );
+    expect(board.frameFooter(frame.id)).toMatchObject({
+      shown: 10,
+      canLoadMore: true,
+      canShowLess: false,
+    });
+    expect(board.editor.getShape<TLFrameShape>(frame.id)!.props.h).toBe(
+      firstHeight,
+    );
+  });
+
+  it('should take back Show less in one step of undo', async () => {
+    // Arrange
+    board = await createTestBoard({ server: withEntries(25), ...OPENED });
+    const [frame] = board.frames();
+    await board.collectionFrames.loadMore(frame.id);
+    await board.collectionFrames.showLess(frame.id);
+
+    // Act
+    board.editor.undo();
+
+    // Assert
+    expect(shownCards(frame.id)).toHaveLength(20);
+    expect(board.frameFooter(frame.id)).toMatchObject({ shown: 20 });
   });
 
   it('should show the frame already on the board rather than place the collection again', async () => {
@@ -2683,7 +2726,7 @@ describe('open in canvas from a collection', () => {
       return free.id;
     }
 
-    it('should put the frame back to its 10 most recent entries, with new ones at the top', async () => {
+    it('should keep the pages Load more added, with new entries at the top', async () => {
       // Arrange
       const server = withEntries(25);
       board = await createTestBoard({ server, ...OPENED });
@@ -2699,13 +2742,14 @@ describe('open in canvas from a collection', () => {
       expect(shownCards(frame.id)).toEqual(
         [
           'card-100',
-          ...Array.from({ length: 9 }, (_, i) => `card-${i}`),
+          ...Array.from({ length: 19 }, (_, i) => `card-${i}`),
         ].sort(),
       );
       expect(board.frameFooter(frame.id)).toEqual({
-        shown: 10,
+        shown: 20,
         total: 26,
         canLoadMore: true,
+        canShowLess: true,
         hidden: 0,
       });
       const newTop = board.editor.getShapePageBounds(copyOf('card-100')!)!.minY;
@@ -2915,7 +2959,7 @@ describe('open in canvas from a collection', () => {
       );
     });
 
-    it('should drop Load more that a refresh overtook, rather than skip a page', async () => {
+    it('should still add the next page when a refresh lands during Load more', async () => {
       // Arrange
       const server = withEntries(35);
       board = await createTestBoard({ server, ...OPENED });
@@ -2932,9 +2976,9 @@ describe('open in canvas from a collection', () => {
 
       // Assert
       expect(shownCards(frame.id)).toEqual(
-        Array.from({ length: 10 }, (_, i) => `card-${i}`).sort(),
+        Array.from({ length: 30 }, (_, i) => `card-${i}`).sort(),
       );
-      expect(board.frameFooter(frame.id)).toMatchObject({ shown: 10 });
+      expect(board.frameFooter(frame.id)).toMatchObject({ shown: 30 });
     });
   });
 
