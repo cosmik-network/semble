@@ -10,6 +10,8 @@ import { ICardQueryRepository } from '../../../domain/ICardQueryRepository';
 import { URL } from '../../../domain/value-objects/URL';
 import { normalizeQuotedText } from '../../../domain/value-objects/selectors/normalizeQuotedText';
 import { IProfileService } from '../../../domain/services/IProfileService';
+import { IMetadataService } from '../../../domain/services/IMetadataService';
+import { toUrlMetadataDTO } from '../../../domain/value-objects/urlMetadataMapping';
 import {
   UrlMetadata,
   PaginationDTO,
@@ -48,6 +50,7 @@ export class GetConnectionsForAnnotationUseCase implements UseCase<
     private connectionQueryRepo: IConnectionQueryRepository,
     private cardQueryRepo: ICardQueryRepository,
     private profileService: IProfileService,
+    private metadataService: IMetadataService,
   ) {}
 
   async execute(
@@ -120,8 +123,9 @@ export class GetConnectionsForAnnotationUseCase implements UseCase<
       );
 
       // Curator profiles and URL library info are independent — fetch in
-      // parallel. No external metadata fetches on this read path: the
-      // library-info batch carries sample-card metadata as a fallback.
+      // parallel. The library-info batch carries sample-card metadata; URLs
+      // it has none for get a fast external fetch, the same fallback the
+      // profile connection tab uses.
       const uniqueCuratorIds = Array.from(
         new Set(splits.map((split) => split.item.connection.curatorId)),
       );
@@ -136,6 +140,60 @@ export class GetConnectionsForAnnotationUseCase implements UseCase<
           query.callingUserId,
         ),
       ]);
+
+      // Metadata map for the other endpoints' URLs: sample-card metadata
+      // where the library-info batch has it, fast external fetch where it
+      // doesn't, minimal {url} when both come up empty
+      const metadataMap = new Map<string, UrlMetadata>();
+      const urlsNeedingFetch: string[] = [];
+      for (const url of uniqueUrls) {
+        const sample = urlLibraryInfoMap.get(url)?.metadata;
+        if (sample?.title) {
+          metadataMap.set(url, {
+            url: sample.url,
+            title: sample.title,
+            description: sample.description,
+            author: sample.author,
+            publishedDate: sample.publishedDate?.toISOString(),
+            siteName: sample.siteName,
+            imageUrl: sample.imageUrl,
+            type: sample.type,
+            doi: sample.doi,
+            isbn: sample.isbn,
+          });
+        } else {
+          urlsNeedingFetch.push(url);
+        }
+      }
+      if (urlsNeedingFetch.length > 0) {
+        const results = await Promise.allSettled(
+          urlsNeedingFetch.map(async (url) => {
+            const urlResult = URL.create(url);
+            if (urlResult.isErr()) {
+              return { url, metadata: null };
+            }
+            // Fast mode: latency-sensitive read path; the metadata worker
+            // enriches persisted cards asynchronously
+            const fetched = await this.metadataService.fetchMetadata(
+              urlResult.value,
+              false,
+              'fast',
+            );
+            return {
+              url,
+              metadata: fetched.isOk() ? toUrlMetadataDTO(fetched.value) : null,
+            };
+          }),
+        );
+        for (const result of results) {
+          if (result.status === 'fulfilled' && result.value.metadata) {
+            metadataMap.set(result.value.url, {
+              ...result.value.metadata,
+              url: result.value.url,
+            });
+          }
+        }
+      }
 
       if (profileMapResult.isErr()) {
         return err(
@@ -165,20 +223,11 @@ export class GetConnectionsForAnnotationUseCase implements UseCase<
         }
 
         const urlInfo = urlLibraryInfoMap.get(otherUrl);
-        // Sample-card metadata from the library-info batch, then just the URL
-        const metadata: UrlMetadata = urlInfo
-          ? {
-              url: urlInfo.metadata.url,
-              title: urlInfo.metadata.title,
-              description: urlInfo.metadata.description,
-              author: urlInfo.metadata.author,
-              siteName: urlInfo.metadata.siteName,
-              imageUrl: urlInfo.metadata.imageUrl,
-              type: urlInfo.metadata.type,
-              doi: urlInfo.metadata.doi,
-              isbn: urlInfo.metadata.isbn,
-            }
-          : { url: otherUrl };
+        // Sample-card metadata, an external fetch, or just the URL — in
+        // that order, per the metadata map built above
+        const metadata: UrlMetadata = metadataMap.get(otherUrl) ?? {
+          url: otherUrl,
+        };
 
         enrichedConnections.push({
           connection: {

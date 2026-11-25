@@ -12,5 +12,9 @@ export const GetAnnotationResponseSchema = z.object({
   // The passage's annotation view — entity-level counts across every card
   // matching the passage (url + normalized exact text)
   annotation: AnnotationCardSchema.optional(),
+  // Collections containing any passage-matching card
+  collectionCount: z.number().optional(),
+  // Note-bearing cards matching the passage
+  noteCount: z.number().optional(),
 });
 export type GetAnnotationResponse = z.infer<typeof GetAnnotationResponseSchema>;

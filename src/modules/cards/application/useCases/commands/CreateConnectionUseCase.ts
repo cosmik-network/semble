@@ -5,6 +5,7 @@ import { AppError } from '../../../../../shared/core/AppError';
 import { IEventPublisher } from '../../../../../shared/application/events/IEventPublisher';
 import { IConnectionRepository } from '../../../domain/IConnectionRepository';
 import { ICardRepository } from '../../../domain/ICardRepository';
+import type { Card } from '../../../domain/Card';
 import { Connection } from '../../../domain/Connection';
 import { CuratorId } from '../../../domain/value-objects/CuratorId';
 import { CardId } from '../../../domain/value-objects/CardId';
@@ -110,6 +111,9 @@ export class CreateConnectionUseCase extends BaseUseCase<
       // CARD endpoints must reference an existing card. Only enforced for
       // user-initiated creates: firehose-mirrored records (publishedRecordId
       // set) can legitimately arrive before the referenced card's record.
+      // The resolved cards also anchor the endpoints' URL metadata below.
+      let sourceCard: Card | null = null;
+      let targetCard: Card | null = null;
       if (!request.publishedRecordId) {
         const cardEndpoints: Array<{
           role: 'source' | 'target';
@@ -134,6 +138,25 @@ export class CreateConnectionUseCase extends BaseUseCase<
               ),
             );
           }
+          if (role === 'source') {
+            sourceCard = cardResult.value;
+          } else {
+            targetCard = cardResult.value;
+          }
+        }
+      } else {
+        // Firehose: best-effort anchor resolution — the referenced card's
+        // record may not have arrived yet, in which case the endpoint just
+        // carries no metadata
+        const resolveCard = async (cardId: CardId): Promise<Card | null> => {
+          const cardResult = await this.cardRepository.findById(cardId);
+          return cardResult.isOk() ? cardResult.value : null;
+        };
+        if (source.isCard && source.cardId) {
+          sourceCard = await resolveCard(source.cardId);
+        }
+        if (target.isCard && target.cardId) {
+          targetCard = await resolveCard(target.cardId);
         }
       }
 
@@ -195,7 +218,9 @@ export class CreateConnectionUseCase extends BaseUseCase<
         }
       }
 
-      // Fetch URL metadata for source and target if they are URLs.
+      // Fetch URL metadata for both endpoints: a URL endpoint for its own
+      // URL, a CARD endpoint (an annotation card) for its anchor URL — so a
+      // URL↔card connection carries metadata on both sides, like URL↔URL.
       // Interactive saves use fast mode (the metadata worker enriches
       // asynchronously after ConnectionCreatedEvent); firehose-mirrored
       // records (publishedRecordId set) have no user waiting and take the
@@ -204,16 +229,21 @@ export class CreateConnectionUseCase extends BaseUseCase<
       let sourceUrlMetadata: UrlMetadata | undefined;
       let targetUrlMetadata: UrlMetadata | undefined;
 
+      const sourceEndpointUrl =
+        source.type === UrlOrCardIdType.URL ? source.url : sourceCard?.url;
+      const targetEndpointUrl =
+        target.type === UrlOrCardIdType.URL ? target.url : targetCard?.url;
+
       const metadataFetches: Promise<{
         type: 'source' | 'target';
         metadata: UrlMetadata | undefined;
       }>[] = [];
 
-      // Fetch source metadata if it's a URL
-      if (source.type === UrlOrCardIdType.URL && source.url) {
+      // Fetch source metadata for its URL — its own, or its card's anchor
+      if (sourceEndpointUrl) {
         metadataFetches.push(
           this.metadataService
-            .fetchMetadata(source.url, true, fetchMode)
+            .fetchMetadata(sourceEndpointUrl, true, fetchMode)
             .then((result) => ({
               type: 'source' as const,
               metadata: result.isOk() ? result.value : undefined,
@@ -225,11 +255,11 @@ export class CreateConnectionUseCase extends BaseUseCase<
         );
       }
 
-      // Fetch target metadata if it's a URL
-      if (target.type === UrlOrCardIdType.URL && target.url) {
+      // Fetch target metadata for its URL — its own, or its card's anchor
+      if (targetEndpointUrl) {
         metadataFetches.push(
           this.metadataService
-            .fetchMetadata(target.url, true, fetchMode)
+            .fetchMetadata(targetEndpointUrl, true, fetchMode)
             .then((result) => ({
               type: 'target' as const,
               metadata: result.isOk() ? result.value : undefined,

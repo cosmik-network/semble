@@ -18,6 +18,7 @@ import { Connection } from '../../domain/Connection';
 import { UrlOrCardId } from '../../domain/value-objects/UrlOrCardId';
 import { CardId } from '../../domain/value-objects/CardId';
 import { FakeProfileService } from '../utils/FakeProfileService';
+import { FakeMetadataService } from '../utils/FakeMetadataService';
 import { InMemoryFollowsRepository } from '../../../user/tests/infrastructure/InMemoryFollowsRepository';
 import { CardSortField, SortOrder } from '../../domain/ICardQueryRepository';
 
@@ -110,6 +111,7 @@ describe('Annotation read use cases', () => {
       connectionQueryRepository,
       cardQueryRepository,
       profileService,
+      new FakeMetadataService(),
     );
 
     curator1 = CuratorId.create('did:plc:curator1').unwrap();

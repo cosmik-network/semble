@@ -3,10 +3,16 @@ import { UseCase } from '../../../../../shared/core/UseCase';
 import {
   ICardQueryRepository,
   AnnotationCardView,
+  CardSortField,
+  SortOrder,
 } from '../../../domain/ICardQueryRepository';
 import { URL } from '../../../domain/value-objects/URL';
 import { normalizeQuotedText } from '../../../domain/value-objects/selectors/normalizeQuotedText';
 import { IProfileService } from '../../../domain/services/IProfileService';
+import {
+  ICollectionQueryRepository,
+  CollectionSortField,
+} from '../../../domain/ICollectionQueryRepository';
 import { ProfileEnricher } from '../../services/ProfileEnricher';
 import { User } from '@semble/types';
 import { ValidationError } from './GetAnnotationsForUrlUseCase';
@@ -26,6 +32,10 @@ export type AnnotationViewDTO = Omit<AnnotationCardView, 'authorId'> & {
 
 export interface GetAnnotationResult {
   annotation?: AnnotationViewDTO;
+  /** Collections containing any passage-matching card */
+  collectionCount?: number;
+  /** Note-bearing cards matching the passage */
+  noteCount?: number;
 }
 
 export class GetAnnotationUseCase implements UseCase<
@@ -34,6 +44,7 @@ export class GetAnnotationUseCase implements UseCase<
 > {
   constructor(
     private cardQueryRepo: ICardQueryRepository,
+    private collectionQueryRepo: ICollectionQueryRepository,
     private profileService: IProfileService,
   ) {}
 
@@ -54,15 +65,41 @@ export class GetAnnotationUseCase implements UseCase<
     }
 
     try {
-      // Every card matching the passage, then the passage's representative
-      // view — the most recently updated matching card, carrying the
-      // entity-level engagement counts
-      const cardIds = await this.cardQueryRepo.getMatchingAnnotationCardIds(
-        urlResult.value.value,
-        exactNormalized,
-      );
+      // Tab counts and the passage's representative view are independent —
+      // limit 1 reads, the totals are what matter
+      const [cardIds, notes] = await Promise.all([
+        this.cardQueryRepo.getMatchingAnnotationCardIds(
+          urlResult.value.value,
+          exactNormalized,
+        ),
+        this.cardQueryRepo.getNotesForAnnotation(
+          urlResult.value.value,
+          exactNormalized,
+          {
+            page: 1,
+            limit: 1,
+            sortBy: CardSortField.UPDATED_AT,
+            sortOrder: SortOrder.DESC,
+          },
+        ),
+      ]);
+
+      const collectionCount = cardIds.length
+        ? (
+            await this.collectionQueryRepo.getCollectionsContainingCards(
+              cardIds,
+              {
+                page: 1,
+                limit: 1,
+                sortBy: CollectionSortField.UPDATED_AT,
+                sortOrder: SortOrder.DESC,
+              },
+            )
+          ).totalCount
+        : 0;
+
       if (cardIds.length === 0) {
-        return ok({});
+        return ok({ collectionCount, noteCount: notes.totalCount });
       }
 
       const views =
@@ -71,7 +108,7 @@ export class GetAnnotationUseCase implements UseCase<
         (a, b) => b.updatedAt.getTime() - a.updatedAt.getTime(),
       )[0];
       if (!representative) {
-        return ok({});
+        return ok({ collectionCount, noteCount: notes.totalCount });
       }
 
       const profileEnricher = new ProfileEnricher(this.profileService);
@@ -85,7 +122,11 @@ export class GetAnnotationUseCase implements UseCase<
         return err(enrichResult.error);
       }
 
-      return ok({ annotation: enrichResult.value[0] });
+      return ok({
+        annotation: enrichResult.value[0],
+        collectionCount,
+        noteCount: notes.totalCount,
+      });
     } catch (error) {
       return err(
         new Error(

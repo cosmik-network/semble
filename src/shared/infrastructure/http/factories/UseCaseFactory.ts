@@ -599,6 +599,7 @@ export class UseCaseFactory {
       ),
       getAnnotationUseCase: new GetAnnotationUseCase(
         repositories.cardQueryRepository,
+        repositories.collectionQueryRepository,
         services.profileService,
       ),
       getNotesForAnnotationUseCase: new GetNotesForAnnotationUseCase(
@@ -621,6 +622,7 @@ export class UseCaseFactory {
           repositories.connectionQueryRepository,
           repositories.cardQueryRepository,
           services.profileService,
+          services.metadataService,
         ),
 
       // Connection use cases

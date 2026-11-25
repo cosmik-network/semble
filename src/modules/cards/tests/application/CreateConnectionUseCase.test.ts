@@ -250,6 +250,26 @@ describe('CreateConnectionUseCase', () => {
       expect(stored[0]!.source.stringValue).toBe(cardId);
     });
 
+    it('stores URL metadata on both sides of a card↔URL connection', async () => {
+      // The card anchors to URL_A; the other endpoint is URL_B
+      const cardId = await createAnnotationCard();
+
+      const result = await create({
+        sourceType: UrlOrCardIdType.CARD,
+        sourceValue: cardId,
+        targetType: UrlOrCardIdType.URL,
+        targetValue: URL_B,
+      });
+
+      expect(result.isOk()).toBe(true);
+      const stored = connectionRepository.getAllConnections();
+      expect(stored).toHaveLength(1);
+      // The CARD side carries its anchor URL's metadata, the URL side its
+      // own — like a URL↔URL connection
+      expect(stored[0]!.sourceUrlMetadata?.url).toBe(URL_A);
+      expect(stored[0]!.targetUrlMetadata?.url).toBe(URL_B);
+    });
+
     it('rejects a CARD endpoint that does not reference an existing card', async () => {
       const result = await create({
         sourceType: UrlOrCardIdType.CARD,

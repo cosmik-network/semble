@@ -2,6 +2,7 @@ import { GetAnnotationUseCase } from '../../application/useCases/queries/GetAnno
 import { InMemoryCardRepository } from '../utils/InMemoryCardRepository';
 import { InMemoryCardQueryRepository } from '../utils/InMemoryCardQueryRepository';
 import { InMemoryCollectionRepository } from '../utils/InMemoryCollectionRepository';
+import { InMemoryCollectionQueryRepository } from '../utils/InMemoryCollectionQueryRepository';
 import { InMemoryConnectionRepository } from '../utils/InMemoryConnectionRepository';
 import { FakeProfileService } from '../utils/FakeProfileService';
 import { CuratorId } from '../../domain/value-objects/CuratorId';
@@ -15,6 +16,7 @@ describe('GetAnnotationUseCase', () => {
   let useCase: GetAnnotationUseCase;
   let cardRepository: InMemoryCardRepository;
   let collectionRepository: InMemoryCollectionRepository;
+  let collectionQueryRepository: InMemoryCollectionQueryRepository;
   let connectionRepository: InMemoryConnectionRepository;
   let profileService: FakeProfileService;
   let curatorId: CuratorId;
@@ -48,9 +50,17 @@ describe('GetAnnotationUseCase', () => {
       collectionRepository,
       connectionRepository,
     );
+    collectionQueryRepository = new InMemoryCollectionQueryRepository(
+      collectionRepository,
+      cardRepository,
+    );
     profileService = new FakeProfileService();
 
-    useCase = new GetAnnotationUseCase(cardQueryRepository, profileService);
+    useCase = new GetAnnotationUseCase(
+      cardQueryRepository,
+      collectionQueryRepository,
+      profileService,
+    );
 
     curatorId = CuratorId.create('did:plc:testcurator').unwrap();
     otherCuratorId = CuratorId.create('did:plc:othercurator').unwrap();
@@ -92,6 +102,10 @@ describe('GetAnnotationUseCase', () => {
     expect(annotation?.author.handle).toBe('testcurator');
     // Entity-level: one distinct saver of this passage
     expect(annotation?.libraryCount).toBe(1);
+    // Tab counts: the passage has one note and is in no collections
+    const counts = result.unwrap();
+    expect(counts.noteCount).toBe(1);
+    expect(counts.collectionCount).toBe(0);
   });
 
   it('matches on normalized exact text', async () => {
