@@ -40,6 +40,22 @@ export interface ConnectionForUserDTO {
   targetUrlMetadata?: any; // JSONB metadata from database
 }
 
+// DTO for a curator's connections with typed endpoints - CARD endpoints
+// carry their stored card id; URL endpoints carry stored metadata when the
+// connection row has it
+export interface ConnectionForUserRawDTO {
+  connection: {
+    id: string;
+    type?: ConnectionTypeEnum;
+    note?: string;
+    createdAt: Date;
+    updatedAt: Date;
+    curatorId: string;
+  };
+  source: { type: 'URL' | 'CARD'; value: string; urlMetadata?: any };
+  target: { type: 'URL' | 'CARD'; value: string; urlMetadata?: any };
+}
+
 // DTO for a connection with a card endpoint — source/target carry their
 // stored type ('URL' | 'CARD') and raw value (URL string or card id)
 export interface ConnectionForAnnotationRawDTO {
@@ -58,7 +74,10 @@ export interface ConnectionForAnnotationRawDTO {
 export interface IConnectionQueryRepository {
   /**
    * Get connections for a URL with optional direction filtering
-   * Returns connections with both source and target URLs
+   * Returns connections with typed endpoints - only URL endpoints match the
+   * queried URL (a passage's own connections are served by
+   * getConnectionsForCards / connectionsForAnnotation). CARD endpoints can
+   * appear in results as the other side of a matching connection.
    * @param url - The URL to get connections for
    * @param direction - 'forward' (source), 'backward' (target), or 'both' (either)
    * @param options - Pagination, sorting, and filtering options
@@ -67,7 +86,7 @@ export interface IConnectionQueryRepository {
     url: string,
     direction: 'forward' | 'backward' | 'both',
     options: ConnectionQueryOptions,
-  ): Promise<PaginatedConnectionQueryResult<ConnectionForUserDTO>>;
+  ): Promise<PaginatedConnectionQueryResult<ConnectionForUserRawDTO>>;
 
   /**
    * Get connections where any of the given cards is an endpoint (source or
@@ -81,12 +100,13 @@ export interface IConnectionQueryRepository {
 
   /**
    * Get all connections created by a specific curator
-   * Returns connections with both source and target URLs
+   * Returns connections with typed endpoints - CARD endpoints carry their
+   * card id for the caller to resolve
    */
   getConnectionsForUser(
     curatorId: string,
     options: ConnectionQueryOptions,
-  ): Promise<PaginatedConnectionQueryResult<ConnectionForUserDTO>>;
+  ): Promise<PaginatedConnectionQueryResult<ConnectionForUserRawDTO>>;
 
   /**
    * Get connection statistics for a curator (total count and breakdown by type)

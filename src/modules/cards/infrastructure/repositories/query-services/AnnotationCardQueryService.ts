@@ -119,6 +119,52 @@ export class AnnotationCardQueryService {
   }
 
   /**
+   * Annotation cards by ids, with entity-level engagement counts.
+   */
+  async getBatchAnnotationCardViews(
+    cardIds: string[],
+  ): Promise<Map<string, AnnotationCardView>> {
+    try {
+      const viewMap = new Map<string, AnnotationCardView>();
+      if (cardIds.length === 0) {
+        return viewMap;
+      }
+
+      const rows = await this.db
+        .select({
+          id: cards.id,
+          authorId: cards.authorId,
+          url: cards.url,
+          publishedRecordUri: publishedRecords.uri,
+          contentData: cards.contentData,
+          libraryCount: cards.libraryCount,
+          createdAt: cards.createdAt,
+          updatedAt: cards.updatedAt,
+        })
+        .from(cards)
+        .leftJoin(
+          publishedRecords,
+          eq(cards.publishedRecordId, publishedRecords.id),
+        )
+        .where(
+          and(
+            inArray(cards.id, cardIds),
+            eq(cards.type, CardTypeEnum.ANNOTATION),
+          ),
+        );
+
+      const views = await this.assembleAnnotationViews(rows);
+      for (const view of views) {
+        viewMap.set(view.id, view);
+      }
+      return viewMap;
+    } catch (error) {
+      console.error('Error in getBatchAnnotationCardViews:', error);
+      throw error;
+    }
+  }
+
+  /**
    * Ids of annotation cards matching a passage: same URL and a
    * TextQuoteSelector whose normalized exact equals `exactNormalized`.
    */

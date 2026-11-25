@@ -312,6 +312,14 @@ export interface ICardQueryRepository {
   getAnnotationCardById(cardId: string): Promise<AnnotationCardView | null>;
 
   /**
+   * Annotation cards by ids, with entity-level engagement counts. Ids that
+   * don't resolve to an annotation card are omitted from the map.
+   */
+  getBatchAnnotationCardViews(
+    cardIds: string[],
+  ): Promise<Map<string, AnnotationCardView>>;
+
+  /**
    * Ids of annotation cards matching a passage: same URL and a
    * TextQuoteSelector whose normalized exact equals `exactNormalized`.
    */

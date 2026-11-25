@@ -952,6 +952,20 @@ export class InMemoryCardQueryRepository implements ICardQueryRepository {
     return card ? this.toAnnotationView(card) : null;
   }
 
+  async getBatchAnnotationCardViews(
+    cardIds: string[],
+  ): Promise<Map<string, AnnotationCardView>> {
+    const cardIdSet = new Set(cardIds);
+    const viewMap = new Map<string, AnnotationCardView>();
+    for (const card of this.cardRepository.getAllCards()) {
+      const id = card.cardId.getStringValue();
+      if (card.isAnnotationCard && cardIdSet.has(id)) {
+        viewMap.set(id, await this.toAnnotationView(card));
+      }
+    }
+    return viewMap;
+  }
+
   async getMatchingAnnotationCardIds(
     url: string,
     exactNormalized: string,

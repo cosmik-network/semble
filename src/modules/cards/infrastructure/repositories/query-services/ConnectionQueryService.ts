@@ -1,9 +1,20 @@
 import { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
-import { eq, and, or, inArray, SQL, desc, asc, count, sql } from 'drizzle-orm';
+import {
+  eq,
+  and,
+  or,
+  inArray,
+  SQL,
+  SQLWrapper,
+  desc,
+  asc,
+  count,
+  sql,
+} from 'drizzle-orm';
 import {
   ConnectionQueryOptions,
   PaginatedConnectionQueryResult,
-  ConnectionForUserDTO,
+  ConnectionForUserRawDTO,
   ConnectionForAnnotationRawDTO,
   ConnectionSortField,
   SortOrder,
@@ -19,9 +30,18 @@ export class ConnectionQueryService {
     url: string,
     direction: 'forward' | 'backward' | 'both',
     options: ConnectionQueryOptions,
-  ): Promise<PaginatedConnectionQueryResult<ConnectionForUserDTO>> {
+  ): Promise<PaginatedConnectionQueryResult<ConnectionForUserRawDTO>> {
     const { page, limit, sortBy, sortOrder, connectionTypes } = options;
     const offset = (page - 1) * limit;
+
+    // Only URL endpoints match the queried URL directly. CARD endpoints can
+    // appear in results (as the other side of a matching connection), but a
+    // passage's own connections are served by connectionsForAnnotation, not
+    // by anchoring the card's URL here.
+    const endpointMatches = (
+      endpointType: SQLWrapper,
+      endpointValue: SQLWrapper,
+    ): SQL => sql`(${endpointType} = 'URL' AND ${endpointValue} = ${url})`;
 
     // Build WHERE conditions based on direction
     let whereConditions: SQL[] = [];
@@ -29,28 +49,20 @@ export class ConnectionQueryService {
     if (direction === 'forward') {
       // URL is the source
       whereConditions.push(
-        and(
-          eq(connections.sourceType, 'URL'),
-          eq(connections.sourceValue, url),
-          eq(connections.targetType, 'URL'),
-        )!,
+        endpointMatches(connections.sourceType, connections.sourceValue),
       );
     } else if (direction === 'backward') {
       // URL is the target
       whereConditions.push(
-        and(
-          eq(connections.targetType, 'URL'),
-          eq(connections.targetValue, url),
-          eq(connections.sourceType, 'URL'),
-        )!,
+        endpointMatches(connections.targetType, connections.targetValue),
       );
     } else {
       // both - URL is either source or target
       whereConditions.push(
         sql`(
-          (${connections.sourceType} = 'URL' AND ${connections.sourceValue} = ${url} AND ${connections.targetType} = 'URL')
+          ${endpointMatches(connections.sourceType, connections.sourceValue)}
           OR
-          (${connections.targetType} = 'URL' AND ${connections.targetValue} = ${url} AND ${connections.sourceType} = 'URL')
+          ${endpointMatches(connections.targetType, connections.targetValue)}
         )`,
       );
     }
@@ -80,8 +92,10 @@ export class ConnectionQueryService {
         .select({
           id: connections.id,
           curatorId: connections.curatorId,
+          sourceType: connections.sourceType,
           sourceValue: connections.sourceValue,
           sourceUrlMetadata: connections.sourceUrlMetadata,
+          targetType: connections.targetType,
           targetValue: connections.targetValue,
           targetUrlMetadata: connections.targetUrlMetadata,
           connectionType: connections.connectionType,
@@ -99,8 +113,8 @@ export class ConnectionQueryService {
 
     const totalCount = countResult[0]?.count || 0;
 
-    // Map results to DTOs
-    const items: ConnectionForUserDTO[] = results.map((row) => ({
+    // Map results to DTOs with typed endpoints
+    const items: ConnectionForUserRawDTO[] = results.map((row) => ({
       connection: {
         id: row.id,
         type: row.connectionType as ConnectionTypeEnum | undefined,
@@ -109,10 +123,16 @@ export class ConnectionQueryService {
         updatedAt: row.updatedAt,
         curatorId: row.curatorId,
       },
-      sourceUrl: row.sourceValue,
-      sourceUrlMetadata: row.sourceUrlMetadata || undefined,
-      targetUrl: row.targetValue,
-      targetUrlMetadata: row.targetUrlMetadata || undefined,
+      source: {
+        type: row.sourceType as 'URL' | 'CARD',
+        value: row.sourceValue,
+        urlMetadata: row.sourceUrlMetadata || undefined,
+      },
+      target: {
+        type: row.targetType as 'URL' | 'CARD',
+        value: row.targetValue,
+        urlMetadata: row.targetUrlMetadata || undefined,
+      },
     }));
 
     return {
@@ -216,17 +236,14 @@ export class ConnectionQueryService {
   async getConnectionsForUser(
     curatorId: string,
     options: ConnectionQueryOptions,
-  ): Promise<PaginatedConnectionQueryResult<ConnectionForUserDTO>> {
+  ): Promise<PaginatedConnectionQueryResult<ConnectionForUserRawDTO>> {
     const { page, limit, sortBy, sortOrder, connectionTypes } = options;
     const offset = (page - 1) * limit;
 
     // Build WHERE conditions
     const whereConditions: SQL[] = [
-      // Match curator
+      // Match curator — any endpoint type (URL or CARD)
       eq(connections.curatorId, curatorId),
-      // Only URL-to-URL connections for now
-      eq(connections.sourceType, 'URL'),
-      eq(connections.targetType, 'URL'),
     ];
 
     // Add connection type filter if provided
@@ -254,8 +271,10 @@ export class ConnectionQueryService {
         .select({
           id: connections.id,
           curatorId: connections.curatorId,
+          sourceType: connections.sourceType,
           sourceValue: connections.sourceValue,
           sourceUrlMetadata: connections.sourceUrlMetadata,
+          targetType: connections.targetType,
           targetValue: connections.targetValue,
           targetUrlMetadata: connections.targetUrlMetadata,
           connectionType: connections.connectionType,
@@ -273,8 +292,8 @@ export class ConnectionQueryService {
 
     const totalCount = countResult[0]?.count || 0;
 
-    // Map results to DTOs
-    const items: ConnectionForUserDTO[] = results.map((row) => ({
+    // Map results to DTOs with typed endpoints
+    const items: ConnectionForUserRawDTO[] = results.map((row) => ({
       connection: {
         id: row.id,
         type: row.connectionType as ConnectionTypeEnum | undefined,
@@ -283,10 +302,16 @@ export class ConnectionQueryService {
         updatedAt: row.updatedAt,
         curatorId: row.curatorId,
       },
-      sourceUrl: row.sourceValue,
-      sourceUrlMetadata: row.sourceUrlMetadata || undefined,
-      targetUrl: row.targetValue,
-      targetUrlMetadata: row.targetUrlMetadata || undefined,
+      source: {
+        type: row.sourceType as 'URL' | 'CARD',
+        value: row.sourceValue,
+        urlMetadata: row.sourceUrlMetadata || undefined,
+      },
+      target: {
+        type: row.targetType as 'URL' | 'CARD',
+        value: row.targetValue,
+        urlMetadata: row.targetUrlMetadata || undefined,
+      },
     }));
 
     return {
@@ -301,20 +326,15 @@ export class ConnectionQueryService {
     byType: Map<ConnectionTypeEnum, number>;
   }> {
     try {
-      // Get all connections created by curator grouped by type
+      // Get all connections created by curator grouped by type — any
+      // endpoint type (URL or CARD) counts
       const stats = await this.db
         .select({
           connectionType: connections.connectionType,
           count: count(),
         })
         .from(connections)
-        .where(
-          and(
-            eq(connections.curatorId, curatorId),
-            eq(connections.sourceType, 'URL'),
-            eq(connections.targetType, 'URL'), // Only URL-to-URL connections
-          ),
-        )
+        .where(eq(connections.curatorId, curatorId))
         .groupBy(connections.connectionType);
 
       // Process stats

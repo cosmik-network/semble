@@ -493,6 +493,7 @@ describe('GetUrlCardViewUseCase', () => {
         getBatchLatestCardCreatedAt: jest.fn(),
         getAnnotationsForUrl: jest.fn(),
         getAnnotationCardById: jest.fn().mockResolvedValue(null),
+        getBatchAnnotationCardViews: jest.fn().mockResolvedValue(new Map()),
         getMatchingAnnotationCardIds: jest.fn().mockResolvedValue([]),
         getNotesForAnnotation: jest.fn(),
         getLibrariesForAnnotation: jest.fn(),

@@ -623,6 +623,7 @@ export class UseCaseFactory {
         repositories.cardQueryRepository,
         services.identityResolutionService,
         services.metadataService,
+        services.profileService,
       ),
       createConnectionUseCase: new CreateConnectionUseCase(
         repositories.connectionRepository,

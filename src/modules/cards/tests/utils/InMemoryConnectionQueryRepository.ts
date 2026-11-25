@@ -2,7 +2,7 @@ import {
   IConnectionQueryRepository,
   ConnectionQueryOptions,
   PaginatedConnectionQueryResult,
-  ConnectionForUserDTO,
+  ConnectionForUserRawDTO,
   ConnectionForAnnotationRawDTO,
   ConnectionSortField,
   SortOrder,
@@ -18,31 +18,32 @@ export class InMemoryConnectionQueryRepository implements IConnectionQueryReposi
     url: string,
     direction: 'forward' | 'backward' | 'both',
     options: ConnectionQueryOptions,
-  ): Promise<PaginatedConnectionQueryResult<ConnectionForUserDTO>> {
+  ): Promise<PaginatedConnectionQueryResult<ConnectionForUserRawDTO>> {
     const { page, limit, sortBy, sortOrder, connectionTypes } = options;
 
     // Get all connections from the repository
     const allConnections = this.connectionRepository.getAllConnections();
 
-    // Filter connections based on direction and URL type
+    // Only URL endpoints match the queried URL directly; CARD endpoints can
+    // appear in results as the other side of a matching connection
+    const endpointMatchesUrl = (endpoint: {
+      type: UrlOrCardIdType;
+      stringValue: string;
+    }): boolean =>
+      endpoint.type === UrlOrCardIdType.URL && endpoint.stringValue === url;
+
+    // Filter connections based on direction
     let filteredConnections = allConnections.filter((connection) => {
-      const isSourceMatch =
-        connection.source.type === UrlOrCardIdType.URL &&
-        connection.source.stringValue === url;
-      const isTargetMatch =
-        connection.target.type === UrlOrCardIdType.URL &&
-        connection.target.stringValue === url;
-      const bothUrlToUrl =
-        connection.source.type === UrlOrCardIdType.URL &&
-        connection.target.type === UrlOrCardIdType.URL;
+      const isSourceMatch = endpointMatchesUrl(connection.source);
+      const isTargetMatch = endpointMatchesUrl(connection.target);
 
       if (direction === 'forward') {
-        return isSourceMatch && bothUrlToUrl;
+        return isSourceMatch;
       } else if (direction === 'backward') {
-        return isTargetMatch && bothUrlToUrl;
+        return isTargetMatch;
       } else {
         // both
-        return (isSourceMatch || isTargetMatch) && bothUrlToUrl;
+        return isSourceMatch || isTargetMatch;
       }
     });
 
@@ -73,8 +74,8 @@ export class InMemoryConnectionQueryRepository implements IConnectionQueryReposi
       offset + limit,
     );
 
-    // Map to DTOs with both source and target
-    const items: ConnectionForUserDTO[] = paginatedConnections.map(
+    // Map to DTOs with typed endpoints
+    const items: ConnectionForUserRawDTO[] = paginatedConnections.map(
       (connection) => ({
         connection: {
           id: connection.connectionId.getStringValue(),
@@ -84,8 +85,14 @@ export class InMemoryConnectionQueryRepository implements IConnectionQueryReposi
           updatedAt: connection.updatedAt,
           curatorId: connection.curatorId.value,
         },
-        sourceUrl: connection.source.stringValue,
-        targetUrl: connection.target.stringValue,
+        source: {
+          type: connection.source.type === UrlOrCardIdType.URL ? 'URL' : 'CARD',
+          value: connection.source.stringValue,
+        },
+        target: {
+          type: connection.target.type === UrlOrCardIdType.URL ? 'URL' : 'CARD',
+          value: connection.target.stringValue,
+        },
       }),
     );
 
@@ -177,19 +184,15 @@ export class InMemoryConnectionQueryRepository implements IConnectionQueryReposi
   async getConnectionsForUser(
     curatorId: string,
     options: ConnectionQueryOptions,
-  ): Promise<PaginatedConnectionQueryResult<ConnectionForUserDTO>> {
+  ): Promise<PaginatedConnectionQueryResult<ConnectionForUserRawDTO>> {
     const { page, limit, sortBy, sortOrder, connectionTypes } = options;
 
     // Get all connections from the repository
     const allConnections = this.connectionRepository.getAllConnections();
 
-    // Filter connections by curator and URL-to-URL type
+    // Filter connections by curator — any endpoint type (URL or CARD)
     let filteredConnections = allConnections.filter((connection) => {
-      return (
-        connection.curatorId.value === curatorId &&
-        connection.source.type === UrlOrCardIdType.URL &&
-        connection.target.type === UrlOrCardIdType.URL
-      );
+      return connection.curatorId.value === curatorId;
     });
 
     // Apply connection type filter if provided
@@ -219,8 +222,8 @@ export class InMemoryConnectionQueryRepository implements IConnectionQueryReposi
       offset + limit,
     );
 
-    // Map to DTOs
-    const items: ConnectionForUserDTO[] = paginatedConnections.map(
+    // Map to DTOs with typed endpoints
+    const items: ConnectionForUserRawDTO[] = paginatedConnections.map(
       (connection) => ({
         connection: {
           id: connection.connectionId.getStringValue(),
@@ -230,8 +233,14 @@ export class InMemoryConnectionQueryRepository implements IConnectionQueryReposi
           updatedAt: connection.updatedAt,
           curatorId: connection.curatorId.value,
         },
-        sourceUrl: connection.source.stringValue,
-        targetUrl: connection.target.stringValue,
+        source: {
+          type: connection.source.type === UrlOrCardIdType.URL ? 'URL' : 'CARD',
+          value: connection.source.stringValue,
+        },
+        target: {
+          type: connection.target.type === UrlOrCardIdType.URL ? 'URL' : 'CARD',
+          value: connection.target.stringValue,
+        },
       }),
     );
 
@@ -249,12 +258,9 @@ export class InMemoryConnectionQueryRepository implements IConnectionQueryReposi
   }> {
     const allConnections = this.connectionRepository.getAllConnections();
 
-    // Get all URL-to-URL connections created by this curator
+    // All connections created by this curator — any endpoint type
     const curatorConnections = allConnections.filter(
-      (connection) =>
-        connection.curatorId.value === curatorId &&
-        connection.source.type === UrlOrCardIdType.URL &&
-        connection.target.type === UrlOrCardIdType.URL,
+      (connection) => connection.curatorId.value === curatorId,
     );
 
     // Count by type

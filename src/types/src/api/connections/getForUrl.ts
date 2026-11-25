@@ -6,7 +6,7 @@ import {
 } from '../../entities/common';
 import {
   ConnectionTypeSchema,
-  ConnectionWithSourceAndTargetSchema,
+  ConnectionWithEndpointsAndCuratorSchema,
 } from '../../entities/connection';
 
 export const GetConnectionsForUrlParamsSchema =
@@ -20,7 +20,7 @@ export type GetConnectionsForUrlParams = z.infer<
 >;
 
 export const GetConnectionsForUrlResponseSchema = z.object({
-  connections: z.array(ConnectionWithSourceAndTargetSchema),
+  connections: z.array(ConnectionWithEndpointsAndCuratorSchema),
   pagination: PaginationSchema,
   sorting: ConnectionSortingSchema,
 });

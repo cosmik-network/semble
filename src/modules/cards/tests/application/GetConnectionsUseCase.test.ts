@@ -6,6 +6,7 @@ import { InMemoryCardQueryRepository } from '../utils/InMemoryCardQueryRepositor
 import { InMemoryCollectionRepository } from '../utils/InMemoryCollectionRepository';
 import { FakeIdentityResolutionService } from '../utils/FakeIdentityResolutionService';
 import { FakeMetadataService } from '../utils/FakeMetadataService';
+import { FakeProfileService } from '../utils/FakeProfileService';
 import { CuratorId } from '../../domain/value-objects/CuratorId';
 import { Connection } from '../../domain/Connection';
 import { UrlOrCardId } from '../../domain/value-objects/UrlOrCardId';
@@ -19,6 +20,7 @@ import { ConnectionTypeEnum } from '../../domain/value-objects/ConnectionType';
 import { CardBuilder } from '../utils/builders/CardBuilder';
 import { CardTypeEnum } from '../../domain/value-objects/CardType';
 import { URL } from '../../domain/value-objects/URL';
+import { CardId } from '../../domain/value-objects/CardId';
 
 describe('GetConnectionsUseCase', () => {
   let useCase: GetConnectionsUseCase;
@@ -29,6 +31,7 @@ describe('GetConnectionsUseCase', () => {
   let collectionRepository: InMemoryCollectionRepository;
   let identityResolver: FakeIdentityResolutionService;
   let metadataService: FakeMetadataService;
+  let profileService: FakeProfileService;
   let curator1: CuratorId;
   let curator2: CuratorId;
   let curator3: CuratorId;
@@ -46,12 +49,14 @@ describe('GetConnectionsUseCase', () => {
     );
     identityResolver = new FakeIdentityResolutionService();
     metadataService = new FakeMetadataService();
+    profileService = new FakeProfileService();
 
     useCase = new GetConnectionsUseCase(
       connectionQueryRepository,
       cardQueryRepository,
       identityResolver,
       metadataService,
+      profileService,
     );
 
     curator1 = CuratorId.create('did:plc:curator1').unwrap();
@@ -62,6 +67,13 @@ describe('GetConnectionsUseCase', () => {
     identityResolver.addHandleMapping('curator1.bsky.social', curator1.value);
     identityResolver.addHandleMapping('curator2.bsky.social', curator2.value);
     identityResolver.addHandleMapping('curator3.bsky.social', curator3.value);
+
+    // Card authors need profiles for CARD endpoint enrichment
+    profileService.addProfile({
+      id: curator1.value,
+      name: 'Curator One',
+      handle: 'curator1',
+    });
   });
 
   afterEach(() => {
@@ -69,6 +81,7 @@ describe('GetConnectionsUseCase', () => {
     cardRepository.clear();
     collectionRepository.clear();
     identityResolver.clear();
+    profileService.clear();
   });
 
   describe('Basic functionality', () => {
@@ -168,16 +181,25 @@ describe('GetConnectionsUseCase', () => {
       const firstConn = response.connections[0]!;
       expect(firstConn.connection.type).toBe(ConnectionTypeEnum.RELATED);
       expect(firstConn.connection.note).toBe('Test note');
-      expect(firstConn.source.url).toBe(url2);
-      expect(firstConn.target.url).toBe(url3);
-      expect(firstConn.source.urlLibraryCount).toBe(1);
-      expect(firstConn.target.urlLibraryCount).toBe(1);
+      expect(firstConn.source.type).toBe('URL');
+      expect(firstConn.target.type).toBe('URL');
+      if (firstConn.source.type === 'URL' && firstConn.target.type === 'URL') {
+        expect(firstConn.source.url).toBe(url2);
+        expect(firstConn.target.url).toBe(url3);
+        expect(firstConn.source.urlLibraryCount).toBe(1);
+        expect(firstConn.target.urlLibraryCount).toBe(1);
+      }
 
       // Check second connection
       const secondConn = response.connections[1]!;
       expect(secondConn.connection.type).toBe(ConnectionTypeEnum.SUPPORTS);
-      expect(secondConn.source.url).toBe(url1);
-      expect(secondConn.target.url).toBe(url2);
+      if (
+        secondConn.source.type === 'URL' &&
+        secondConn.target.type === 'URL'
+      ) {
+        expect(secondConn.source.url).toBe(url1);
+        expect(secondConn.target.url).toBe(url2);
+      }
     });
 
     it('should return empty result when user has no connections', async () => {
@@ -721,6 +743,111 @@ describe('GetConnectionsUseCase', () => {
     });
   });
 
+  describe('CARD endpoints', () => {
+    it('returns an annotation card endpoint with the full card and author', async () => {
+      const annotatedUrl = 'https://example.com/annotated';
+      const targetUrl = 'https://example.com/target';
+
+      const annotationCard = new CardBuilder()
+        .withCuratorId(curator1.value)
+        .withAnnotationCard(
+          URL.create(annotatedUrl).unwrap(),
+          [{ exact: 'the quoted passage' }],
+          'my note',
+        )
+        .build();
+      if (annotationCard instanceof Error) {
+        throw new Error('Failed to create annotation card');
+      }
+      annotationCard.addToLibrary(curator1);
+      await cardRepository.save(annotationCard);
+
+      const targetCard = new CardBuilder()
+        .withCuratorId(curator1.value)
+        .withType(CardTypeEnum.URL)
+        .withUrl(URL.create(targetUrl).unwrap())
+        .build();
+      if (targetCard instanceof Error) {
+        throw new Error('Failed to create target card');
+      }
+      targetCard.addToLibrary(curator1);
+      await cardRepository.save(targetCard);
+
+      const connection = Connection.create({
+        source: UrlOrCardId.createFromCard(annotationCard.cardId).unwrap(),
+        target: UrlOrCardId.createFromUrl(
+          URL.create(targetUrl).unwrap(),
+        ).unwrap(),
+        type: ConnectionType.create(ConnectionTypeEnum.SUPPORTS).unwrap(),
+        curatorId: curator1,
+      }).unwrap();
+      await connectionRepository.save(connection);
+
+      const result = await useCase.execute({ userId: curator1.value });
+
+      expect(result.isOk()).toBe(true);
+      const response = result.unwrap();
+      expect(response.connections).toHaveLength(1);
+
+      const conn = response.connections[0]!;
+      expect(conn.source.type).toBe('CARD');
+      expect(conn.target.type).toBe('URL');
+      if (conn.source.type === 'CARD') {
+        expect(conn.source.card.id).toBe(
+          annotationCard.cardId.getStringValue(),
+        );
+        expect(conn.source.card.type).toBe('ANNOTATION');
+        expect(conn.source.card.url).toBe(annotatedUrl);
+        expect(conn.source.card.note).toBe('my note');
+        expect(conn.source.card.author.handle).toBe('curator1');
+        expect(
+          conn.source.card.selectors.some(
+            (s) =>
+              s.type === 'TextQuoteSelector' &&
+              s.exact === 'the quoted passage',
+          ),
+        ).toBe(true);
+      }
+      if (conn.target.type === 'URL') {
+        expect(conn.target.url).toBe(targetUrl);
+      }
+    });
+
+    it('skips connections whose referenced card no longer exists', async () => {
+      const targetUrl = 'https://example.com/target';
+
+      const targetCard = new CardBuilder()
+        .withCuratorId(curator1.value)
+        .withType(CardTypeEnum.URL)
+        .withUrl(URL.create(targetUrl).unwrap())
+        .build();
+      if (targetCard instanceof Error) {
+        throw new Error('Failed to create target card');
+      }
+      targetCard.addToLibrary(curator1);
+      await cardRepository.save(targetCard);
+
+      // Reference a card id that was never saved
+      const bogusCardId = CardId.createFromString(
+        'b3e1b8a4-5c32-4d87-9f6a-1a2b3c4d5e6f',
+      ).unwrap();
+      const connection = Connection.create({
+        source: UrlOrCardId.createFromCard(bogusCardId).unwrap(),
+        target: UrlOrCardId.createFromUrl(
+          URL.create(targetUrl).unwrap(),
+        ).unwrap(),
+        curatorId: curator1,
+      }).unwrap();
+      await connectionRepository.save(connection);
+
+      const result = await useCase.execute({ userId: curator1.value });
+
+      expect(result.isOk()).toBe(true);
+      const response = result.unwrap();
+      expect(response.connections).toHaveLength(0);
+    });
+  });
+
   describe('URL library info', () => {
     it('should include urlInLibrary when callingUserId is provided', async () => {
       const url1 = 'https://example.com/article1';
@@ -775,8 +902,13 @@ describe('GetConnectionsUseCase', () => {
       const response = result.unwrap();
 
       expect(response.connections).toHaveLength(1);
-      expect(response.connections[0]!.source.urlInLibrary).toBe(true);
-      expect(response.connections[0]!.target.urlInLibrary).toBe(true);
+      const conn = response.connections[0]!;
+      expect(conn.source.type).toBe('URL');
+      expect(conn.target.type).toBe('URL');
+      if (conn.source.type === 'URL' && conn.target.type === 'URL') {
+        expect(conn.source.urlInLibrary).toBe(true);
+        expect(conn.target.urlInLibrary).toBe(true);
+      }
     });
 
     it('should not include urlInLibrary when callingUserId is not provided', async () => {
@@ -831,8 +963,13 @@ describe('GetConnectionsUseCase', () => {
       const response = result.unwrap();
 
       expect(response.connections).toHaveLength(1);
-      expect(response.connections[0]!.source.urlInLibrary).toBeUndefined();
-      expect(response.connections[0]!.target.urlInLibrary).toBeUndefined();
+      const conn = response.connections[0]!;
+      expect(conn.source.type).toBe('URL');
+      expect(conn.target.type).toBe('URL');
+      if (conn.source.type === 'URL' && conn.target.type === 'URL') {
+        expect(conn.source.urlInLibrary).toBeUndefined();
+        expect(conn.target.urlInLibrary).toBeUndefined();
+      }
     });
   });
 });

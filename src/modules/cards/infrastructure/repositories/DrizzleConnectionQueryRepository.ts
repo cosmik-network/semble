@@ -3,7 +3,7 @@ import {
   IConnectionQueryRepository,
   ConnectionQueryOptions,
   PaginatedConnectionQueryResult,
-  ConnectionForUserDTO,
+  ConnectionForUserRawDTO,
   ConnectionForAnnotationRawDTO,
 } from '../../domain/IConnectionQueryRepository';
 import { ConnectionQueryService } from './query-services/ConnectionQueryService';
@@ -20,7 +20,7 @@ export class DrizzleConnectionQueryRepository implements IConnectionQueryReposit
     url: string,
     direction: 'forward' | 'backward' | 'both',
     options: ConnectionQueryOptions,
-  ): Promise<PaginatedConnectionQueryResult<ConnectionForUserDTO>> {
+  ): Promise<PaginatedConnectionQueryResult<ConnectionForUserRawDTO>> {
     return this.connectionQueryService.getConnectionsForUrlWithDirection(
       url,
       direction,
@@ -38,7 +38,7 @@ export class DrizzleConnectionQueryRepository implements IConnectionQueryReposit
   async getConnectionsForUser(
     curatorId: string,
     options: ConnectionQueryOptions,
-  ): Promise<PaginatedConnectionQueryResult<ConnectionForUserDTO>> {
+  ): Promise<PaginatedConnectionQueryResult<ConnectionForUserRawDTO>> {
     return this.connectionQueryService.getConnectionsForUser(
       curatorId,
       options,

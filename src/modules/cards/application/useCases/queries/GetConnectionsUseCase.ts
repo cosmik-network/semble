@@ -5,15 +5,20 @@ import {
   ConnectionSortField,
   SortOrder,
 } from '../../../domain/IConnectionQueryRepository';
-import { ICardQueryRepository } from '../../../domain/ICardQueryRepository';
+import {
+  ICardQueryRepository,
+  AnnotationCardView,
+} from '../../../domain/ICardQueryRepository';
 import { IIdentityResolutionService } from '../../../../atproto/domain/services/IIdentityResolutionService';
 import { DIDOrHandle } from '../../../../atproto/domain/DIDOrHandle';
-import { UrlMetadata, PaginationDTO } from '@semble/types';
+import { UrlMetadata, PaginationDTO, User } from '@semble/types';
 import { ConnectionTypeEnum } from '../../../domain/value-objects/ConnectionType';
 import { IMetadataService } from '../../../domain/services/IMetadataService';
+import { IProfileService } from '../../../domain/services/IProfileService';
 import { UrlMetadata as UrlMetadataVO } from '../../../domain/value-objects/UrlMetadata';
 import { toUrlMetadataProps } from '../../../domain/value-objects/urlMetadataMapping';
 import { URL } from '../../../domain/value-objects/URL';
+import { ProfileEnricher } from '../../services/ProfileEnricher';
 
 export interface GetConnectionsQuery {
   userId: string;
@@ -25,6 +30,29 @@ export interface GetConnectionsQuery {
   connectionTypes?: ConnectionTypeEnum[];
 }
 
+// An annotation card endpoint — the card view plus its author, the same
+// shape card-list endpoints return for annotation cards
+export type AnnotationCardItemDTO = Omit<AnnotationCardView, 'authorId'> & {
+  author: User;
+};
+
+// Connection endpoints as a union discriminated by `type`, mirroring the
+// contract's ConnectionEndpointViewSchema
+export type ConnectionEndpointItemDTO =
+  | {
+      type: 'URL';
+      url: string;
+      metadata: UrlMetadata;
+      urlLibraryCount: number;
+      urlInLibrary?: boolean;
+      urlConnectionCount?: number;
+      urlIsConnected?: boolean;
+    }
+  | {
+      type: 'CARD';
+      card: AnnotationCardItemDTO;
+    };
+
 export interface ConnectionView {
   connection: {
     id: string;
@@ -33,22 +61,8 @@ export interface ConnectionView {
     createdAt: string;
     updatedAt: string;
   };
-  source: {
-    url: string;
-    metadata: UrlMetadata;
-    urlLibraryCount: number;
-    urlInLibrary?: boolean;
-    urlConnectionCount?: number;
-    urlIsConnected?: boolean;
-  };
-  target: {
-    url: string;
-    metadata: UrlMetadata;
-    urlLibraryCount: number;
-    urlInLibrary?: boolean;
-    urlConnectionCount?: number;
-    urlIsConnected?: boolean;
-  };
+  source: ConnectionEndpointItemDTO;
+  target: ConnectionEndpointItemDTO;
 }
 
 export interface GetConnectionsResult {
@@ -76,6 +90,7 @@ export class GetConnectionsUseCase implements UseCase<
     private cardQueryRepo: ICardQueryRepository,
     private identityResolver: IIdentityResolutionService,
     private metadataService: IMetadataService,
+    private profileService: IProfileService,
   ) {}
 
   async execute(
@@ -119,12 +134,25 @@ export class GetConnectionsUseCase implements UseCase<
         },
       );
 
-      // Extract unique URLs from both source and target
+      // Split endpoints by type — URL endpoints need link metadata and
+      // library info, CARD endpoints resolve to their annotation card
+      const endpoints = result.items.flatMap((item) => [
+        item.source,
+        item.target,
+      ]);
       const uniqueUrls = Array.from(
-        new Set([
-          ...result.items.map((item) => item.sourceUrl),
-          ...result.items.map((item) => item.targetUrl),
-        ]),
+        new Set(
+          endpoints
+            .filter((endpoint) => endpoint.type === 'URL')
+            .map((endpoint) => endpoint.value),
+        ),
+      );
+      const cardIds = Array.from(
+        new Set(
+          endpoints
+            .filter((endpoint) => endpoint.type === 'CARD')
+            .map((endpoint) => endpoint.value),
+        ),
       );
 
       // Build initial metadata map from stored metadata in connection records
@@ -137,20 +165,28 @@ export class GetConnectionsUseCase implements UseCase<
         let hasStoredMetadata = false;
 
         for (const item of result.items) {
-          if (item.sourceUrl === urlString && item.sourceUrlMetadata) {
+          if (
+            item.source.type === 'URL' &&
+            item.source.value === urlString &&
+            item.source.urlMetadata
+          ) {
             // Parse stored metadata
             const metadataResult = UrlMetadataVO.create(
-              toUrlMetadataProps(item.sourceUrlMetadata),
+              toUrlMetadataProps(item.source.urlMetadata),
             );
             if (metadataResult.isOk()) {
               metadataMap.set(urlString, metadataResult.value);
               hasStoredMetadata = true;
               break;
             }
-          } else if (item.targetUrl === urlString && item.targetUrlMetadata) {
+          } else if (
+            item.target.type === 'URL' &&
+            item.target.value === urlString &&
+            item.target.urlMetadata
+          ) {
             // Parse stored metadata
             const metadataResult = UrlMetadataVO.create(
-              toUrlMetadataProps(item.targetUrlMetadata),
+              toUrlMetadataProps(item.target.urlMetadata),
             );
             if (metadataResult.isOk()) {
               metadataMap.set(urlString, metadataResult.value);
@@ -201,65 +237,99 @@ export class GetConnectionsUseCase implements UseCase<
         });
       }
 
-      // Fetch URL library info for counts and in-library status
-      const urlLibraryInfoMap = await this.cardQueryRepo.getBatchUrlLibraryInfo(
-        uniqueUrls,
-        query.callingUserId,
+      // URL library info, annotation card views, and card author profiles
+      // are independent — fetch in parallel
+      const cardViewsMap =
+        await this.cardQueryRepo.getBatchAnnotationCardViews(cardIds);
+      const uniqueCardAuthorIds = Array.from(
+        new Set(Array.from(cardViewsMap.values()).map((view) => view.authorId)),
       );
+      const profileEnricher = new ProfileEnricher(this.profileService);
+      const [urlLibraryInfoMap, authorProfileMapResult] = await Promise.all([
+        this.cardQueryRepo.getBatchUrlLibraryInfo(
+          uniqueUrls,
+          query.callingUserId,
+        ),
+        profileEnricher.buildProfileMap(uniqueCardAuthorIds, undefined, {
+          skipFailures: true, // Skip cards with failed author profiles
+          mapToUser: false, // Use inline profile (without isFollowing)
+        }),
+      ]);
 
-      // Convert to the format expected by the rest of the code
-      const urlDataMap = new Map<
-        string,
-        {
-          metadata: UrlMetadata;
-          urlLibraryCount: number;
-          urlInLibrary?: boolean;
-          urlConnectionCount?: number;
-          urlIsConnected?: boolean;
-        }
-      >();
+      if (authorProfileMapResult.isErr()) {
+        return err(
+          new Error(
+            `Failed to fetch card author profiles: ${authorProfileMapResult.error.message}`,
+          ),
+        );
+      }
 
-      uniqueUrls.forEach((url) => {
-        const urlInfo = urlLibraryInfoMap.get(url);
-        const urlMetadata = metadataMap.get(url);
+      const authorProfileMap = authorProfileMapResult.value;
 
-        if (urlInfo && urlMetadata) {
-          // Convert UrlMetadataVO to UrlMetadata DTO with dates as ISO strings
-          const metadata: UrlMetadata = {
-            url: urlMetadata.url,
-            title: urlMetadata.title,
-            description: urlMetadata.description,
-            author: urlMetadata.author,
-            siteName: urlMetadata.siteName,
-            imageUrl: urlMetadata.imageUrl,
-            type: urlMetadata.type,
-            doi: urlMetadata.doi,
-            isbn: urlMetadata.isbn,
+      // Resolve an endpoint to its view; null when a CARD endpoint's card
+      // or author can't be resolved (the connection is then skipped)
+      const resolveEndpoint = (endpoint: {
+        type: 'URL' | 'CARD';
+        value: string;
+      }): ConnectionEndpointItemDTO | null => {
+        if (endpoint.type === 'CARD') {
+          const card = cardViewsMap.get(endpoint.value);
+          const author = card && authorProfileMap.get(card.authorId);
+          if (!card || !author) {
+            return null;
+          }
+          const { authorId: _authorId, ...cardData } = card;
+          return {
+            type: 'CARD',
+            card: {
+              ...cardData,
+              author,
+            },
           };
-
-          urlDataMap.set(url, {
-            metadata,
-            urlLibraryCount: urlInfo.urlLibraryCount,
-            urlInLibrary: urlInfo.urlInLibrary,
-            urlConnectionCount: urlInfo.urlConnectionCount,
-            urlIsConnected: urlInfo.urlIsConnected,
-          });
         }
-      });
 
-      // Map items with enriched data
-      const enrichedConnections: ConnectionView[] = result.items.map((item) => {
-        const sourceData = urlDataMap.get(item.sourceUrl);
-        const targetData = urlDataMap.get(item.targetUrl);
+        const urlInfo = urlLibraryInfoMap.get(endpoint.value);
+        const urlMetadata = metadataMap.get(endpoint.value);
 
-        if (!sourceData) {
-          throw new Error(`URL data not found for ${item.sourceUrl}`);
+        if (!urlInfo || !urlMetadata) {
+          throw new Error(`URL data not found for ${endpoint.value}`);
         }
-        if (!targetData) {
-          throw new Error(`URL data not found for ${item.targetUrl}`);
-        }
+
+        // Convert UrlMetadataVO to UrlMetadata DTO with dates as ISO strings
+        const metadata: UrlMetadata = {
+          url: urlMetadata.url,
+          title: urlMetadata.title,
+          description: urlMetadata.description,
+          author: urlMetadata.author,
+          siteName: urlMetadata.siteName,
+          imageUrl: urlMetadata.imageUrl,
+          type: urlMetadata.type,
+          doi: urlMetadata.doi,
+          isbn: urlMetadata.isbn,
+        };
 
         return {
+          type: 'URL',
+          url: endpoint.value,
+          metadata,
+          urlLibraryCount: urlInfo.urlLibraryCount,
+          urlInLibrary: urlInfo.urlInLibrary,
+          urlConnectionCount: urlInfo.urlConnectionCount,
+          urlIsConnected: urlInfo.urlIsConnected,
+        };
+      };
+
+      // Map items with enriched data; skip connections with unresolvable
+      // CARD endpoints
+      const enrichedConnections: ConnectionView[] = [];
+      for (const item of result.items) {
+        const source = resolveEndpoint(item.source);
+        const target = resolveEndpoint(item.target);
+        if (!source || !target) {
+          continue;
+        }
+
+        enrichedConnections.push({
           connection: {
             id: item.connection.id,
             type: item.connection.type,
@@ -267,24 +337,10 @@ export class GetConnectionsUseCase implements UseCase<
             createdAt: item.connection.createdAt.toISOString(),
             updatedAt: item.connection.updatedAt.toISOString(),
           },
-          source: {
-            url: item.sourceUrl,
-            metadata: sourceData.metadata,
-            urlLibraryCount: sourceData.urlLibraryCount,
-            urlInLibrary: sourceData.urlInLibrary,
-            urlConnectionCount: sourceData.urlConnectionCount,
-            urlIsConnected: sourceData.urlIsConnected,
-          },
-          target: {
-            url: item.targetUrl,
-            metadata: targetData.metadata,
-            urlLibraryCount: targetData.urlLibraryCount,
-            urlInLibrary: targetData.urlInLibrary,
-            urlConnectionCount: targetData.urlConnectionCount,
-            urlIsConnected: targetData.urlIsConnected,
-          },
-        };
-      });
+          source,
+          target,
+        });
+      }
 
       return ok({
         connections: enrichedConnections,
