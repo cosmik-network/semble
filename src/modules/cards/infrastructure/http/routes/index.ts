@@ -20,6 +20,7 @@ import { GetAnnotationStatusForMyLibraryController } from '../controllers/GetAnn
 import { GetLibrariesForUrlController } from '../controllers/GetLibrariesForUrlController';
 import { GetNoteCardsForUrlController } from '../controllers/GetNoteCardsForUrlController';
 import { GetAnnotationsForUrlController } from '../controllers/GetAnnotationsForUrlController';
+import { GetAnnotationController } from '../controllers/GetAnnotationController';
 import { GetNotesForAnnotationController } from '../controllers/GetNotesForAnnotationController';
 import { GetLibrariesForAnnotationController } from '../controllers/GetLibrariesForAnnotationController';
 import { CreateCollectionController } from '../controllers/CreateCollectionController';
@@ -64,6 +65,7 @@ export function registerCardsModuleRoutes(
   getLibrariesForUrlController: GetLibrariesForUrlController,
   getNoteCardsForUrlController: GetNoteCardsForUrlController,
   getAnnotationsForUrlController: GetAnnotationsForUrlController,
+  getAnnotationController: GetAnnotationController,
   getNotesForAnnotationController: GetNotesForAnnotationController,
   getLibrariesForAnnotationController: GetLibrariesForAnnotationController,
   searchUrlsController: SearchUrlsController,
@@ -107,6 +109,7 @@ export function registerCardsModuleRoutes(
     getLibrariesForUrlController,
     getNoteCardsForUrlController,
     getAnnotationsForUrlController,
+    getAnnotationController,
     getNotesForAnnotationController,
     getLibrariesForAnnotationController,
     searchUrlsController,

@@ -31,6 +31,8 @@ import {
   GetNoteCardsForUrlResponseSchema,
   GetAnnotationsForUrlParamsSchema,
   GetAnnotationsForUrlResponseSchema,
+  GetAnnotationParamsSchema,
+  GetAnnotationResponseSchema,
   GetNotesForAnnotationParamsSchema,
   GetNotesForAnnotationResponseSchema,
   GetLibrariesForAnnotationParamsSchema,
@@ -191,6 +193,15 @@ export const cardsContract = c.router(
       summary: 'Get annotations for a URL',
       description:
         'Returns a paginated list of all annotation cards made on a given URL.',
+    },
+    getAnnotation: {
+      method: 'GET',
+      path: paths.getAnnotation,
+      query: GetAnnotationParamsSchema,
+      responses: { 200: GetAnnotationResponseSchema },
+      summary: 'Get an annotation by passage',
+      description:
+        'Returns the annotation view for a passage — matched on the URL and the normalized exact text of the TextQuoteSelector. Counts are entity-level: across every annotation card matching the passage. Omitted when no card matches.',
     },
     notesForAnnotation: {
       method: 'GET',
