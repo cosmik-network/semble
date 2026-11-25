@@ -148,4 +148,25 @@ describe('GetUrlMetadataUseCase stats', () => {
     expect(stats.urlCardCount).toBe(1);
     expect(stats.annotationCardCount).toBe(1);
   });
+
+  it('includes the annotation count in the URL stats', async () => {
+    await saveUrlCard(PAGE_URL);
+    await saveAnnotationCard(PAGE_URL, 'the passage');
+    await saveAnnotationCard(PAGE_URL, 'another passage');
+
+    const result = await useCase.execute({
+      url: PAGE_URL,
+      includeStats: true,
+    });
+
+    expect(result.isOk()).toBe(true);
+    // Annotation cards made on the URL — what its Annotations tab lists
+    expect(result.unwrap().stats?.annotationCount).toBe(2);
+
+    const otherResult = await useCase.execute({
+      url: OTHER_URL,
+      includeStats: true,
+    });
+    expect(otherResult.unwrap().stats?.annotationCount).toBe(0);
+  });
 });

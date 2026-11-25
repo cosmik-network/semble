@@ -65,6 +65,22 @@ export async function fetchUrlNoteCounts(
   return toCountMap(rows);
 }
 
+// Annotation cards made on each URL — what its Annotations tab lists
+export async function fetchUrlAnnotationCounts(
+  db: PostgresJsDatabase,
+  urls: string[],
+): Promise<Map<string, number>> {
+  if (urls.length === 0) return new Map();
+  const rows = await db
+    .select({ url: cards.url, count: count() })
+    .from(cards)
+    .where(
+      and(eq(cards.type, CardTypeEnum.ANNOTATION), inArray(cards.url, urls)),
+    )
+    .groupBy(cards.url);
+  return toCountMap(rows);
+}
+
 // Distinct collections containing a URL card for each URL
 export async function fetchUrlCollectionCounts(
   db: PostgresJsDatabase,
@@ -263,6 +279,7 @@ export async function fetchUrlStats(
     libraryCounts,
     noteCounts,
     collectionCounts,
+    annotationCounts,
     connectionCounts,
     savedUrls,
     connectedUrls,
@@ -270,6 +287,7 @@ export async function fetchUrlStats(
     fetchUrlLibraryCounts(db, uniqueUrls),
     fetchUrlNoteCounts(db, uniqueUrls),
     fetchUrlCollectionCounts(db, uniqueUrls),
+    fetchUrlAnnotationCounts(db, uniqueUrls),
     fetchUrlConnectionCounts(db, uniqueUrls),
     callingUserId
       ? fetchUrlsSavedByUser(db, callingUserId, uniqueUrls)
@@ -285,6 +303,7 @@ export async function fetchUrlStats(
       libraryCount: libraryCounts.get(url) ?? 0,
       noteCount: noteCounts.get(url) ?? 0,
       collectionCount: collectionCounts.get(url) ?? 0,
+      annotationCount: annotationCounts.get(url) ?? 0,
       connections: connectionCounts.get(url) ?? emptyUrlConnectionCounts(),
       urlInLibrary: savedUrls?.has(url),
       urlIsConnected: connectedUrls?.has(url),

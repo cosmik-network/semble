@@ -17,6 +17,7 @@ export * from './cards/getBatchUrlStats';
 export * from './cards/getLibraryStatus';
 export * from './cards/getLibrariesForUrl';
 export * from './cards/getNoteCardsForUrl';
+export * from './cards/getAnnotation';
 export * from './cards/getAnnotationsForUrl';
 export * from './cards/getNotesForAnnotation';
 export * from './cards/getLibrariesForAnnotation';

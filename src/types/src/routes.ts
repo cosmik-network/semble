@@ -56,6 +56,7 @@ export const paths = {
   librariesForUrl: '/network.cosmik.card.getLibrariesForUrl',
   noteCardsForUrl: '/network.cosmik.card.getNoteCardsForUrl',
   annotationsForUrl: '/network.cosmik.card.getAnnotationsForUrl',
+  getAnnotation: '/network.cosmik.card.getAnnotation',
   notesForAnnotation: '/network.cosmik.card.getNotesForAnnotation',
   librariesForAnnotation: '/network.cosmik.card.getLibrariesForAnnotation',
   searchCards: '/network.cosmik.card.search',
@@ -192,6 +193,7 @@ export const routes = {
     librariesForUrl: defineRoute(paths.librariesForUrl, 'GET', false),
     noteCardsForUrl: defineRoute(paths.noteCardsForUrl, 'GET', false),
     annotationsForUrl: defineRoute(paths.annotationsForUrl, 'GET', false),
+    getAnnotation: defineRoute(paths.getAnnotation, 'GET', false),
     notesForAnnotation: defineRoute(paths.notesForAnnotation, 'GET', false),
     librariesForAnnotation: defineRoute(
       paths.librariesForAnnotation,

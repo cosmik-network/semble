@@ -58,6 +58,7 @@ import { GetLibrariesForUrlController } from '../../../../modules/cards/infrastr
 import { GetRecommendedCollectionsForUrlController } from '../../../../modules/cards/infrastructure/http/controllers/GetRecommendedCollectionsForUrlController';
 import { GetCollectionsForUrlController } from '../../../../modules/cards/infrastructure/http/controllers/GetCollectionsForUrlController';
 import { GetNoteCardsForUrlController } from '../../../../modules/cards/infrastructure/http/controllers/GetNoteCardsForUrlController';
+import { GetAnnotationController } from '../../../../modules/cards/infrastructure/http/controllers/GetAnnotationController';
 import { GetAnnotationsForUrlController } from '../../../../modules/cards/infrastructure/http/controllers/GetAnnotationsForUrlController';
 import { GetNotesForAnnotationController } from '../../../../modules/cards/infrastructure/http/controllers/GetNotesForAnnotationController';
 import { GetLibrariesForAnnotationController } from '../../../../modules/cards/infrastructure/http/controllers/GetLibrariesForAnnotationController';
@@ -164,6 +165,7 @@ export interface Controllers {
   getRecommendedCollectionsForUrlController: GetRecommendedCollectionsForUrlController;
   getNoteCardsForUrlController: GetNoteCardsForUrlController;
   getAnnotationsForUrlController: GetAnnotationsForUrlController;
+  getAnnotationController: GetAnnotationController;
   getNotesForAnnotationController: GetNotesForAnnotationController;
   getLibrariesForAnnotationController: GetLibrariesForAnnotationController;
   getCollectionsForAnnotationController: GetCollectionsForAnnotationController;
@@ -437,6 +439,9 @@ export class ControllerFactory {
       ),
       getAnnotationsForUrlController: new GetAnnotationsForUrlController(
         useCases.getAnnotationsForUrlUseCase,
+      ),
+      getAnnotationController: new GetAnnotationController(
+        useCases.getAnnotationUseCase,
       ),
       getNotesForAnnotationController: new GetNotesForAnnotationController(
         useCases.getNotesForAnnotationUseCase,

@@ -36,6 +36,9 @@ export const UserSchema = z.object({
   followingCount: z.number().optional(),
   followedCollectionsCount: z.number().optional(),
   urlCardCount: z.number().optional(),
+  // Annotation cards authored by the user — the profile Cards tab shows
+  // URL + annotation cards, so its count is urlCardCount + annotationCardCount
+  annotationCardCount: z.number().optional(),
   collectionCount: z.number().optional(),
   connectionCount: z.number().optional(),
   connectionsByType: z

@@ -23,6 +23,8 @@ export const UrlAggregateStatsSchema = z.object({
   libraryCount: z.number(),
   noteCount: z.number(),
   collectionCount: z.number(),
+  // Annotation cards made on the URL — what its Annotations tab lists
+  annotationCount: z.number(),
   connections: z.object({
     all: ConnectionStatsSchema,
     incoming: ConnectionStatsSchema,

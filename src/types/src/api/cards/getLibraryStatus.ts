@@ -28,6 +28,9 @@ export type GetAnnotationStatusForMyLibraryParams = z.infer<
 export const GetAnnotationStatusForMyLibraryResponseSchema = z.object({
   card: AnnotationCardSchema.optional(),
   collections: z.array(CollectionSchema).optional(),
+  // Whether the viewer has a connection where a passage-matching card is an
+  // endpoint — the annotation analog of the URL card's urlIsConnected
+  isConnected: z.boolean().optional(),
 });
 export type GetAnnotationStatusForMyLibraryResponse = z.infer<
   typeof GetAnnotationStatusForMyLibraryResponseSchema

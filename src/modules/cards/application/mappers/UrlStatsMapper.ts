@@ -29,6 +29,7 @@ export class UrlStatsMapper {
       libraryCount: stats.libraryCount,
       noteCount: stats.noteCount,
       collectionCount: stats.collectionCount,
+      annotationCount: stats.annotationCount,
       connections: { all, incoming, outgoing },
     };
   }

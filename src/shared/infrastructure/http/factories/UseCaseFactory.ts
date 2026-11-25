@@ -52,6 +52,7 @@ import { GetRecommendedCollectionsForUrlUseCase } from '../../../../modules/card
 import { GetNoteCardsForUrlUseCase } from '../../../../modules/cards/application/useCases/queries/GetNoteCardsForUrlUseCase';
 import { GetConnectionsForUrlUseCase } from '../../../../modules/cards/application/useCases/queries/GetConnectionsForUrlUseCase';
 import { GetAnnotationsForUrlUseCase } from '../../../../modules/cards/application/useCases/queries/GetAnnotationsForUrlUseCase';
+import { GetAnnotationUseCase } from '../../../../modules/cards/application/useCases/queries/GetAnnotationUseCase';
 import { GetNotesForAnnotationUseCase } from '../../../../modules/cards/application/useCases/queries/GetNotesForAnnotationUseCase';
 import { GetLibrariesForAnnotationUseCase } from '../../../../modules/cards/application/useCases/queries/GetLibrariesForAnnotationUseCase';
 import { GetCollectionsForAnnotationUseCase } from '../../../../modules/cards/application/useCases/queries/GetCollectionsForAnnotationUseCase';
@@ -203,6 +204,7 @@ export interface UseCases {
   getNoteCardsForUrlUseCase: GetNoteCardsForUrlUseCase;
   getConnectionsForUrlUseCase: GetConnectionsForUrlUseCase;
   getAnnotationsForUrlUseCase: GetAnnotationsForUrlUseCase;
+  getAnnotationUseCase: GetAnnotationUseCase;
   getNotesForAnnotationUseCase: GetNotesForAnnotationUseCase;
   getLibrariesForAnnotationUseCase: GetLibrariesForAnnotationUseCase;
   getCollectionsForAnnotationUseCase: GetCollectionsForAnnotationUseCase;
@@ -563,6 +565,7 @@ export class UseCaseFactory {
           repositories.cardRepository,
           repositories.cardQueryRepository,
           repositories.collectionQueryRepository,
+          repositories.connectionQueryRepository,
           services.profileService,
           repositories.followsRepository,
           services.eventPublisher,
@@ -592,6 +595,10 @@ export class UseCaseFactory {
         services.profileService,
       ),
       getAnnotationsForUrlUseCase: new GetAnnotationsForUrlUseCase(
+        repositories.cardQueryRepository,
+        services.profileService,
+      ),
+      getAnnotationUseCase: new GetAnnotationUseCase(
         repositories.cardQueryRepository,
         services.profileService,
       ),

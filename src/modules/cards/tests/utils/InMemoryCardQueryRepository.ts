@@ -1136,6 +1136,11 @@ export class InMemoryCardQueryRepository implements ICardQueryRepository {
         (card) => card.isNoteCard && card.url?.value === url,
       ).length;
 
+      // Annotation cards made on this URL — its Annotations tab list
+      const annotationCount = allCards.filter(
+        (card) => card.isAnnotationCard && card.url?.value === url,
+      ).length;
+
       const collectionCount = allCollections.filter((collection) =>
         collection.cardLinks.some((link) =>
           urlCardIds.has(link.cardId.getStringValue()),
@@ -1146,6 +1151,7 @@ export class InMemoryCardQueryRepository implements ICardQueryRepository {
         libraryCount: this.getUrlLibraryCount(url),
         noteCount,
         collectionCount,
+        annotationCount,
         connections: await this.getUrlConnectionCounts(url),
         urlInLibrary: callingUserId
           ? this.isUrlInUserLibrary(url, callingUserId)

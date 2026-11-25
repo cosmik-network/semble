@@ -265,6 +265,7 @@ export interface UrlStats {
   libraryCount: number; // distinct users with a URL card for this URL in their library
   noteCount: number; // NOTE cards whose url is this URL
   collectionCount: number; // distinct collections containing a URL card for this URL
+  annotationCount: number; // annotation cards made on this URL (its Annotations tab list)
   connections: UrlConnectionCounts;
   urlInLibrary?: boolean; // only set when a calling user is given
   urlIsConnected?: boolean; // only set when a calling user is given
