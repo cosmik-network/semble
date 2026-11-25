@@ -4,12 +4,9 @@ import {
   ICardQueryRepository,
   CardSortField,
   SortOrder,
-  AnnotationCardView,
+  AnnotationView,
 } from '../../../domain/ICardQueryRepository';
 import { URL } from '../../../domain/value-objects/URL';
-import { IProfileService } from '../../../domain/services/IProfileService';
-import { User } from '@semble/types';
-import { ProfileEnricher } from '../../services/ProfileEnricher';
 
 export interface GetAnnotationsForUrlQuery {
   url: string;
@@ -20,14 +17,24 @@ export interface GetAnnotationsForUrlQuery {
   sortOrder?: SortOrder;
 }
 
-// Enriched annotation card — same shape as the annotation variant of
-// GetUrlCardsUseCase's CardListItemDTO
-export type AnnotationListItemDTO = Omit<AnnotationCardView, 'authorId'> & {
-  author: User;
+// A passage-level view — one entry per unique annotation (url + normalized
+// exact text), carrying a capped notes-first preview of the passage's cards
+export type AnnotationViewDTO = Omit<
+  AnnotationView,
+  'createdAt' | 'updatedAt' | 'annotationCards'
+> & {
+  createdAt: string;
+  updatedAt: string;
+  annotationCards: {
+    cardId: string;
+    userId: string;
+    note?: string;
+    createdAt: string;
+  }[];
 };
 
 export interface GetAnnotationsForUrlResult {
-  annotations: AnnotationListItemDTO[];
+  annotations: AnnotationViewDTO[];
   pagination: {
     currentPage: number;
     totalPages: number;
@@ -52,10 +59,7 @@ export class GetAnnotationsForUrlUseCase implements UseCase<
   GetAnnotationsForUrlQuery,
   Result<GetAnnotationsForUrlResult>
 > {
-  constructor(
-    private cardQueryRepo: ICardQueryRepository,
-    private profileService: IProfileService,
-  ) {}
+  constructor(private cardQueryRepo: ICardQueryRepository) {}
 
   async execute(
     query: GetAnnotationsForUrlQuery,
@@ -85,21 +89,16 @@ export class GetAnnotationsForUrlUseCase implements UseCase<
         },
       );
 
-      // Enrich with author profiles using ProfileEnricher
-      const profileEnricher = new ProfileEnricher(this.profileService);
-      const enrichResult = await profileEnricher.enrichWithAuthors(
-        result.items,
-        (item) => item.authorId,
-        query.callingUserId,
-        { mapToUser: false }, // Use inline profile (without isFollowing)
-      );
-
-      if (enrichResult.isErr()) {
-        return err(enrichResult.error);
-      }
-
       return ok({
-        annotations: enrichResult.value,
+        annotations: result.items.map((view) => ({
+          ...view,
+          createdAt: view.createdAt.toISOString(),
+          updatedAt: view.updatedAt.toISOString(),
+          annotationCards: view.annotationCards.map((entry) => ({
+            ...entry,
+            createdAt: entry.createdAt.toISOString(),
+          })),
+        })),
         pagination: {
           currentPage: page,
           totalPages: Math.ceil(result.totalCount / limit),

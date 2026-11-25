@@ -91,10 +91,7 @@ describe('Annotation read use cases', () => {
     profileService = new FakeProfileService();
     followsRepository = InMemoryFollowsRepository.getInstance();
 
-    getAnnotationsForUrl = new GetAnnotationsForUrlUseCase(
-      cardQueryRepository,
-      profileService,
-    );
+    getAnnotationsForUrl = new GetAnnotationsForUrlUseCase(cardQueryRepository);
     getNotesForAnnotation = new GetNotesForAnnotationUseCase(
       cardQueryRepository,
       profileService,
@@ -140,9 +137,11 @@ describe('Annotation read use cases', () => {
   });
 
   describe('GetAnnotationsForUrlUseCase', () => {
-    it('returns all annotation cards for the URL with selectors and note', async () => {
+    it('returns one entry per unique passage, with its cards as a notes-first preview', async () => {
+      // Two curators on the same passage — one entry
       await createAnnotationCard(curator1, { note: 'a note' });
       await createAnnotationCard(curator2);
+      await createAnnotationCard(curator1, { exact: 'a different passage' });
 
       const result = await getAnnotationsForUrl.execute({
         url: TEST_URL,
@@ -152,12 +151,20 @@ describe('Annotation read use cases', () => {
       expect(result.isOk()).toBe(true);
       const annotations = result.unwrap().annotations;
       expect(annotations).toHaveLength(2);
-      expect(annotations[0]!.type).toBe(CardTypeEnum.ANNOTATION);
-      expect(annotations[0]!.selectors[0]!.exact).toBe(PASSAGE);
-      expect(annotations.map((a) => a.note).sort()).toEqual([
-        'a note',
-        undefined,
-      ]);
+      // Passage views carry the passage, not any one card's note
+      expect('note' in annotations[0]!).toBe(false);
+      const passages = annotations.map((a) => a.selectors[0]!.exact).sort();
+      expect(passages).toEqual([PASSAGE, 'a different passage'].sort());
+
+      // The shared passage's cards are embedded, notes first
+      const shared = annotations.find(
+        (a) => a.selectors[0]!.exact === PASSAGE,
+      )!;
+      expect(shared.annotationCards).toHaveLength(2);
+      expect(shared.annotationCards[0]!.note).toBe('a note');
+      expect(shared.annotationCards[0]!.userId).toBe(curator1.value);
+      expect(shared.annotationCards[1]!.note).toBeUndefined();
+      expect(shared.annotationCards[1]!.userId).toBe(curator2.value);
     });
 
     it('reports entity-level libraryCount across all cards matching the passage', async () => {
@@ -173,16 +180,16 @@ describe('Annotation read use cases', () => {
 
       expect(result.isOk()).toBe(true);
       const annotations = result.unwrap().annotations;
-      const samePassage = annotations.filter(
+      const samePassage = annotations.find(
         (a) => a.selectors[0]!.exact === PASSAGE,
       );
-      const otherPassage = annotations.filter(
+      const otherPassage = annotations.find(
         (a) => a.selectors[0]!.exact === 'a different passage',
       );
-      // Both same-passage cards see the aggregate (2 users), not the
+      // The passage view sees the aggregate (2 users), not the
       // card-level count (1); the other passage only counts itself
-      expect(samePassage.map((a) => a.libraryCount)).toEqual([2, 2]);
-      expect(otherPassage[0]!.libraryCount).toBe(1);
+      expect(samePassage!.libraryCount).toBe(2);
+      expect(otherPassage!.libraryCount).toBe(1);
     });
 
     it('rejects an invalid URL', async () => {

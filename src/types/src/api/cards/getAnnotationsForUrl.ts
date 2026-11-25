@@ -4,7 +4,7 @@ import {
   PaginationSchema,
   CardSortingSchema,
 } from '../../entities/common';
-import { AnnotationCardSchema } from '../../entities/card';
+import { AnnotationViewSchema } from '../../entities/card';
 
 export const GetAnnotationsForUrlParamsSchema =
   PaginatedCardSortedParamsSchema.extend({
@@ -15,7 +15,8 @@ export type GetAnnotationsForUrlParams = z.infer<
 >;
 
 export const GetAnnotationsForUrlResponseSchema = z.object({
-  annotations: z.array(AnnotationCardSchema),
+  // One entry per unique passage (url + normalized exact text), not per card
+  annotations: z.array(AnnotationViewSchema),
   pagination: PaginationSchema,
   sorting: CardSortingSchema,
 });

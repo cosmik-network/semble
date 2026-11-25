@@ -596,7 +596,6 @@ export class UseCaseFactory {
       ),
       getAnnotationsForUrlUseCase: new GetAnnotationsForUrlUseCase(
         repositories.cardQueryRepository,
-        services.profileService,
       ),
       getAnnotationUseCase: new GetAnnotationUseCase(
         repositories.cardQueryRepository,

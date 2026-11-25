@@ -12,6 +12,8 @@ import {
   LibraryForUrlDTO,
   NoteCardForUrlRawDTO,
   AnnotationCardView,
+  AnnotationView,
+  ANNOTATION_CARDS_PREVIEW_LIMIT,
   NoteForAnnotationRawDTO,
   LibraryForAnnotationDTO,
   UrlLibraryInfo,
@@ -866,6 +868,35 @@ export class InMemoryCardQueryRepository implements ICardQueryRepository {
     return count;
   }
 
+  // Passage views sort by the passage's own timestamps and counts
+  private sortAnnotationViews(
+    views: AnnotationView[],
+    sortBy: CardSortField,
+    sortOrder: SortOrder,
+  ): AnnotationView[] {
+    const sorted = [...views].sort((a, b) => {
+      let comparison = 0;
+
+      switch (sortBy) {
+        case CardSortField.CREATED_AT:
+          comparison = a.createdAt.getTime() - b.createdAt.getTime();
+          break;
+        case CardSortField.UPDATED_AT:
+          comparison = a.updatedAt.getTime() - b.updatedAt.getTime();
+          break;
+        case CardSortField.LIBRARY_COUNT:
+          comparison = a.libraryCount - b.libraryCount;
+          break;
+        default:
+          comparison = 0;
+      }
+
+      return sortOrder === SortOrder.DESC ? -comparison : comparison;
+    });
+
+    return sorted;
+  }
+
   private sortAnnotationCards(
     cards: Card[],
     sortBy: CardSortField,
@@ -915,11 +946,77 @@ export class InMemoryCardQueryRepository implements ICardQueryRepository {
   async getAnnotationsForUrl(
     url: string,
     options: CardQueryOptions,
-  ): Promise<PaginatedQueryResult<AnnotationCardView>> {
-    const annotationCards = this.sortAnnotationCards(
-      this.cardRepository
-        .getAllCards()
-        .filter((card) => card.isAnnotationCard && card.url?.value === url),
+  ): Promise<PaginatedQueryResult<AnnotationView>> {
+    // One entry per unique passage (url + normalized exact), not per card —
+    // matching the Drizzle implementation
+    const annotationCards = this.cardRepository
+      .getAllCards()
+      .filter((card) => card.isAnnotationCard && card.url?.value === url);
+
+    const passages = new Map<
+      string,
+      { cards: Card[]; createdAt: Date; updatedAt: Date }
+    >();
+    for (const card of annotationCards) {
+      const key =
+        card.content.annotationContent?.textQuoteSelector?.normalizedExact ??
+        '';
+      let passage = passages.get(key);
+      if (!passage) {
+        passage = {
+          cards: [],
+          createdAt: card.createdAt,
+          updatedAt: card.updatedAt,
+        };
+        passages.set(key, passage);
+      }
+      passage.cards.push(card);
+      if (card.createdAt < passage.createdAt) {
+        passage.createdAt = card.createdAt;
+      }
+      if (card.updatedAt > passage.updatedAt) {
+        passage.updatedAt = card.updatedAt;
+      }
+    }
+
+    // The representative card — the passage's most recently updated — carries
+    // the selectors and the passage's entity-level counts
+    const views: AnnotationView[] = await Promise.all(
+      [...passages.values()].map(async (passage) => {
+        const representative = [...passage.cards].sort(
+          (a, b) => b.updatedAt.getTime() - a.updatedAt.getTime(),
+        )[0]!;
+        const cardView = await this.toAnnotationView(representative);
+        return {
+          id: cardView.id,
+          url: cardView.url,
+          selectors: cardView.selectors,
+          libraryCount: cardView.libraryCount,
+          connectionCount: cardView.connectionCount,
+          createdAt: passage.createdAt,
+          updatedAt: passage.updatedAt,
+          // Who saved the passage and their notes — a capped preview, notes
+          // first then most recently created
+          annotationCards: [...passage.cards]
+            .sort((a, b) => {
+              const aNote = a.content.annotationContent?.note;
+              const bNote = b.content.annotationContent?.note;
+              if (!!bNote !== !!aNote) return bNote ? 1 : -1;
+              return b.createdAt.getTime() - a.createdAt.getTime();
+            })
+            .slice(0, ANNOTATION_CARDS_PREVIEW_LIMIT)
+            .map((card) => ({
+              cardId: card.cardId.getStringValue(),
+              userId: card.curatorId.value,
+              note: card.content.annotationContent?.note,
+              createdAt: card.createdAt,
+            })),
+        };
+      }),
+    );
+
+    const sorted = this.sortAnnotationViews(
+      views,
       options.sortBy,
       options.sortOrder,
     );
@@ -927,16 +1024,10 @@ export class InMemoryCardQueryRepository implements ICardQueryRepository {
     const startIndex = (options.page - 1) * options.limit;
     const endIndex = startIndex + options.limit;
 
-    const views = await Promise.all(
-      annotationCards
-        .slice(startIndex, endIndex)
-        .map((card) => this.toAnnotationView(card)),
-    );
-
     return {
-      items: views,
-      totalCount: annotationCards.length,
-      hasMore: endIndex < annotationCards.length,
+      items: sorted.slice(startIndex, endIndex),
+      totalCount: sorted.length,
+      hasMore: endIndex < sorted.length,
     };
   }
 
@@ -1136,10 +1227,17 @@ export class InMemoryCardQueryRepository implements ICardQueryRepository {
         (card) => card.isNoteCard && card.url?.value === url,
       ).length;
 
-      // Annotation cards made on this URL — its Annotations tab list
-      const annotationCount = allCards.filter(
-        (card) => card.isAnnotationCard && card.url?.value === url,
-      ).length;
+      // Unique annotations (passages) on this URL — its Annotations tab
+      // list. Many users saving the same passage count once.
+      const annotationCount = new Set(
+        allCards
+          .filter((card) => card.isAnnotationCard && card.url?.value === url)
+          .map(
+            (card) =>
+              card.content.annotationContent?.textQuoteSelector
+                ?.normalizedExact ?? '',
+          ),
+      ).size;
 
       const collectionCount = allCollections.filter((collection) =>
         collection.cardLinks.some((link) =>

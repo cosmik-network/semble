@@ -23,7 +23,8 @@ export const UrlAggregateStatsSchema = z.object({
   libraryCount: z.number(),
   noteCount: z.number(),
   collectionCount: z.number(),
-  // Annotation cards made on the URL — what its Annotations tab lists
+  // Unique annotations (url + normalized exact text) on the URL — what its
+  // Annotations tab lists. Many users saving the same passage count once.
   annotationCount: z.number(),
   connections: z.object({
     all: ConnectionStatsSchema,

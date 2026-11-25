@@ -118,6 +118,46 @@ export interface AnnotationCardView {
   authorId: string;
 }
 
+/**
+ * A passage-level annotation view — one entry per unique annotation (url +
+ * normalized exact text), not per card. Who saved the passage and any notes
+ * they added live on `annotationCards`, a capped preview; the full lists are
+ * served per passage by the notes/libraries endpoints.
+ */
+export interface AnnotationView {
+  /** The representative (most recently updated) card matching the passage —
+   * an identity for keys and links, not a claim about the passage's owner */
+  id: string;
+  url: string;
+  selectors: {
+    type: string;
+    exact: string;
+    prefix?: string;
+    suffix?: string;
+  }[];
+  /** Entity-level: distinct users with a card matching this passage */
+  libraryCount: number;
+  /** Connections where any passage-matching card is an endpoint */
+  connectionCount?: number;
+  /** The earliest card saved on the passage */
+  createdAt: Date;
+  /** The passage's most recent card activity */
+  updatedAt: Date;
+  /** The passage's cards — a preview, capped and notes-first */
+  annotationCards: AnnotationCardEntry[];
+}
+
+/** One user's card on a passage — no profile data inline */
+export interface AnnotationCardEntry {
+  cardId: string;
+  userId: string;
+  note?: string;
+  createdAt: Date;
+}
+
+/** How many of a passage's cards the passage view previews */
+export const ANNOTATION_CARDS_PREVIEW_LIMIT = 10;
+
 // Discriminated union of the card types list endpoints can return
 export type CollectionCardQueryResultDTO = UrlCardView | AnnotationCardView;
 // Raw data from repository - minimal, just what's stored
@@ -265,7 +305,7 @@ export interface UrlStats {
   libraryCount: number; // distinct users with a URL card for this URL in their library
   noteCount: number; // NOTE cards whose url is this URL
   collectionCount: number; // distinct collections containing a URL card for this URL
-  annotationCount: number; // annotation cards made on this URL (its Annotations tab list)
+  annotationCount: number; // unique annotations (passages) on this URL — its Annotations tab list
   connections: UrlConnectionCounts;
   urlInLibrary?: boolean; // only set when a calling user is given
   urlIsConnected?: boolean; // only set when a calling user is given
@@ -306,11 +346,15 @@ export interface ICardQueryRepository {
     options: CardQueryOptions,
   ): Promise<PaginatedQueryResult<NoteCardForUrlRawDTO>>;
 
-  /** All annotation cards made on a URL */
+  /**
+   * Annotations made on a URL — one entry per unique passage (url +
+   * normalized exact text), not per card. Counts are entity-level across
+   * every card matching the passage.
+   */
   getAnnotationsForUrl(
     url: string,
     options: CardQueryOptions,
-  ): Promise<PaginatedQueryResult<AnnotationCardView>>;
+  ): Promise<PaginatedQueryResult<AnnotationView>>;
 
   /** A single annotation card by id, with entity-level engagement counts */
   getAnnotationCardById(cardId: string): Promise<AnnotationCardView | null>;

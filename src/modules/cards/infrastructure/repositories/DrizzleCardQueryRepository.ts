@@ -15,6 +15,7 @@ import {
   SearchUrlsOptions,
   UrlSearchResultDTO,
   AnnotationCardView,
+  AnnotationView,
   NoteForAnnotationRawDTO,
   LibraryForAnnotationDTO,
 } from '../../domain/ICardQueryRepository';
@@ -98,7 +99,7 @@ export class DrizzleCardQueryRepository implements ICardQueryRepository {
   async getAnnotationsForUrl(
     url: string,
     options: CardQueryOptions,
-  ): Promise<PaginatedQueryResult<AnnotationCardView>> {
+  ): Promise<PaginatedQueryResult<AnnotationView>> {
     return this.annotationCardQueryService.getAnnotationsForUrl(url, options);
   }
 

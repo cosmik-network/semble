@@ -149,8 +149,10 @@ describe('GetUrlMetadataUseCase stats', () => {
     expect(stats.annotationCardCount).toBe(1);
   });
 
-  it('includes the annotation count in the URL stats', async () => {
+  it('includes the unique-annotation count in the URL stats', async () => {
     await saveUrlCard(PAGE_URL);
+    // Two cards on the same passage + one on another — two unique passages
+    await saveAnnotationCard(PAGE_URL, 'the passage');
     await saveAnnotationCard(PAGE_URL, 'the passage');
     await saveAnnotationCard(PAGE_URL, 'another passage');
 
@@ -160,7 +162,7 @@ describe('GetUrlMetadataUseCase stats', () => {
     });
 
     expect(result.isOk()).toBe(true);
-    // Annotation cards made on the URL — what its Annotations tab lists
+    // Unique passages (url + normalized exact), not cards
     expect(result.unwrap().stats?.annotationCount).toBe(2);
 
     const otherResult = await useCase.execute({

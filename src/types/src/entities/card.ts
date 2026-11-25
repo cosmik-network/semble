@@ -81,6 +81,40 @@ export const AnnotationCardSchema = z.object({
 });
 export type AnnotationCard = z.infer<typeof AnnotationCardSchema>;
 
+// One user's card on a passage — no profile data inline. The full per-passage
+// lists stay on the notes/libraries endpoints.
+export const AnnotationCardEntrySchema = z.object({
+  cardId: z.string(),
+  userId: z.string(),
+  note: z.string().optional(),
+  createdAt: z.string(),
+});
+export type AnnotationCardEntry = z.infer<typeof AnnotationCardEntrySchema>;
+
+// A passage-level annotation view — one entry per unique annotation (url +
+// normalized exact text), not per card. Who saved the passage and any notes
+// they added live on `annotationCards`, a capped notes-first preview;
+// libraryCount stays the true total across all matching cards.
+export const AnnotationViewSchema = z.object({
+  // The representative (most recently updated) card matching the passage —
+  // an identity for keys and links, not a claim about the passage's owner
+  id: z.string(),
+  url: z.string(),
+  selectors: z.array(TextQuoteSelectorSchema),
+  // Entity-level: distinct users with any annotation card matching this
+  // passage (url + normalized exact text)
+  libraryCount: z.number(),
+  // Connections where any passage-matching annotation card is an endpoint
+  connectionCount: z.number().optional(),
+  // The earliest card saved on the passage
+  createdAt: z.string(),
+  // The passage's most recent card activity
+  updatedAt: z.string(),
+  // The passage's cards — a capped preview, notes first
+  annotationCards: z.array(AnnotationCardEntrySchema),
+});
+export type AnnotationView = z.infer<typeof AnnotationViewSchema>;
+
 // Discriminated union of card types returned by card list endpoints. The
 // `type` literal narrows: consumers expecting a URL card get compile-time
 // safety on URL-specific fields (cardContent, urlLibraryCount, ...) after

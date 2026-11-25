@@ -6,6 +6,8 @@ import {
   CardSortField,
   SortOrder,
   AnnotationCardView,
+  AnnotationView,
+  ANNOTATION_CARDS_PREVIEW_LIMIT,
   NoteForAnnotationRawDTO,
   LibraryForAnnotationDTO,
 } from '../../../domain/ICardQueryRepository';
@@ -24,53 +26,155 @@ export class AnnotationCardQueryService {
   constructor(private db: PostgresJsDatabase) {}
 
   /**
-   * All annotation cards made on a URL, with their selectors and note.
+   * Annotations made on a URL — one entry per unique passage (url +
+   * normalized exact text), not per card. Cards are grouped into passages in
+   * memory (a URL's annotation cards are few), then sorted and paginated by
+   * passage: createdAt is the earliest card on the passage, updatedAt its
+   * most recent activity.
    */
   async getAnnotationsForUrl(
     url: string,
     options: CardQueryOptions,
-  ): Promise<PaginatedQueryResult<AnnotationCardView>> {
+  ): Promise<PaginatedQueryResult<AnnotationView>> {
     try {
       const { page, limit, sortBy, sortOrder } = options;
       const offset = (page - 1) * limit;
       const orderDirection = sortOrder === SortOrder.ASC ? asc : desc;
 
-      const whereClause = and(
-        eq(cards.type, CardTypeEnum.ANNOTATION),
-        eq(cards.url, url),
+      // Every annotation card on the URL with its quote-selector keys
+      const rows = await this.db
+        .select({
+          id: cards.id,
+          authorId: cards.authorId,
+          url: cards.url,
+          publishedRecordUri: publishedRecords.uri,
+          contentData: cards.contentData,
+          libraryCount: cards.libraryCount,
+          createdAt: cards.createdAt,
+          updatedAt: cards.updatedAt,
+          selectorOrdinal: annotationSelectors.ordinal,
+          exactNormalized: annotationSelectors.exactNormalized,
+        })
+        .from(cards)
+        .leftJoin(
+          publishedRecords,
+          eq(cards.publishedRecordId, publishedRecords.id),
+        )
+        .innerJoin(
+          annotationSelectors,
+          and(
+            eq(annotationSelectors.cardId, cards.id),
+            eq(annotationSelectors.selectorType, 'TextQuoteSelector'),
+          ),
+        )
+        .where(
+          and(eq(cards.type, CardTypeEnum.ANNOTATION), eq(cards.url, url)),
+        );
+
+      // Group by passage — the card's primary (lowest-ordinal) quote
+      // selector's normalized exact
+      const minOrdinalByCard = new Map<string, number>();
+      const keyByCard = new Map<string, string>();
+      for (const row of rows) {
+        const existing = minOrdinalByCard.get(row.id);
+        if (existing === undefined || row.selectorOrdinal < existing) {
+          minOrdinalByCard.set(row.id, row.selectorOrdinal);
+          keyByCard.set(row.id, row.exactNormalized ?? '');
+        }
+      }
+
+      const passages = new Map<
+        string,
+        {
+          representative: (typeof rows)[number];
+          cards: (typeof rows)[number][];
+          createdAt: Date;
+          updatedAt: Date;
+        }
+      >();
+      // The selector join duplicates each card once per selector row —
+      // dedupe by card id when collecting a passage's cards
+      const seenCards = new Set<string>();
+      for (const row of rows) {
+        const key = keyByCard.get(row.id) ?? '';
+        let passage = passages.get(key);
+        if (!passage) {
+          passage = {
+            representative: row,
+            cards: [],
+            createdAt: row.createdAt,
+            updatedAt: row.updatedAt,
+          };
+          passages.set(key, passage);
+        }
+        if (!seenCards.has(row.id)) {
+          seenCards.add(row.id);
+          passage.cards.push(row);
+        }
+        if (row.createdAt < passage.createdAt) {
+          passage.createdAt = row.createdAt;
+        }
+        if (row.updatedAt > passage.updatedAt) {
+          passage.updatedAt = row.updatedAt;
+        }
+        if (row.updatedAt > passage.representative.updatedAt) {
+          passage.representative = row;
+        }
+      }
+
+      // The representative card's assembled view carries the selectors and
+      // the passage's entity-level counts
+      const representativeViews = await this.assembleAnnotationViews(
+        [...passages.values()].map((passage) => passage.representative),
       );
+      const viewByCard = new Map(representativeViews.map((v) => [v.id, v]));
 
-      const [rows, totalCountResult] = await Promise.all([
-        this.db
-          .select({
-            id: cards.id,
-            authorId: cards.authorId,
-            url: cards.url,
-            publishedRecordUri: publishedRecords.uri,
-            contentData: cards.contentData,
-            libraryCount: cards.libraryCount,
-            createdAt: cards.createdAt,
-            updatedAt: cards.updatedAt,
-          })
-          .from(cards)
-          .leftJoin(
-            publishedRecords,
-            eq(cards.publishedRecordId, publishedRecords.id),
-          )
-          .where(whereClause)
-          .orderBy(orderDirection(this.getSortColumn(sortBy)))
-          .limit(limit)
-          .offset(offset),
-        this.db.select({ count: count() }).from(cards).where(whereClause),
-      ]);
+      const views: AnnotationView[] = [...passages.values()].map((passage) => {
+        const cardView = viewByCard.get(passage.representative.id)!;
+        return {
+          id: cardView.id,
+          url: cardView.url,
+          selectors: cardView.selectors,
+          libraryCount: cardView.libraryCount,
+          connectionCount: cardView.connectionCount,
+          createdAt: passage.createdAt,
+          updatedAt: passage.updatedAt,
+          // Who saved the passage and their notes — a capped preview,
+          // notes first then most recently created
+          annotationCards: passage.cards
+            .sort((a, b) => {
+              const aNote = (a.contentData as { note?: string }).note;
+              const bNote = (b.contentData as { note?: string }).note;
+              if (!!bNote !== !!aNote) return bNote ? 1 : -1;
+              return b.createdAt.getTime() - a.createdAt.getTime();
+            })
+            .slice(0, ANNOTATION_CARDS_PREVIEW_LIMIT)
+            .map((card) => ({
+              cardId: card.id,
+              userId: card.authorId,
+              note: (card.contentData as { note?: string }).note,
+              createdAt: card.createdAt,
+            })),
+        };
+      });
 
-      const totalCount = totalCountResult[0]?.count || 0;
-      const views = await this.assembleAnnotationViews(rows);
+      views.sort((a, b) => {
+        const comparison =
+          sortBy === CardSortField.CREATED_AT
+            ? a.createdAt.getTime() - b.createdAt.getTime()
+            : sortBy === CardSortField.LIBRARY_COUNT
+              ? a.libraryCount - b.libraryCount
+              : a.updatedAt.getTime() - b.updatedAt.getTime();
+        return orderDirection === asc ? comparison : -comparison;
+      });
+
+      const totalCount = views.length;
+      const pageViews = views.slice(offset, offset + limit);
 
       return {
-        items: views,
+        items: pageViews,
         totalCount,
-        hasMore: offset + rows.length < totalCount,
+        hasMore: offset + pageViews.length < totalCount,
       };
     } catch (error) {
       console.error('Error in getAnnotationsForUrl:', error);

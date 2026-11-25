@@ -4,6 +4,7 @@ import { cards } from '../schema/card.sql';
 import { collectionCards } from '../schema/collection.sql';
 import { libraryMemberships } from '../schema/libraryMembership.sql';
 import { connections } from '../schema/connection.sql';
+import { annotationSelectors } from '../schema/annotationSelector.sql';
 import { CardTypeEnum } from '../../../domain/value-objects/CardType';
 import { ConnectionTypeEnum } from '../../../domain/value-objects/ConnectionType';
 import {
@@ -65,15 +66,26 @@ export async function fetchUrlNoteCounts(
   return toCountMap(rows);
 }
 
-// Annotation cards made on each URL — what its Annotations tab lists
+// Unique annotations (url + normalized exact text) on each URL — what its
+// Annotations tab lists. Many users saving the same passage count once.
 export async function fetchUrlAnnotationCounts(
   db: PostgresJsDatabase,
   urls: string[],
 ): Promise<Map<string, number>> {
   if (urls.length === 0) return new Map();
   const rows = await db
-    .select({ url: cards.url, count: count() })
+    .select({
+      url: cards.url,
+      count: countDistinct(annotationSelectors.exactNormalized),
+    })
     .from(cards)
+    .innerJoin(
+      annotationSelectors,
+      and(
+        eq(annotationSelectors.cardId, cards.id),
+        eq(annotationSelectors.selectorType, 'TextQuoteSelector'),
+      ),
+    )
     .where(
       and(eq(cards.type, CardTypeEnum.ANNOTATION), inArray(cards.url, urls)),
     )
