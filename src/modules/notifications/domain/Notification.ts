@@ -340,7 +340,37 @@ export class Notification extends AggregateRoot<NotificationProps> {
     url: string,
     annotationIds: string[],
   ): Result<Notification> {
-    const typeResult = NotificationType.userAnnotatedYourUrl();
+    return this.createAnnotatedUrlBatch(
+      recipientUserId,
+      actorUserId,
+      NotificationType.userAnnotatedYourUrl(),
+      url,
+      annotationIds,
+    );
+  }
+
+  public static createSubscribedUserAnnotatedUrl(
+    recipientUserId: CuratorId,
+    actorUserId: CuratorId,
+    url: string,
+    annotationIds: string[],
+  ): Result<Notification> {
+    return this.createAnnotatedUrlBatch(
+      recipientUserId,
+      actorUserId,
+      NotificationType.subscribedUserAnnotatedUrl(),
+      url,
+      annotationIds,
+    );
+  }
+
+  private static createAnnotatedUrlBatch(
+    recipientUserId: CuratorId,
+    actorUserId: CuratorId,
+    typeResult: Result<NotificationType>,
+    url: string,
+    annotationIds: string[],
+  ): Result<Notification> {
     if (typeResult.isErr()) {
       return err(typeResult.error);
     }

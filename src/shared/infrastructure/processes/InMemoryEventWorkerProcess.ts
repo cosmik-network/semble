@@ -178,6 +178,7 @@ export class InMemoryEventWorkerProcess implements IProcess {
       new AnnotationCreatedNotificationHandler(
         repositories.cardRepository,
         repositories.cardQueryRepository,
+        repositories.followsRepository,
         services.notificationService,
         DistributedLockServiceFactory.create(),
       );

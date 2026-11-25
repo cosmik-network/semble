@@ -20,6 +20,7 @@ export enum NotificationType {
   USER_CONNECTED_YOUR_ANNOTATION = 'USER_CONNECTED_YOUR_ANNOTATION',
   USER_ANNOTATED_YOUR_URL = 'USER_ANNOTATED_YOUR_URL',
   SUBSCRIBED_USER_ADDED_CARD = 'SUBSCRIBED_USER_ADDED_CARD',
+  SUBSCRIBED_USER_ANNOTATED_URL = 'SUBSCRIBED_USER_ANNOTATED_URL',
   USER_ADDED_CARD_TO_SUBSCRIBED_COLLECTION = 'USER_ADDED_CARD_TO_SUBSCRIBED_COLLECTION',
   SUBSCRIBED_USER_MADE_CONNECTION = 'SUBSCRIBED_USER_MADE_CONNECTION',
   USER_ADDED_SUBSCRIBED_COLLECTION = 'USER_ADDED_SUBSCRIBED_COLLECTION',
@@ -39,6 +40,7 @@ export const NotificationTypeSchema = z.enum([
   'USER_CONNECTED_YOUR_ANNOTATION',
   'USER_ANNOTATED_YOUR_URL',
   'SUBSCRIBED_USER_ADDED_CARD',
+  'SUBSCRIBED_USER_ANNOTATED_URL',
   'USER_ADDED_CARD_TO_SUBSCRIBED_COLLECTION',
   'SUBSCRIBED_USER_MADE_CONNECTION',
   'USER_ADDED_SUBSCRIBED_COLLECTION',
@@ -164,11 +166,15 @@ export type MentionNotificationItem = z.infer<
   typeof MentionNotificationItemSchema
 >;
 
-// Batched "user annotated a url in your library" — annotations created by
-// the same actor on the same URL within a window collapse into one item.
+// Batched "user annotated a url" notifications — annotations created by the
+// same actor on the same URL within a window collapse into one item. Covers
+// both the library-based (your URL) and subscription-based variants.
 export const AnnotationBatchNotificationItemSchema =
   BaseNotificationItemSchema.extend({
-    type: z.literal(NotificationType.USER_ANNOTATED_YOUR_URL),
+    type: z.union([
+      z.literal(NotificationType.USER_ANNOTATED_YOUR_URL),
+      z.literal(NotificationType.SUBSCRIBED_USER_ANNOTATED_URL),
+    ]),
     url: z.string(),
     annotations: z.array(AnnotationCardSchema),
   });

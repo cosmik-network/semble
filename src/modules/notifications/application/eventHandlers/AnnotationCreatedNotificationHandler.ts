@@ -3,17 +3,27 @@ import { IEventHandler } from '../../../../shared/application/events/IEventSubsc
 import { Result, ok } from '../../../../shared/core/Result';
 import { ICardRepository } from '../../../cards/domain/ICardRepository';
 import { ICardQueryRepository } from '../../../cards/domain/ICardQueryRepository';
+import { IFollowsRepository } from '../../../user/domain/repositories/IFollowsRepository';
+import { FollowTargetType } from '../../../user/domain/value-objects/FollowTargetType';
+import { SubscriptionScopeEnum } from '../../../user/domain/value-objects/SubscriptionScope';
 import { NotificationService } from '../../domain/services/NotificationService';
 import { CuratorId } from '../../../cards/domain/value-objects/CuratorId';
-import { CardId } from '../../../cards/domain/value-objects/CardId';
 import { IDistributedLockService } from '../../../../shared/infrastructure/locking/IDistributedLockService';
 
 /**
- * USER_ANNOTATED_YOUR_URL — when an annotation card is created, notify
- * everyone who has the annotated URL in their library. Annotations by the
- * same actor on the same URL within a time window collapse into one
- * notification per recipient (find-recent-and-merge under a distributed
- * lock, the same pattern feed activities use — no saga).
+ * Batched annotation notifications, fired when an annotation card is added
+ * to a library:
+ * - USER_ANNOTATED_YOUR_URL to everyone who has the annotated URL in their
+ *   library (specific).
+ * - SUBSCRIBED_USER_ANNOTATED_URL to the actor's USER followers with CARD
+ *   scope (generic) — except anyone already getting the specific one, the
+ *   same specific-over-generic precedence USER_ADDED_YOUR_CARD has over
+ *   SUBSCRIBED_USER_ADDED_CARD.
+ *
+ * Annotations by the same actor on the same URL within a time window
+ * collapse into one notification per recipient and type
+ * (find-recent-and-merge under a distributed lock, the same pattern feed
+ * activities use — no saga).
  *
  * Annotations saved via another card (viaCardId) are skipped here — the
  * via-card curator gets USER_ADDED_YOUR_CARD from ViaCardBundleHandler, and
@@ -26,6 +36,7 @@ export class AnnotationCreatedNotificationHandler implements IEventHandler<CardA
   constructor(
     private cardRepository: ICardRepository,
     private cardQueryRepository: ICardQueryRepository,
+    private followsRepository: IFollowsRepository,
     private notificationService: NotificationService,
     private distributedLockService: IDistributedLockService,
     batchWindowMs?: number,
@@ -49,6 +60,7 @@ export class AnnotationCreatedNotificationHandler implements IEventHandler<CardA
       if (!card.url) return ok(undefined);
       const url = card.url.value;
 
+      // Specific recipients: the URL is in their library
       const librariesResult = await this.cardQueryRepository.getLibrariesForUrl(
         url,
         {
@@ -58,50 +70,89 @@ export class AnnotationCreatedNotificationHandler implements IEventHandler<CardA
           sortOrder: 'DESC' as any,
         },
       );
-      if (!librariesResult.items) return ok(undefined);
 
-      const recipientIds = librariesResult.items
-        .map((library) => library.userId)
-        .filter((userId) => userId !== event.curatorId.value);
+      const specificRecipientIds = new Set(
+        (librariesResult.items ?? [])
+          .map((library) => library.userId)
+          .filter((userId) => userId !== event.curatorId.value),
+      );
 
-      for (const recipientUserId of recipientIds) {
-        const recipientIdResult = CuratorId.create(recipientUserId);
-        if (recipientIdResult.isErr()) {
-          console.error('Invalid recipient ID:', recipientIdResult.error);
-          continue;
+      // Generic recipients: the actor's CARD-scope USER subscribers, minus
+      // the specific ones (they already get USER_ANNOTATED_YOUR_URL)
+      const subscriberIds = new Set<string>();
+      const subs = await this.followsRepository.getSubscribersForScope(
+        event.curatorId.value,
+        FollowTargetType.USER,
+        SubscriptionScopeEnum.CARD,
+      );
+      if (subs.isOk()) {
+        for (const follow of subs.value) {
+          const recipientId = follow.followerId.value;
+          if (recipientId === event.curatorId.value) continue;
+          if (specificRecipientIds.has(recipientId)) continue;
+          subscriberIds.add(recipientId);
         }
-        const recipientId = recipientIdResult.value;
+      }
 
-        // Serialize batch appends per (recipient, actor, url) so concurrent
-        // annotations merge into one notification instead of racing to create
-        // two
-        const lockKey = `notification:annotation-batch:${recipientUserId}:${event.curatorId.value}:${url}`;
-        const notificationResult = await this.distributedLockService.withLock(
-          lockKey,
-          10000,
-          () =>
-            this.notificationService.createOrAppendUserAnnotatedYourUrlNotification(
-              recipientId,
-              event.curatorId,
-              url,
-              event.cardId,
-              this.batchWindowMs,
-            ),
+      for (const recipientUserId of specificRecipientIds) {
+        await this.createBatched(
+          event,
+          recipientUserId,
+          url,
+          'USER_ANNOTATED_YOUR_URL',
         );
-
-        if (notificationResult.isErr()) {
-          console.error(
-            'Failed to create annotation notification:',
-            notificationResult.error,
-          );
-          // Continue with other recipients even if one fails
-        }
+      }
+      for (const recipientUserId of subscriberIds) {
+        await this.createBatched(
+          event,
+          recipientUserId,
+          url,
+          'SUBSCRIBED_USER_ANNOTATED_URL',
+        );
       }
 
       return ok(undefined);
     } catch (error) {
       console.error('Error in AnnotationCreatedNotificationHandler:', error);
       return ok(undefined);
+    }
+  }
+
+  private async createBatched(
+    event: CardAddedToLibraryEvent,
+    recipientUserId: string,
+    url: string,
+    type: 'USER_ANNOTATED_YOUR_URL' | 'SUBSCRIBED_USER_ANNOTATED_URL',
+  ): Promise<void> {
+    const recipientIdResult = CuratorId.create(recipientUserId);
+    if (recipientIdResult.isErr()) {
+      console.error('Invalid recipient ID:', recipientIdResult.error);
+      return;
+    }
+
+    // Serialize batch appends per (recipient, actor, url, type) so concurrent
+    // annotations merge into one notification instead of racing to create two
+    const lockKey = `notification:annotation-batch:${type}:${recipientUserId}:${event.curatorId.value}:${url}`;
+    const notificationResult = await this.distributedLockService.withLock(
+      lockKey,
+      10000,
+      () =>
+        this.notificationService.createOrAppendUserAnnotatedYourUrlNotification(
+          recipientIdResult.value,
+          event.curatorId,
+          url,
+          event.cardId,
+          this.batchWindowMs,
+          type,
+        ),
+    );
+
+    if (notificationResult.isErr()) {
+      console.error(
+        'Failed to create annotation notification:',
+        notificationResult.error,
+      );
+      // Continue with other recipients even if one fails
     }
   }
 }

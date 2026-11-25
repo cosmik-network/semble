@@ -200,6 +200,7 @@ export class NotificationWorkerProcess extends BaseWorkerProcess {
     const annotationCreatedHandler = new AnnotationCreatedNotificationHandler(
       repositories.cardRepository,
       repositories.cardQueryRepository,
+      repositories.followsRepository,
       services.notificationService,
       DistributedLockServiceFactory.create(),
     );

@@ -194,3 +194,64 @@ describe('SubscriptionBundleHandler dedup against BundleRecipientResolver', () =
     expect(createNotificationUseCase.execute).not.toHaveBeenCalled();
   });
 });
+
+describe('SubscriptionBundleHandler annotation suppression', () => {
+  const makeHandler = (card: any) => {
+    const followsRepository = {
+      getSubscribersForScope: jest.fn(
+        async (
+          _targetId: string,
+          targetType: FollowTargetType,
+          scope: SubscriptionScopeEnum,
+        ) => {
+          if (
+            targetType.value === FollowTargetTypeEnum.USER &&
+            scope === SubscriptionScopeEnum.CARD
+          ) {
+            return ok([makeFakeFollow(SUBSCRIBER, ACTOR)]);
+          }
+          return ok([]);
+        },
+      ),
+    } as any;
+
+    const createNotificationUseCase = {
+      execute: jest.fn(async () => ok({ notificationId: 'n1' })),
+    } as any;
+
+    const handler = new SubscriptionBundleHandler(
+      followsRepository,
+      { findById: jest.fn(async () => ok(card)) } as any,
+      createNotificationUseCase,
+      { resolve: jest.fn(async () => null) } as any,
+      {
+        resolveSpecificRecipients: jest.fn(async () => new Set<string>()),
+      } as unknown as BundleRecipientResolver,
+    );
+
+    return { handler, createNotificationUseCase };
+  };
+
+  const ANNOTATION_CARD = { isAnnotationCard: true, url: null };
+
+  it('suppresses SUBSCRIBED_USER_ADDED_CARD for a library-only annotation add', async () => {
+    const { handler, createNotificationUseCase } = makeHandler(ANNOTATION_CARD);
+
+    await handler.handle(makeBundle()); // no collectionIds
+
+    expect(createNotificationUseCase.execute).not.toHaveBeenCalled();
+  });
+
+  it('still emits SUBSCRIBED_USER_ADDED_CARD when the annotation is also added to a collection', async () => {
+    const { handler, createNotificationUseCase } = makeHandler(ANNOTATION_CARD);
+
+    await handler.handle(
+      makeBundle({
+        collectionIds: ['99999999-9999-4999-8999-999999999999'],
+        hasCollectionEvents: true,
+      }),
+    );
+
+    expect(createNotificationUseCase.execute).toHaveBeenCalled();
+  });
+});

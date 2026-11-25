@@ -66,6 +66,10 @@ export class NotificationType extends ValueObject<NotificationTypeProps> {
     return this.create(NotificationTypeEnum.USER_ANNOTATED_YOUR_URL);
   }
 
+  public static subscribedUserAnnotatedUrl(): Result<NotificationType> {
+    return this.create(NotificationTypeEnum.SUBSCRIBED_USER_ANNOTATED_URL);
+  }
+
   public static subscribedUserAddedCard(): Result<NotificationType> {
     return this.create(NotificationTypeEnum.SUBSCRIBED_USER_ADDED_CARD);
   }

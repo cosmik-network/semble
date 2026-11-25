@@ -408,10 +408,11 @@ export class NotificationService implements DomainService {
   }
 
   /**
-   * Create a USER_ANNOTATED_YOUR_URL notification, or append the annotation
-   * to the actor's existing batch for the same URL if one was created within
+   * Create a batched annotation notification (USER_ANNOTATED_YOUR_URL or
+   * SUBSCRIBED_USER_ANNOTATED_URL), or append the annotation to the actor's
+   * existing batch of that type for the same URL if one was created within
    * `batchWindowMs`. Batching keeps one notification per (recipient, actor,
-   * url) instead of one per annotation.
+   * url, type) instead of one per annotation.
    */
   async createOrAppendUserAnnotatedYourUrlNotification(
     recipientUserId: CuratorId,
@@ -419,6 +420,9 @@ export class NotificationService implements DomainService {
     url: string,
     annotationId: CardId,
     batchWindowMs: number,
+    type:
+      | 'USER_ANNOTATED_YOUR_URL'
+      | 'SUBSCRIBED_USER_ANNOTATED_URL' = 'USER_ANNOTATED_YOUR_URL',
   ): Promise<Result<Notification, NotificationServiceError>> {
     try {
       if (recipientUserId.equals(actorUserId)) {
@@ -434,7 +438,7 @@ export class NotificationService implements DomainService {
         await this.notificationRepository.findByRecipientAndActorSince(
           recipientUserId,
           actorUserId,
-          'USER_ANNOTATED_YOUR_URL',
+          type,
           since,
         );
 
@@ -459,12 +463,20 @@ export class NotificationService implements DomainService {
         }
       }
 
-      const notificationResult = Notification.createUserAnnotatedYourUrl(
-        recipientUserId,
-        actorUserId,
-        url,
-        [annotationId.getStringValue()],
-      );
+      const notificationResult =
+        type === 'SUBSCRIBED_USER_ANNOTATED_URL'
+          ? Notification.createSubscribedUserAnnotatedUrl(
+              recipientUserId,
+              actorUserId,
+              url,
+              [annotationId.getStringValue()],
+            )
+          : Notification.createUserAnnotatedYourUrl(
+              recipientUserId,
+              actorUserId,
+              url,
+              [annotationId.getStringValue()],
+            );
 
       if (notificationResult.isErr()) {
         return err(

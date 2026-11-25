@@ -20,7 +20,9 @@ import {
  * - COLLECTION subscribers with COLLECTION_SAVED scope when the bundle's card
  *   URL resolves to a Semble collection (someone saved that collection's link)
  *   → USER_ADDED_SUBSCRIBED_COLLECTION.
- * - USER subscribers with CARD scope on the actor → SUBSCRIBED_USER_ADDED_CARD.
+ * - USER subscribers with CARD scope on the actor → SUBSCRIBED_USER_ADDED_CARD
+ *   (except library-only annotation adds, which become batched
+ *   SUBSCRIBED_USER_ANNOTATED_URL via AnnotationCreatedNotificationHandler).
  *
  * Dedup precedence per recipient: collection-CARD > COLLECTION_SAVED > user-CARD.
  * Excludes actor and any recipient already receiving a specific notification
@@ -100,13 +102,23 @@ export class SubscriptionBundleHandler implements ICardActivityBundleHandler {
         }
       }
 
-      // 3. User-CARD scope (lowest specificity).
-      const userSubs = await this.followsRepository.getSubscribersForScope(
-        bundle.actorId,
-        FollowTargetType.USER,
-        SubscriptionScopeEnum.CARD,
-      );
-      if (userSubs.isOk()) {
+      // 3. User-CARD scope (lowest specificity). Annotation library-adds
+      // surface as batched SUBSCRIBED_USER_ANNOTATED_URL from
+      // AnnotationCreatedNotificationHandler instead; collection adds of
+      // annotation cards still produce SUBSCRIBED_USER_ADDED_CARD here.
+      let suppressUserCardScope = false;
+      if (bundle.collectionIds.length === 0) {
+        suppressUserCardScope = await this.isAnnotationCard(bundle.cardId);
+      }
+
+      const userSubs = suppressUserCardScope
+        ? null
+        : await this.followsRepository.getSubscribersForScope(
+            bundle.actorId,
+            FollowTargetType.USER,
+            SubscriptionScopeEnum.CARD,
+          );
+      if (userSubs?.isOk()) {
         for (const follow of userSubs.value) {
           const recipientId = follow.followerId.value;
           if (excluded.has(recipientId)) continue;
@@ -130,6 +142,14 @@ export class SubscriptionBundleHandler implements ICardActivityBundleHandler {
       console.error('Error in SubscriptionBundleHandler:', error);
       return ok(undefined);
     }
+  }
+
+  private async isAnnotationCard(cardId: string): Promise<boolean> {
+    const cardIdResult = CardId.createFromString(cardId);
+    if (cardIdResult.isErr()) return false;
+    const cardResult = await this.cardRepository.findById(cardIdResult.value);
+    if (cardResult.isErr() || !cardResult.value) return false;
+    return cardResult.value.isAnnotationCard;
   }
 
   private async resolveCardUrlToCollection(cardId: string) {
