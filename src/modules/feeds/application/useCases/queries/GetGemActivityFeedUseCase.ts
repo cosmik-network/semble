@@ -27,6 +27,7 @@ import {
 import { CollectionAccessType } from '../../../../cards/domain/Collection';
 import { ProfileEnricher } from '../../../../cards/application/services/ProfileEnricher';
 import { CardCollectedMetadata } from '../../../domain/FeedActivity';
+import { toAnnotationCardDTO } from '../../services/AnnotationCardDto';
 
 export interface GetGemActivityFeedQuery {
   callingUserId?: string;
@@ -212,11 +213,21 @@ export class GetGemActivityFeedUseCase implements UseCase<
         }
       });
 
+      // Collected annotation cards don't appear in the URL view map —
+      // hydrate those via the annotation view lookup
+      const annotationViewMap =
+        await this.cardQueryRepository.getBatchAnnotationCardViews(
+          cardIds.filter((cardId) => !cardDataMap.has(cardId)),
+        );
+
       // Get unique card author IDs
       const cardAuthorIds = [
-        ...new Set(
-          Array.from(cardDataMap.values()).map((card) => card.authorId),
-        ),
+        ...new Set([
+          ...Array.from(cardDataMap.values()).map((card) => card.authorId),
+          ...Array.from(annotationViewMap.values()).map(
+            (card) => card.authorId,
+          ),
+        ]),
       ];
 
       // Fetch card author profiles using ProfileEnricher
@@ -382,44 +393,53 @@ export class GetGemActivityFeedUseCase implements UseCase<
         const actor = actorProfiles.get(activity.actorId.value);
         const metadata = activity.metadata as CardCollectedMetadata;
         const cardView = cardDataMap.get(metadata.cardId);
+        const annotationView = cardView
+          ? undefined
+          : annotationViewMap.get(metadata.cardId);
 
-        if (!actor || !cardView) {
+        if (!actor || (!cardView && !annotationView)) {
           continue; // Skip if we can't hydrate required data
         }
 
         // Get card author
-        const cardAuthor = cardAuthorProfiles.get(cardView.authorId);
+        const cardAuthor = cardAuthorProfiles.get(
+          (cardView ?? annotationView)!.authorId,
+        );
         if (!cardAuthor) {
           continue; // Skip if we can't get card author
         }
 
-        // Transform UrlCardView to UrlCardDTO
-        const cardDTO = {
-          id: cardView.id,
-          type: 'URL' as const,
-          url: cardView.url,
-          uri: cardView.uri,
-          cardContent: {
-            url: cardView.cardContent.url,
-            title: cardView.cardContent.title,
-            description: cardView.cardContent.description,
-            author: cardView.cardContent.author,
-            publishedDate: cardView.cardContent.publishedDate?.toISOString(),
-            siteName: cardView.cardContent.siteName,
-            imageUrl: cardView.cardContent.imageUrl,
-            type: cardView.cardContent.type,
-            retrievedAt: cardView.cardContent.retrievedAt?.toISOString(),
-            doi: cardView.cardContent.doi,
-            isbn: cardView.cardContent.isbn,
-          },
-          libraryCount: cardView.libraryCount,
-          urlLibraryCount: cardView.urlLibraryCount,
-          urlInLibrary: cardView.urlInLibrary,
-          createdAt: cardView.createdAt.toISOString(),
-          updatedAt: cardView.updatedAt.toISOString(),
-          author: cardAuthor,
-          note: cardView.note,
-        };
+        // Transform UrlCardView to UrlCardDTO, or AnnotationCardView to
+        // the annotation card shape
+        const cardDTO = cardView
+          ? {
+              id: cardView.id,
+              type: 'URL' as const,
+              url: cardView.url,
+              uri: cardView.uri,
+              cardContent: {
+                url: cardView.cardContent.url,
+                title: cardView.cardContent.title,
+                description: cardView.cardContent.description,
+                author: cardView.cardContent.author,
+                publishedDate:
+                  cardView.cardContent.publishedDate?.toISOString(),
+                siteName: cardView.cardContent.siteName,
+                imageUrl: cardView.cardContent.imageUrl,
+                type: cardView.cardContent.type,
+                retrievedAt: cardView.cardContent.retrievedAt?.toISOString(),
+                doi: cardView.cardContent.doi,
+                isbn: cardView.cardContent.isbn,
+              },
+              libraryCount: cardView.libraryCount,
+              urlLibraryCount: cardView.urlLibraryCount,
+              urlInLibrary: cardView.urlInLibrary,
+              createdAt: cardView.createdAt.toISOString(),
+              updatedAt: cardView.updatedAt.toISOString(),
+              author: cardAuthor,
+              note: cardView.note,
+            }
+          : toAnnotationCardDTO(annotationView!, cardAuthor);
 
         const collections = (metadata.collectionIds || [])
           .map((collectionId) => collectionDataMap.get(collectionId))

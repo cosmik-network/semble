@@ -26,9 +26,15 @@ export interface ConnectionCreatedMetadata {
   connectionId: string;
 }
 
+export interface UserAnnotatedUrlMetadata {
+  url: string;
+  annotationIds: string[];
+}
+
 export type ActivityMetadata =
   | CardCollectedMetadata
-  | ConnectionCreatedMetadata;
+  | ConnectionCreatedMetadata
+  | UserAnnotatedUrlMetadata;
 
 interface ActivityProps {
   actorId: CuratorId; // The user who performed the activity
@@ -77,6 +83,10 @@ export class FeedActivity extends Entity<ActivityProps> {
     return this.props.type.value === ActivityTypeEnum.CONNECTION_CREATED;
   }
 
+  get userAnnotatedUrl(): boolean {
+    return this.props.type.value === ActivityTypeEnum.USER_ANNOTATED_URL;
+  }
+
   // Refresh the denormalized urlType after the card's metadata is enriched
   public updateUrlType(urlType: UrlType): void {
     this.props.urlType = urlType;
@@ -92,6 +102,16 @@ export class FeedActivity extends Entity<ActivityProps> {
 
     newIds.forEach((id) => existingIds.add(id));
     metadata.collectionIds = Array.from(existingIds);
+  }
+
+  // Append an annotation to a USER_ANNOTATED_URL batch (idempotent)
+  public addAnnotationToBatch(cardId: CardId): void {
+    if (!this.userAnnotatedUrl) return;
+
+    const metadata = this.props.metadata as UserAnnotatedUrlMetadata;
+    if (!metadata.annotationIds.includes(cardId.getStringValue())) {
+      metadata.annotationIds.push(cardId.getStringValue());
+    }
   }
 
   private constructor(props: ActivityProps, id?: UniqueEntityID) {
@@ -158,6 +178,46 @@ export class FeedActivity extends Entity<ActivityProps> {
       type: typeResult.value,
       metadata,
       urlType: undefined, // No urlType for connection activities
+      source,
+      createdAt: createdAt || new Date(),
+    };
+
+    return ok(new FeedActivity(props, id));
+  }
+
+  public static createUserAnnotatedUrl(
+    actorId: CuratorId,
+    url: string,
+    annotationIds: CardId[],
+    urlType?: UrlType,
+    source?: string,
+    createdAt?: Date,
+    id?: UniqueEntityID,
+  ): Result<FeedActivity, ActivityValidationError> {
+    if (!url) {
+      return err(new ActivityValidationError('URL is required'));
+    }
+    if (annotationIds.length === 0) {
+      return err(
+        new ActivityValidationError('At least one annotation ID is required'),
+      );
+    }
+
+    const typeResult = ActivityType.userAnnotatedUrl();
+    if (typeResult.isErr()) {
+      return err(new ActivityValidationError(typeResult.error.message));
+    }
+
+    const metadata: UserAnnotatedUrlMetadata = {
+      url,
+      annotationIds: annotationIds.map((id) => id.getStringValue()),
+    };
+
+    const props: ActivityProps = {
+      actorId,
+      type: typeResult.value,
+      metadata,
+      urlType,
       source,
       createdAt: createdAt || new Date(),
     };

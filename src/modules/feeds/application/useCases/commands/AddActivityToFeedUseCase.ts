@@ -241,14 +241,39 @@ export class AddActivityToFeedUseCase implements UseCase<
         createdAt = cardResult.value.createdAt;
       }
 
-      const activityResult = await this.feedService.addCardCollectedActivity(
-        actorId,
-        cardId,
-        collectionIds,
-        urlType,
-        source,
-        createdAt,
-      );
+      // Library-only adds of original annotation cards become batched
+      // USER_ANNOTATED_URL activities instead of CARD_COLLECTED — the feed
+      // analog of SUBSCRIBED_USER_ANNOTATED_URL vs SUBSCRIBED_USER_ADDED_CARD.
+      // Collection adds and via-card saves still produce CARD_COLLECTED.
+      const isLibraryOnly = !collectionIds || collectionIds.length === 0;
+      const card = cardResult.value;
+      let activityResult;
+      if (
+        card?.isAnnotationCard &&
+        isLibraryOnly &&
+        !card.viaCardId &&
+        card.url
+      ) {
+        const batchWindowMs =
+          Number(process.env.ANNOTATION_FEED_BATCH_WINDOW_MS) || 20 * 60 * 1000;
+        activityResult = await this.feedService.addUserAnnotatedUrlActivity(
+          actorId,
+          card.url.value,
+          cardId,
+          undefined, // urlType — annotation cards don't carry URL metadata
+          batchWindowMs,
+          createdAt,
+        );
+      } else {
+        activityResult = await this.feedService.addCardCollectedActivity(
+          actorId,
+          cardId,
+          collectionIds,
+          urlType,
+          source,
+          createdAt,
+        );
+      }
 
       if (activityResult.isErr()) {
         return err(new ValidationError(activityResult.error.message));

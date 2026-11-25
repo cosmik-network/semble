@@ -31,4 +31,8 @@ export class ActivityType extends ValueObject<ActivityTypeProps> {
   public static connectionCreated(): Result<ActivityType> {
     return this.create(ActivityTypeEnum.CONNECTION_CREATED);
   }
+
+  public static userAnnotatedUrl(): Result<ActivityType> {
+    return this.create(ActivityTypeEnum.USER_ANNOTATED_URL);
+  }
 }

@@ -77,6 +77,9 @@ describe('GetFollowingFeedUseCase spill-over', () => {
       }
       return map;
     },
+    async getBatchAnnotationCardViews(): Promise<Map<string, any>> {
+      return new Map();
+    },
     async getBatchUrlLibraryInfo(): Promise<Map<string, any>> {
       return new Map();
     },

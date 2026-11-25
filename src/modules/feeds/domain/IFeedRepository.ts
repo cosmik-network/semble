@@ -39,6 +39,12 @@ export interface IFeedRepository {
     cardId: import('../../cards/domain/value-objects/CardId').CardId,
     withinMinutes: number,
   ): Promise<Result<FeedActivity | null>>;
+  /** Most recent USER_ANNOTATED_URL batch for an actor+url within the window */
+  findRecentUserAnnotatedUrlActivity(
+    actorId: import('../../cards/domain/value-objects/CuratorId').CuratorId,
+    url: string,
+    withinMinutes: number,
+  ): Promise<Result<FeedActivity | null>>;
   updateActivity(activity: FeedActivity): Promise<Result<void>>;
 
   /**

@@ -155,4 +155,95 @@ export class FeedService implements DomainService {
       );
     }
   }
+
+  /**
+   * Batched annotation activity: annotations by the same actor on the same
+   * URL within `batchWindowMs` collapse into one USER_ANNOTATED_URL activity
+   * (find-recent-and-merge under a distributed lock, the same pattern the
+   * card-collected dedup and the annotation notifications use).
+   */
+  async addUserAnnotatedUrlActivity(
+    actorId: CuratorId,
+    url: string,
+    cardId: CardId,
+    urlType?: UrlType,
+    batchWindowMs: number = 20 * 60 * 1000,
+    createdAt?: Date,
+  ): Promise<Result<FeedActivity, FeedServiceError>> {
+    const lockKey = `feed:activity:annotation:${actorId.value}:${url}`;
+    const lockTTL = 10000; // 10 seconds
+
+    try {
+      return await this.distributedLockService.withLock(
+        lockKey,
+        lockTTL,
+        async () => {
+          const recentActivityResult =
+            await this.feedRepository.findRecentUserAnnotatedUrlActivity(
+              actorId,
+              url,
+              Math.max(1, Math.ceil(batchWindowMs / 60000)),
+            );
+
+          if (recentActivityResult.isErr()) {
+            return err(
+              new FeedServiceError(
+                `Failed to check for recent activity: ${recentActivityResult.error.message}`,
+              ),
+            );
+          }
+
+          const recentActivity = recentActivityResult.value;
+          if (recentActivity) {
+            // Merge into the existing batch (no-op if already present)
+            recentActivity.addAnnotationToBatch(cardId);
+            const updateResult =
+              await this.feedRepository.updateActivity(recentActivity);
+
+            if (updateResult.isErr()) {
+              return err(
+                new FeedServiceError(
+                  `Failed to update activity: ${updateResult.error.message}`,
+                ),
+              );
+            }
+
+            return ok(recentActivity);
+          }
+
+          const activityResult = FeedActivity.createUserAnnotatedUrl(
+            actorId,
+            url,
+            [cardId],
+            urlType,
+            undefined, // source — annotations are always Cosmik
+            createdAt,
+          );
+
+          if (activityResult.isErr()) {
+            return err(new FeedServiceError(activityResult.error.message));
+          }
+
+          const activity = activityResult.value;
+          const saveResult = await this.feedRepository.addActivity(activity);
+
+          if (saveResult.isErr()) {
+            return err(
+              new FeedServiceError(
+                `Failed to save activity: ${saveResult.error.message}`,
+              ),
+            );
+          }
+
+          return ok(activity);
+        },
+      );
+    } catch (error) {
+      return err(
+        new FeedServiceError(
+          `Failed to acquire lock or process activity: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        ),
+      );
+    }
+  }
 }

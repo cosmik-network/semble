@@ -449,6 +449,56 @@ export class DrizzleFeedRepository implements IFeedRepository {
     }
   }
 
+  async findRecentUserAnnotatedUrlActivity(
+    actorId: CuratorId,
+    url: string,
+    withinMinutes: number,
+  ): Promise<Result<FeedActivity | null>> {
+    try {
+      const cutoffTime = new Date(Date.now() - withinMinutes * 60 * 1000);
+
+      const result = await this.db
+        .select()
+        .from(feedActivities)
+        .where(
+          and(
+            eq(feedActivities.actorId, actorId.value),
+            eq(feedActivities.type, ActivityTypeEnum.USER_ANNOTATED_URL),
+            sql`${feedActivities.metadata}->>'url' = ${url}`,
+            gte(feedActivities.createdAt, cutoffTime),
+          ),
+        )
+        .orderBy(desc(feedActivities.createdAt))
+        .limit(1);
+
+      if (result.length === 0) {
+        return ok(null);
+      }
+
+      const activityData = result[0]!;
+      const dto: FeedActivityDTO = {
+        id: activityData.id,
+        actorId: activityData.actorId,
+        cardId: activityData.cardId || undefined,
+        connectionId: activityData.connectionId || undefined,
+        type: activityData.type,
+        metadata: activityData.metadata as any,
+        urlType: activityData.urlType || undefined,
+        source: activityData.source || undefined,
+        createdAt: activityData.createdAt,
+      };
+
+      const domainResult = FeedActivityMapper.toDomain(dto);
+      if (domainResult.isErr()) {
+        return err(domainResult.error);
+      }
+
+      return ok(domainResult.value);
+    } catch (error) {
+      return err(error as Error);
+    }
+  }
+
   async updateActivity(activity: FeedActivity): Promise<Result<void>> {
     try {
       const dto = FeedActivityMapper.toPersistence(activity);

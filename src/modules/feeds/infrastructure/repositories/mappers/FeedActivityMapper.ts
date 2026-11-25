@@ -4,6 +4,7 @@ import {
   ActivityMetadata,
   CardCollectedMetadata,
   ConnectionCreatedMetadata,
+  UserAnnotatedUrlMetadata,
 } from '../../../domain/FeedActivity';
 import {
   ActivityType,
@@ -90,6 +91,35 @@ export class FeedActivityMapper {
         const activityResult = FeedActivity.createConnectionCreated(
           actorIdResult.value,
           connectionIdResult.value,
+          dto.source,
+          dto.createdAt,
+          new UniqueEntityID(dto.id),
+        );
+
+        if (activityResult.isErr()) return err(activityResult.error);
+
+        return ok(activityResult.value);
+      }
+
+      if (dto.type === ActivityTypeEnum.USER_ANNOTATED_URL) {
+        const metadata = dto.metadata as UserAnnotatedUrlMetadata;
+        const annotationIdResults = metadata.annotationIds.map((id) =>
+          CardId.createFromString(id),
+        );
+        for (const result of annotationIdResults) {
+          if (result.isErr()) return err(result.error);
+        }
+
+        let urlType: UrlType | undefined;
+        if (dto.urlType) {
+          urlType = dto.urlType as UrlType;
+        }
+
+        const activityResult = FeedActivity.createUserAnnotatedUrl(
+          actorIdResult.value,
+          metadata.url,
+          annotationIdResults.map((result) => result.unwrap()),
+          urlType,
           dto.source,
           dto.createdAt,
           new UniqueEntityID(dto.id),

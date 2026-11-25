@@ -4,7 +4,11 @@ import {
   FeedQueryOptions,
   PaginatedFeedResult,
 } from '../../domain/IFeedRepository';
-import { FeedActivity, CardCollectedMetadata } from '../../domain/FeedActivity';
+import {
+  FeedActivity,
+  CardCollectedMetadata,
+  UserAnnotatedUrlMetadata,
+} from '../../domain/FeedActivity';
 import { ActivityId } from '../../domain/value-objects/ActivityId';
 import { CollectionId } from '../../../cards/domain/value-objects/CollectionId';
 import { UrlType } from '../../../cards/domain/value-objects/UrlType';
@@ -206,6 +210,31 @@ export class InMemoryFeedRepository implements IFeedRepository {
         return (
           activity.actorId.value === actorId.value &&
           metadata.cardId === cardId.getStringValue() &&
+          activity.createdAt >= cutoffTime
+        );
+      });
+
+      return ok(recentActivity || null);
+    } catch (error) {
+      return err(error as Error);
+    }
+  }
+
+  async findRecentUserAnnotatedUrlActivity(
+    actorId: import('../../../cards/domain/value-objects/CuratorId').CuratorId,
+    url: string,
+    withinMinutes: number,
+  ): Promise<Result<FeedActivity | null>> {
+    try {
+      const cutoffTime = new Date(Date.now() - withinMinutes * 60 * 1000);
+
+      const recentActivity = this.activities.find((activity) => {
+        if (!activity.userAnnotatedUrl) return false;
+
+        const metadata = activity.metadata as UserAnnotatedUrlMetadata;
+        return (
+          activity.actorId.value === actorId.value &&
+          metadata.url === url &&
           activity.createdAt >= cutoffTime
         );
       });
