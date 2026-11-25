@@ -116,4 +116,11 @@ export interface IConnectionQueryRepository {
     total: number;
     byType: Map<ConnectionTypeEnum, number>;
   }>;
+
+  /**
+   * Whether the curator has any connection where one of the given cards is an
+   * endpoint (source or target). Used for viewer-relative connect state on
+   * annotation cards.
+   */
+  hasConnectionForCards(curatorId: string, cardIds: string[]): Promise<boolean>;
 }

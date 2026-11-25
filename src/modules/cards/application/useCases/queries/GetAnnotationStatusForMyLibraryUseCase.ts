@@ -6,6 +6,7 @@ import { IEventPublisher } from '../../../../../shared/application/events/IEvent
 import { ICardRepository } from '../../../domain/ICardRepository';
 import { ICardQueryRepository } from '../../../domain/ICardQueryRepository';
 import { ICollectionQueryRepository } from '../../../domain/ICollectionQueryRepository';
+import { IConnectionQueryRepository } from '../../../domain/IConnectionQueryRepository';
 import { IProfileService } from '../../../domain/services/IProfileService';
 import { CuratorId } from '../../../domain/value-objects/CuratorId';
 import { URL } from '../../../domain/value-objects/URL';
@@ -25,6 +26,9 @@ export interface GetAnnotationStatusForMyLibraryQuery {
 export interface GetAnnotationStatusForMyLibraryResult {
   card?: AnnotationCard;
   collections?: CollectionDTO[];
+  /** Whether the viewer has a connection where a passage-matching card is an
+   * endpoint — the annotation analog of the URL card's urlIsConnected */
+  isConnected?: boolean;
 }
 
 export class ValidationError extends UseCaseError {
@@ -44,6 +48,7 @@ export class GetAnnotationStatusForMyLibraryUseCase extends BaseUseCase<
     private cardRepository: ICardRepository,
     private cardQueryRepository: ICardQueryRepository,
     private collectionQueryRepository: ICollectionQueryRepository,
+    private connectionQueryRepository: IConnectionQueryRepository,
     private profileService: IProfileService,
     private followsRepository: IFollowsRepository,
     eventPublisher: IEventPublisher,
@@ -86,12 +91,27 @@ export class GetAnnotationStatusForMyLibraryUseCase extends BaseUseCase<
         return err(new ValidationError('exact text is required'));
       }
 
-      // Check if user has annotation cards on this URL matching the passage
-      const existingCardsResult =
-        await this.cardRepository.findUsersAnnotationCardsByUrl(url, curatorId);
+      // Check if user has annotation cards on this URL matching the passage,
+      // and gather every card matching the passage (any author) for the
+      // connect-state check — both keyed off the same normalization
+      const [existingCardsResult, matchingCardIds] = await Promise.all([
+        this.cardRepository.findUsersAnnotationCardsByUrl(url, curatorId),
+        this.cardQueryRepository.getMatchingAnnotationCardIds(
+          url.value,
+          exactNormalized,
+        ),
+      ]);
       if (existingCardsResult.isErr()) {
         return err(AppError.UnexpectedError.create(existingCardsResult.error));
       }
+
+      // Viewer-relative connect state: the viewer curated a connection where
+      // any passage-matching card is an endpoint
+      const isConnected =
+        await this.connectionQueryRepository.hasConnectionForCards(
+          curatorId.value,
+          matchingCardIds,
+        );
 
       // A user can only have one annotation card per passage in practice, but
       // nothing enforces it — the most recently updated card represents the
@@ -102,7 +122,7 @@ export class GetAnnotationStatusForMyLibraryUseCase extends BaseUseCase<
           exactNormalized,
       );
 
-      const result: GetAnnotationStatusForMyLibraryResult = {};
+      const result: GetAnnotationStatusForMyLibraryResult = { isConnected };
 
       if (matchingCards.length > 0) {
         const representative = [...matchingCards].sort(

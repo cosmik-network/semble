@@ -357,4 +357,35 @@ export class ConnectionQueryService {
       throw error;
     }
   }
+
+  async hasConnectionForCards(
+    curatorId: string,
+    cardIds: string[],
+  ): Promise<boolean> {
+    if (cardIds.length === 0) {
+      return false;
+    }
+
+    const rows = await this.db
+      .select({ id: connections.id })
+      .from(connections)
+      .where(
+        and(
+          eq(connections.curatorId, curatorId),
+          or(
+            and(
+              eq(connections.sourceType, 'CARD'),
+              inArray(connections.sourceValue, cardIds),
+            )!,
+            and(
+              eq(connections.targetType, 'CARD'),
+              inArray(connections.targetValue, cardIds),
+            )!,
+          )!,
+        ),
+      )
+      .limit(1);
+
+    return rows.length > 0;
+  }
 }

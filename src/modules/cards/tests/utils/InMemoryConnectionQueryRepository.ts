@@ -277,4 +277,24 @@ export class InMemoryConnectionQueryRepository implements IConnectionQueryReposi
       byType,
     };
   }
+
+  async hasConnectionForCards(
+    curatorId: string,
+    cardIds: string[],
+  ): Promise<boolean> {
+    if (cardIds.length === 0) {
+      return false;
+    }
+
+    const cardIdSet = new Set(cardIds);
+    const allConnections = this.connectionRepository.getAllConnections();
+    return allConnections.some(
+      (connection) =>
+        connection.curatorId.value === curatorId &&
+        ((connection.source.type === UrlOrCardIdType.CARD &&
+          cardIdSet.has(connection.source.cardId?.getStringValue() ?? '')) ||
+          (connection.target.type === UrlOrCardIdType.CARD &&
+            cardIdSet.has(connection.target.cardId?.getStringValue() ?? ''))),
+    );
+  }
 }

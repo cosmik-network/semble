@@ -51,4 +51,14 @@ export class DrizzleConnectionQueryRepository implements IConnectionQueryReposit
   }> {
     return this.connectionQueryService.getConnectionStatsForCurator(curatorId);
   }
+
+  async hasConnectionForCards(
+    curatorId: string,
+    cardIds: string[],
+  ): Promise<boolean> {
+    return this.connectionQueryService.hasConnectionForCards(
+      curatorId,
+      cardIds,
+    );
+  }
 }

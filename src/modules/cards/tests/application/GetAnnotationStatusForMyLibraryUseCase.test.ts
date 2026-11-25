@@ -4,6 +4,7 @@ import { InMemoryCardQueryRepository } from '../utils/InMemoryCardQueryRepositor
 import { InMemoryCollectionRepository } from '../utils/InMemoryCollectionRepository';
 import { InMemoryCollectionQueryRepository } from '../utils/InMemoryCollectionQueryRepository';
 import { InMemoryConnectionRepository } from '../utils/InMemoryConnectionRepository';
+import { InMemoryConnectionQueryRepository } from '../utils/InMemoryConnectionQueryRepository';
 import { FakeEventPublisher } from '../utils/FakeEventPublisher';
 import { FakeProfileService } from '../utils/FakeProfileService';
 import { CuratorId } from '../../domain/value-objects/CuratorId';
@@ -11,6 +12,12 @@ import { CardBuilder } from '../utils/builders/CardBuilder';
 import { CollectionBuilder } from '../utils/builders/CollectionBuilder';
 import { CardId } from '../../domain/value-objects/CardId';
 import { URL } from '../../domain/value-objects/URL';
+import { Connection } from '../../domain/Connection';
+import { UrlOrCardId } from '../../domain/value-objects/UrlOrCardId';
+import {
+  ConnectionType,
+  ConnectionTypeEnum,
+} from '../../domain/value-objects/ConnectionType';
 import { InMemoryFollowsRepository } from '../../../user/tests/infrastructure/InMemoryFollowsRepository';
 
 describe('GetAnnotationStatusForMyLibraryUseCase', () => {
@@ -23,6 +30,7 @@ describe('GetAnnotationStatusForMyLibraryUseCase', () => {
   let collectionRepository: InMemoryCollectionRepository;
   let collectionQueryRepository: InMemoryCollectionQueryRepository;
   let connectionRepository: InMemoryConnectionRepository;
+  let connectionQueryRepository: InMemoryConnectionQueryRepository;
   let eventPublisher: FakeEventPublisher;
   let profileService: FakeProfileService;
   let followsRepository: InMemoryFollowsRepository;
@@ -53,6 +61,9 @@ describe('GetAnnotationStatusForMyLibraryUseCase', () => {
     cardRepository = InMemoryCardRepository.getInstance();
     collectionRepository = InMemoryCollectionRepository.getInstance();
     connectionRepository = InMemoryConnectionRepository.getInstance();
+    connectionQueryRepository = new InMemoryConnectionQueryRepository(
+      connectionRepository,
+    );
     cardQueryRepository = new InMemoryCardQueryRepository(
       cardRepository,
       collectionRepository,
@@ -70,6 +81,7 @@ describe('GetAnnotationStatusForMyLibraryUseCase', () => {
       cardRepository,
       cardQueryRepository,
       collectionQueryRepository,
+      connectionQueryRepository,
       profileService,
       followsRepository,
       eventPublisher,
@@ -201,5 +213,86 @@ describe('GetAnnotationStatusForMyLibraryUseCase', () => {
       curatorId: curatorId.value,
     });
     expect(badExact.isErr()).toBe(true);
+  });
+
+  describe('isConnected', () => {
+    const OTHER_URL = 'https://example.com/other-article';
+
+    it('is true when the viewer curated a connection with the passage', async () => {
+      const cardId = await createAnnotationCard(curatorId);
+
+      const connection = Connection.create({
+        source: UrlOrCardId.createFromCard(
+          CardId.createFromString(cardId).unwrap(),
+        ).unwrap(),
+        target: UrlOrCardId.createFromUrl(
+          URL.create(OTHER_URL).unwrap(),
+        ).unwrap(),
+        type: ConnectionType.create(ConnectionTypeEnum.RELATED).unwrap(),
+        curatorId,
+      }).unwrap();
+      await connectionRepository.save(connection);
+
+      const result = await useCase.execute({
+        url: TEST_URL,
+        exact: PASSAGE,
+        curatorId: curatorId.value,
+      });
+
+      expect(result.isOk()).toBe(true);
+      expect(result.unwrap().isConnected).toBe(true);
+    });
+
+    it('is false when only another curator connected the passage', async () => {
+      const cardId = await createAnnotationCard(curatorId);
+
+      // Someone else connects the viewer's passage — the entity has
+      // connections, but the viewer has not connected it
+      const connection = Connection.create({
+        source: UrlOrCardId.createFromCard(
+          CardId.createFromString(cardId).unwrap(),
+        ).unwrap(),
+        target: UrlOrCardId.createFromUrl(
+          URL.create(OTHER_URL).unwrap(),
+        ).unwrap(),
+        type: ConnectionType.create(ConnectionTypeEnum.RELATED).unwrap(),
+        curatorId: otherCuratorId,
+      }).unwrap();
+      await connectionRepository.save(connection);
+
+      const result = await useCase.execute({
+        url: TEST_URL,
+        exact: PASSAGE,
+        curatorId: curatorId.value,
+      });
+
+      expect(result.isOk()).toBe(true);
+      expect(result.unwrap().isConnected).toBe(false);
+    });
+
+    it('is false for a different passage on the same URL', async () => {
+      const cardId = await createAnnotationCard(curatorId);
+
+      const connection = Connection.create({
+        source: UrlOrCardId.createFromCard(
+          CardId.createFromString(cardId).unwrap(),
+        ).unwrap(),
+        target: UrlOrCardId.createFromUrl(
+          URL.create(OTHER_URL).unwrap(),
+        ).unwrap(),
+        type: ConnectionType.create(ConnectionTypeEnum.RELATED).unwrap(),
+        curatorId,
+      }).unwrap();
+      await connectionRepository.save(connection);
+
+      const result = await useCase.execute({
+        url: TEST_URL,
+        exact: 'a different passage',
+        curatorId: curatorId.value,
+      });
+
+      expect(result.isOk()).toBe(true);
+      expect(result.unwrap().isConnected).toBe(false);
+    });
   });
 });
