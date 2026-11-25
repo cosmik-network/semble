@@ -359,6 +359,140 @@ export class NotificationService implements DomainService {
     }
   }
 
+  async createUserConnectedYourAnnotationNotification(
+    recipientUserId: CuratorId,
+    actorUserId: CuratorId,
+    connectionId: ConnectionId,
+  ): Promise<Result<Notification, NotificationServiceError>> {
+    try {
+      // Don't create notification if user is connecting their own annotations
+      if (recipientUserId.equals(actorUserId)) {
+        return err(
+          new NotificationServiceError(
+            'Cannot notify user about their own action',
+          ),
+        );
+      }
+
+      const notificationResult = Notification.createUserConnectedYourAnnotation(
+        recipientUserId,
+        actorUserId,
+        connectionId,
+      );
+
+      if (notificationResult.isErr()) {
+        return err(
+          new NotificationServiceError(notificationResult.error.message),
+        );
+      }
+
+      const notification = notificationResult.value;
+      const saveResult = await this.notificationRepository.save(notification);
+
+      if (saveResult.isErr()) {
+        return err(
+          new NotificationServiceError(
+            `Failed to save notification: ${saveResult.error.message}`,
+          ),
+        );
+      }
+
+      return ok(notification);
+    } catch (error) {
+      return err(
+        new NotificationServiceError(
+          `Unexpected error: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        ),
+      );
+    }
+  }
+
+  /**
+   * Create a USER_ANNOTATED_YOUR_URL notification, or append the annotation
+   * to the actor's existing batch for the same URL if one was created within
+   * `batchWindowMs`. Batching keeps one notification per (recipient, actor,
+   * url) instead of one per annotation.
+   */
+  async createOrAppendUserAnnotatedYourUrlNotification(
+    recipientUserId: CuratorId,
+    actorUserId: CuratorId,
+    url: string,
+    annotationId: CardId,
+    batchWindowMs: number,
+  ): Promise<Result<Notification, NotificationServiceError>> {
+    try {
+      if (recipientUserId.equals(actorUserId)) {
+        return err(
+          new NotificationServiceError(
+            'Cannot notify user about their own action',
+          ),
+        );
+      }
+
+      const since = new Date(Date.now() - batchWindowMs);
+      const recentResult =
+        await this.notificationRepository.findByRecipientAndActorSince(
+          recipientUserId,
+          actorUserId,
+          'USER_ANNOTATED_YOUR_URL',
+          since,
+        );
+
+      if (recentResult.isOk()) {
+        // Same (recipient, actor, url) within the window — append (a no-op
+        // if the annotation is already in the batch) rather than duplicate
+        const existing = recentResult.value.find(
+          (notification) => (notification.metadata as any)?.url === url,
+        );
+
+        if (existing) {
+          existing.addAnnotationToBatch(annotationId);
+          const saveResult = await this.notificationRepository.save(existing);
+          if (saveResult.isErr()) {
+            return err(
+              new NotificationServiceError(
+                `Failed to save notification: ${saveResult.error.message}`,
+              ),
+            );
+          }
+          return ok(existing);
+        }
+      }
+
+      const notificationResult = Notification.createUserAnnotatedYourUrl(
+        recipientUserId,
+        actorUserId,
+        url,
+        [annotationId.getStringValue()],
+      );
+
+      if (notificationResult.isErr()) {
+        return err(
+          new NotificationServiceError(notificationResult.error.message),
+        );
+      }
+
+      const notification = notificationResult.value;
+      const saveResult = await this.notificationRepository.save(notification);
+
+      if (saveResult.isErr()) {
+        return err(
+          new NotificationServiceError(
+            `Failed to save notification: ${saveResult.error.message}`,
+          ),
+        );
+      }
+
+      return ok(notification);
+    } catch (error) {
+      return err(
+        new NotificationServiceError(
+          `Unexpected error: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        ),
+      );
+    }
+  }
+
   async createUserConnectedYourPostNotification(
     recipientUserId: CuratorId,
     actorUserId: CuratorId,

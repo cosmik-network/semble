@@ -1,4 +1,4 @@
-import { eq, desc, and, count, inArray, sql } from 'drizzle-orm';
+import { eq, desc, and, count, inArray, sql, gte, asc } from 'drizzle-orm';
 import { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
 import {
   INotificationRepository,
@@ -23,6 +23,7 @@ import {
 } from '../../../cards/infrastructure/repositories/schema/collection.sql';
 import { publishedRecords } from '../../../cards/infrastructure/repositories/schema/publishedRecord.sql';
 import { connections } from '../../../cards/infrastructure/repositories/schema/connection.sql';
+import { annotationSelectors } from '../../../cards/infrastructure/repositories/schema/annotationSelector.sql';
 import { CardTypeEnum } from '../../../cards/domain/value-objects/CardType';
 import { fetchUrlEngagement } from '../../../cards/infrastructure/repositories/query-services/urlStatsQueries';
 
@@ -49,6 +50,9 @@ export class DrizzleNotificationRepository implements INotificationRepository {
           target: notifications.id,
           set: {
             read: dto.read,
+            // Metadata is part of the upsert so batch appends (e.g.
+            // USER_ANNOTATED_YOUR_URL) persist on existing notifications
+            metadata: dto.metadata,
             updatedAt: dto.updatedAt,
           },
         });
@@ -215,6 +219,51 @@ export class DrizzleNotificationRepository implements INotificationRepository {
         .where(inArray(notifications.id, ids));
 
       return ok(undefined);
+    } catch (error) {
+      return err(error as Error);
+    }
+  }
+
+  async findByRecipientAndActorSince(
+    recipientId: CuratorId,
+    actorUserId: CuratorId,
+    type: string,
+    since: Date,
+  ): Promise<Result<Notification[]>> {
+    try {
+      const result = await this.db
+        .select()
+        .from(notifications)
+        .where(
+          and(
+            eq(notifications.recipientUserId, recipientId.value),
+            eq(notifications.actorUserId, actorUserId.value),
+            eq(notifications.type, type),
+            gte(notifications.createdAt, since),
+          ),
+        );
+
+      const domainNotifications: Notification[] = [];
+      for (const notificationData of result) {
+        const dto: NotificationDTO = {
+          id: notificationData.id,
+          recipientUserId: notificationData.recipientUserId,
+          actorUserId: notificationData.actorUserId,
+          type: notificationData.type,
+          metadata: notificationData.metadata as any,
+          read: notificationData.read,
+          createdAt: notificationData.createdAt,
+          updatedAt: notificationData.updatedAt,
+        };
+
+        const domainResult = NotificationMapper.toDomain(dto);
+        if (domainResult.isErr()) {
+          continue;
+        }
+        domainNotifications.push(domainResult.value);
+      }
+
+      return ok(domainNotifications);
     } catch (error) {
       return err(error as Error);
     }
@@ -533,14 +582,21 @@ export class DrizzleNotificationRepository implements INotificationRepository {
         });
       }
 
-      // Extract card IDs from all notifications
-      const cardIds = notificationsResult
-        .filter((n) => {
-          const metadata = n.metadata as any;
-          return metadata?.cardId !== undefined;
-        })
-        .map((n) => (n.metadata as any)?.cardId)
-        .filter(Boolean);
+      // Extract card IDs from all notifications — both card-based metadata
+      // and the annotation ids batched into USER_ANNOTATED_YOUR_URL
+      const cardIds = [
+        ...new Set(
+          notificationsResult.flatMap((n) => {
+            const metadata = n.metadata as any;
+            const ids: string[] = [];
+            if (metadata?.cardId !== undefined) ids.push(metadata.cardId);
+            if (Array.isArray(metadata?.annotationIds)) {
+              ids.push(...metadata.annotationIds);
+            }
+            return ids;
+          }),
+        ),
+      ].filter(Boolean);
 
       // Collect collection IDs from USER_FOLLOWED_YOUR_COLLECTION notifications
       const followCollectionIds = notificationsResult
@@ -583,16 +639,20 @@ export class DrizzleNotificationRepository implements INotificationRepository {
       // Run all queries that depend only on the page results in parallel
       const [
         cardsResult,
+        selectorsResult,
         notesResult,
         collectionsResult,
         followCollectionsResult,
         connectionsResult,
       ] = await Promise.all([
-        // Get card data with published record URIs
+        // Get card data with published record URIs — URL and annotation
+        // cards alike; annotations carry note + selectors instead of
+        // link metadata
         cardIds.length > 0
           ? this.db
               .select({
                 id: cards.id,
+                type: cards.type,
                 authorId: cards.authorId,
                 url: cards.url,
                 publishedRecordUri: publishedRecords.uri,
@@ -606,12 +666,21 @@ export class DrizzleNotificationRepository implements INotificationRepository {
                 publishedRecords,
                 eq(cards.publishedRecordId, publishedRecords.id),
               )
-              .where(
-                and(
-                  inArray(cards.id, cardIds),
-                  eq(cards.type, CardTypeEnum.URL),
-                ),
-              )
+              .where(inArray(cards.id, cardIds))
+          : Promise.resolve(emptyResult),
+        // Get annotation selectors (no rows for non-annotation card ids)
+        cardIds.length > 0
+          ? this.db
+              .select({
+                cardId: annotationSelectors.cardId,
+                selectorType: annotationSelectors.selectorType,
+                exact: annotationSelectors.exact,
+                prefix: annotationSelectors.prefix,
+                suffix: annotationSelectors.suffix,
+              })
+              .from(annotationSelectors)
+              .where(inArray(annotationSelectors.cardId, cardIds))
+              .orderBy(asc(annotationSelectors.ordinal))
           : Promise.resolve(emptyResult),
         // Get notes for these cards
         cardIds.length > 0
@@ -710,6 +779,20 @@ export class DrizzleNotificationRepository implements INotificationRepository {
 
       // Build lookup maps
       const cardMap = new Map(cardsResult.map((card) => [card.id, card]));
+      const selectorsByCard = new Map<
+        string,
+        Array<{ type: string; exact: string; prefix?: string; suffix?: string }>
+      >();
+      selectorsResult.forEach((selector) => {
+        const list = selectorsByCard.get(selector.cardId) || [];
+        list.push({
+          type: selector.selectorType,
+          exact: selector.exact,
+          prefix: selector.prefix ?? undefined,
+          suffix: selector.suffix ?? undefined,
+        });
+        selectorsByCard.set(selector.cardId, list);
+      });
       const followCollectionMap = new Map(
         followCollectionsResult.map((c) => [c.collectionId, c]),
       );
@@ -729,11 +812,7 @@ export class DrizzleNotificationRepository implements INotificationRepository {
         // Check if this is a connection notification
         if (metadata?.connectionId !== undefined) {
           const connectionData = connectionDataMap.get(metadata.connectionId);
-          if (
-            connectionData &&
-            connectionData.sourceType === 'URL' &&
-            connectionData.targetType === 'URL'
-          ) {
+          if (connectionData) {
             enrichedNotifications.push({
               id: notification.id,
               type: notification.type,
@@ -747,10 +826,32 @@ export class DrizzleNotificationRepository implements INotificationRepository {
               connectionCreatedAt: connectionData.createdAt,
               connectionUpdatedAt: connectionData.updatedAt,
               connectionCuratorId: connectionData.curatorId,
-              sourceUrl: connectionData.sourceValue,
-              sourceUrlMetadata: connectionData.sourceUrlMetadata,
-              targetUrl: connectionData.targetValue,
-              targetUrlMetadata: connectionData.targetUrlMetadata,
+              // URL endpoints carry url + metadata; CARD endpoints carry the
+              // annotation card id for the query use case to resolve
+              sourceUrl:
+                connectionData.sourceType === 'URL'
+                  ? connectionData.sourceValue
+                  : undefined,
+              sourceUrlMetadata:
+                connectionData.sourceType === 'URL'
+                  ? connectionData.sourceUrlMetadata
+                  : undefined,
+              sourceCardId:
+                connectionData.sourceType === 'CARD'
+                  ? connectionData.sourceValue
+                  : undefined,
+              targetUrl:
+                connectionData.targetType === 'URL'
+                  ? connectionData.targetValue
+                  : undefined,
+              targetUrlMetadata:
+                connectionData.targetType === 'URL'
+                  ? connectionData.targetUrlMetadata
+                  : undefined,
+              targetCardId:
+                connectionData.targetType === 'CARD'
+                  ? connectionData.targetValue
+                  : undefined,
             });
           }
           continue;
@@ -834,6 +935,39 @@ export class DrizzleNotificationRepository implements INotificationRepository {
               followTargetId: metadata.targetId,
             });
           }
+        } else if (metadata?.annotationIds !== undefined) {
+          // Handle USER_ANNOTATED_YOUR_URL batches — one notification per
+          // (recipient, actor, url) carrying every annotation created in the
+          // window
+          const annotations = (metadata.annotationIds as string[])
+            .map((annotationId) => cardMap.get(annotationId))
+            .filter(
+              (card): card is NonNullable<typeof card> =>
+                card !== undefined && card.type === CardTypeEnum.ANNOTATION,
+            )
+            .map((card) => ({
+              cardId: card.id,
+              authorId: card.authorId,
+              url: card.url || '',
+              uri: card.publishedRecordUri || undefined,
+              libraryCount: card.libraryCount,
+              selectors: selectorsByCard.get(card.id) || [],
+              note: card.contentData?.note,
+              createdAt: card.createdAt,
+              updatedAt: card.updatedAt,
+            }));
+
+          if (annotations.length === 0) continue;
+
+          enrichedNotifications.push({
+            id: notification.id,
+            type: notification.type,
+            read: notification.read,
+            createdAt: notification.createdAt,
+            actorUserId: notification.actorUserId,
+            annotatedUrl: metadata.url,
+            annotations,
+          });
         } else if (metadata?.cardId !== undefined) {
           // Handle card-based notifications
           const cardId = metadata.cardId;
@@ -841,6 +975,7 @@ export class DrizzleNotificationRepository implements INotificationRepository {
 
           if (!card) continue;
 
+          const isAnnotation = card.type === CardTypeEnum.ANNOTATION;
           const note = notesResult.find((n) => n.parentCardId === cardId);
           const cardCollections = collectionsResult
             .filter((c) => c.cardId === cardId)
@@ -875,6 +1010,11 @@ export class DrizzleNotificationRepository implements INotificationRepository {
             cardId: card.id,
             cardUrl: card.url || '',
             cardUri: card.publishedRecordUri || undefined,
+            cardKind: isAnnotation ? 'ANNOTATION' : 'URL',
+            cardSelectors: isAnnotation
+              ? selectorsByCard.get(card.id) || []
+              : undefined,
+            cardNoteText: isAnnotation ? card.contentData?.note : undefined,
             cardTitle: card.contentData?.metadata?.title,
             cardDescription: card.contentData?.metadata?.description,
             cardAuthor: card.contentData?.metadata?.author,

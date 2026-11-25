@@ -549,7 +549,8 @@ describe('DrizzleNotificationRepository - findByRecipientEnriched', () => {
         { type: 'URL', value: 'https://example.com/other-2' },
         { type: 'URL', value: url.value },
       );
-      // URL→CARD connections are not counted
+      // URL→CARD connections count toward the URL endpoint (only the
+      // counted endpoint must be a URL)
       await insertConnection(
         actorId.value,
         { type: 'URL', value: url.value },
@@ -577,7 +578,7 @@ describe('DrizzleNotificationRepository - findByRecipientEnriched', () => {
       );
 
       const enrichedNotification = result.unwrap().notifications[0]!;
-      expect(enrichedNotification.cardUrlConnectionCount).toBe(2);
+      expect(enrichedNotification.cardUrlConnectionCount).toBe(3);
       expect(enrichedNotification.cardUrlIsConnected).toBe(true);
     });
 

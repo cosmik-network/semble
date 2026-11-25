@@ -36,6 +36,7 @@ export interface IAnnotationCardInput {
   url: string; // The source document the passage is selected from
   selectors: ITextQuoteSelectorInput[];
   note?: string;
+  viaCardId?: string; // Set when saving an annotation discovered via another card
 }
 
 // Union type for all possible card creation inputs

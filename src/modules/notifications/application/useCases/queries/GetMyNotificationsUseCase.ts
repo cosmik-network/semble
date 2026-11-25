@@ -10,7 +10,10 @@ import { CollectionAccessType } from '../../../../cards/domain/Collection';
 import { ProfileEnricher } from '../../../../cards/application/services/ProfileEnricher';
 import { IConnectionRepository } from '../../../../cards/domain/IConnectionRepository';
 import { ConnectionId } from '../../../../cards/domain/value-objects/ConnectionId';
-import { ICardQueryRepository } from '../../../../cards/domain/ICardQueryRepository';
+import {
+  ICardQueryRepository,
+  AnnotationCardView,
+} from '../../../../cards/domain/ICardQueryRepository';
 
 export interface GetMyNotificationsDTO {
   userId: string;
@@ -31,6 +34,51 @@ export interface GetMyNotificationsResponseDTO {
     limit: number;
   };
   unreadCount: number;
+}
+
+/** Stored URL metadata (domain props or raw JSONB) as the wire DTO */
+function toNotificationUrlMetadata(meta: any, fallbackUrl: string) {
+  if (!meta) {
+    return { url: fallbackUrl };
+  }
+  // Convert all dates to strings
+  return {
+    url: meta.url || fallbackUrl,
+    title: meta.title,
+    description: meta.description,
+    author: meta.author,
+    publishedDate:
+      meta.publishedDate instanceof Date
+        ? meta.publishedDate.toISOString()
+        : meta.publishedDate,
+    siteName: meta.siteName,
+    imageUrl: meta.imageUrl,
+    type: meta.type,
+    retrievedAt:
+      meta.retrievedAt instanceof Date
+        ? meta.retrievedAt.toISOString()
+        : meta.retrievedAt,
+    doi: meta.doi,
+    isbn: meta.isbn,
+  };
+}
+
+/**
+ * Selector rows as the wire shape — only TextQuoteSelectors exist today, so
+ * the literal is safe.
+ */
+function toWireSelectors(
+  selectors: Array<{
+    type: string;
+    exact: string;
+    prefix?: string;
+    suffix?: string;
+  }>,
+) {
+  return selectors.map((selector) => ({
+    ...selector,
+    type: 'TextQuoteSelector' as const,
+  }));
 }
 
 export class ValidationError extends UseCaseError {
@@ -104,32 +152,21 @@ export class GetMyNotificationsUseCase implements UseCase<
         if (notification.mentionCollection) {
           userIds.add(notification.mentionCollection.authorId);
         }
+        notification.annotations?.forEach((annotation) => {
+          userIds.add(annotation.authorId);
+        });
       });
 
-      // Bulk fetch all profiles using ProfileEnricher
-      const profileEnricher = new ProfileEnricher(this.profileService);
-      const profileMapResult = await profileEnricher.buildProfileMap(
-        Array.from(userIds),
-        request.userId,
-        {
-          skipFailures: true, // Skip profiles that fail to load
-          mapToUser: true, // Use full User DTO with isFollowing
-        },
-      );
-
-      if (profileMapResult.isErr()) {
-        return err(AppError.UnexpectedError.create(profileMapResult.error));
-      }
-
-      const profileMap = profileMapResult.value;
-
-      // Batch fetch all connections for connection notifications
+      // Batch fetch all connections for connection notifications — CARD
+      // endpoints resolve to annotation cards whose authors also need
+      // profiles, so this runs before the profile map is built
       const connectionNotifications = notifications.filter(
         (n) =>
           (n as any).connectionId !== undefined &&
           (n.type === 'USER_CONNECTED_YOUR_URL' ||
             n.type === 'USER_CONNECTED_YOUR_POST' ||
             n.type === 'USER_CONNECTED_YOUR_COLLECTION' ||
+            n.type === 'USER_CONNECTED_YOUR_ANNOTATION' ||
             n.type === 'USER_CONNECTED_SUBSCRIBED_COLLECTION' ||
             n.type === 'SUBSCRIBED_USER_MADE_CONNECTION' ||
             n.type === 'USER_MENTIONED_YOU'),
@@ -145,6 +182,7 @@ export class GetMyNotificationsUseCase implements UseCase<
           urlIsConnected?: boolean;
         }
       >();
+      const annotationViewMap = new Map<string, AnnotationCardView>();
 
       if (connectionNotifications.length > 0) {
         const connectionIds: ConnectionId[] = [];
@@ -171,12 +209,39 @@ export class GetMyNotificationsUseCase implements UseCase<
               );
             }
 
-            // Collect all unique URLs from connections
+            // Resolve CARD endpoints to annotation card views
+            const connectionCardIds = new Set<string>();
+            connections.forEach((connection) => {
+              if (connection.source.cardId) {
+                connectionCardIds.add(
+                  connection.source.cardId.getStringValue(),
+                );
+              }
+              if (connection.target.cardId) {
+                connectionCardIds.add(
+                  connection.target.cardId.getStringValue(),
+                );
+              }
+            });
+            if (connectionCardIds.size > 0) {
+              const annotationViews =
+                await this.cardQueryRepository.getBatchAnnotationCardViews(
+                  Array.from(connectionCardIds),
+                );
+              annotationViews.forEach((view, cardId) => {
+                annotationViewMap.set(cardId, view);
+                userIds.add(view.authorId);
+              });
+            }
+
+            // Collect all unique URLs from URL endpoints
             const connectionUrls = Array.from(
               new Set(
-                connections
-                  .filter((c) => c.source.url && c.target.url)
-                  .flatMap((c) => [c.source.url!.value, c.target.url!.value]),
+                connections.flatMap((c) =>
+                  [c.source.url?.value, c.target.url?.value].filter(
+                    (url): url is string => Boolean(url),
+                  ),
+                ),
               ),
             );
 
@@ -205,6 +270,23 @@ export class GetMyNotificationsUseCase implements UseCase<
         }
       }
 
+      // Bulk fetch all profiles using ProfileEnricher
+      const profileEnricher = new ProfileEnricher(this.profileService);
+      const profileMapResult = await profileEnricher.buildProfileMap(
+        Array.from(userIds),
+        request.userId,
+        {
+          skipFailures: true, // Skip profiles that fail to load
+          mapToUser: true, // Use full User DTO with isFollowing
+        },
+      );
+
+      if (profileMapResult.isErr()) {
+        return err(AppError.UnexpectedError.create(profileMapResult.error));
+      }
+
+      const profileMap = profileMapResult.value;
+
       // Transform enriched notifications to DTOs
       const notificationItems: NotificationItemDTO[] = [];
 
@@ -224,6 +306,7 @@ export class GetMyNotificationsUseCase implements UseCase<
             (notification.type === 'USER_CONNECTED_YOUR_URL' ||
               notification.type === 'USER_CONNECTED_YOUR_POST' ||
               notification.type === 'USER_CONNECTED_YOUR_COLLECTION' ||
+              notification.type === 'USER_CONNECTED_YOUR_ANNOTATION' ||
               notification.type === 'USER_CONNECTED_SUBSCRIBED_COLLECTION' ||
               notification.type === 'SUBSCRIBED_USER_MADE_CONNECTION' ||
               notification.type === 'USER_MENTIONED_YOU')
@@ -234,32 +317,83 @@ export class GetMyNotificationsUseCase implements UseCase<
               continue; // Skip if connection not found
             }
 
-            // Only handle URL connections
-            if (!connection.source.url || !connection.target.url) {
-              continue; // Skip if not both URLs
+            // Endpoints as the notification item shape: URL endpoints carry
+            // metadata + viewer stats, CARD endpoints carry the annotation
+            // card in full
+            const buildUrlEndpoint = (url: string, rawMeta: any) => {
+              const stats = connectionUrlStatsMap.get(url) || {
+                urlLibraryCount: 0,
+                urlInLibrary: undefined,
+                urlConnectionCount: undefined,
+                urlIsConnected: undefined,
+              };
+
+              return {
+                type: 'URL' as const,
+                url,
+                metadata: toNotificationUrlMetadata(rawMeta, url),
+                urlLibraryCount: stats.urlLibraryCount,
+                urlInLibrary: stats.urlInLibrary,
+                urlConnectionCount: stats.urlConnectionCount,
+                urlIsConnected: stats.urlIsConnected,
+              };
+            };
+
+            const buildCardEndpoint = (cardId: string) => {
+              const view = annotationViewMap.get(cardId);
+              if (!view) return null;
+              const author = profileMap.get(view.authorId);
+              if (!author) return null;
+
+              return {
+                type: 'CARD' as const,
+                card: {
+                  id: view.id,
+                  type: 'ANNOTATION' as const,
+                  url: view.url,
+                  uri: view.uri,
+                  libraryCount: view.libraryCount,
+                  connectionCount: view.connectionCount,
+                  selectors: toWireSelectors(view.selectors),
+                  note: view.note,
+                  createdAt: view.createdAt.toISOString(),
+                  updatedAt: view.updatedAt.toISOString(),
+                  author,
+                },
+              };
+            };
+
+            const sourceEndpoint = connection.source.url
+              ? buildUrlEndpoint(
+                  connection.source.url.value,
+                  connection.sourceUrlMetadata?.props ||
+                    connection.sourceUrlMetadata,
+                )
+              : connection.source.cardId
+                ? buildCardEndpoint(connection.source.cardId.getStringValue())
+                : null;
+            const targetEndpoint = connection.target.url
+              ? buildUrlEndpoint(
+                  connection.target.url.value,
+                  connection.targetUrlMetadata?.props ||
+                    connection.targetUrlMetadata,
+                )
+              : connection.target.cardId
+                ? buildCardEndpoint(connection.target.cardId.getStringValue())
+                : null;
+
+            // Skip if either endpoint can't be displayed
+            if (!sourceEndpoint || !targetEndpoint) {
+              continue;
             }
 
-            // Get URL stats from the pre-fetched map
-            const sourceUrlStats = connectionUrlStatsMap.get(
-              connection.source.url.value,
-            ) || {
-              urlLibraryCount: 0,
-              urlInLibrary: undefined,
-              urlConnectionCount: undefined,
-              urlIsConnected: undefined,
-            };
-
-            const targetUrlStats = connectionUrlStatsMap.get(
-              connection.target.url.value,
-            ) || {
-              urlLibraryCount: 0,
-              urlInLibrary: undefined,
-              urlConnectionCount: undefined,
-              urlIsConnected: undefined,
-            };
-
-            // Build connection notification item
+            // Build connection notification item. mentionSource rides along
+            // via spread so connection items (which have no such field) and
+            // connection mentions (which require it) both typecheck.
             const connectionNotificationItem: NotificationItem = {
+              ...(notification.mentionSource
+                ? { mentionSource: notification.mentionSource }
+                : {}),
               id: notification.id,
               user: {
                 id: actorProfile.id,
@@ -273,7 +407,6 @@ export class GetMyNotificationsUseCase implements UseCase<
               createdAt: notification.createdAt.toISOString(),
               type: notification.type as any,
               read: notification.read,
-              mentionSource: notification.mentionSource,
               connection: {
                 connection: {
                   id: connection.connectionId.getStringValue(),
@@ -283,76 +416,8 @@ export class GetMyNotificationsUseCase implements UseCase<
                   updatedAt: connection.updatedAt.toISOString(),
                   curator: actorProfile,
                 },
-                source: {
-                  url: connection.source.url.value,
-                  metadata: (() => {
-                    const meta =
-                      connection.sourceUrlMetadata?.props ||
-                      connection.sourceUrlMetadata;
-                    if (!meta) {
-                      return { url: connection.source.url.value };
-                    }
-                    // Convert all dates to strings
-                    return {
-                      url: meta.url || connection.source.url.value,
-                      title: meta.title,
-                      description: meta.description,
-                      author: meta.author,
-                      publishedDate:
-                        meta.publishedDate instanceof Date
-                          ? meta.publishedDate.toISOString()
-                          : meta.publishedDate,
-                      siteName: meta.siteName,
-                      imageUrl: meta.imageUrl,
-                      type: meta.type,
-                      retrievedAt:
-                        meta.retrievedAt instanceof Date
-                          ? meta.retrievedAt.toISOString()
-                          : meta.retrievedAt,
-                      doi: meta.doi,
-                      isbn: meta.isbn,
-                    };
-                  })(),
-                  urlLibraryCount: sourceUrlStats.urlLibraryCount,
-                  urlInLibrary: sourceUrlStats.urlInLibrary,
-                  urlConnectionCount: sourceUrlStats.urlConnectionCount,
-                  urlIsConnected: sourceUrlStats.urlIsConnected,
-                },
-                target: {
-                  url: connection.target.url.value,
-                  metadata: (() => {
-                    const meta =
-                      connection.targetUrlMetadata?.props ||
-                      connection.targetUrlMetadata;
-                    if (!meta) {
-                      return { url: connection.target.url.value };
-                    }
-                    // Convert all dates to strings
-                    return {
-                      url: meta.url || connection.target.url.value,
-                      title: meta.title,
-                      description: meta.description,
-                      author: meta.author,
-                      publishedDate:
-                        meta.publishedDate instanceof Date
-                          ? meta.publishedDate.toISOString()
-                          : meta.publishedDate,
-                      siteName: meta.siteName,
-                      imageUrl: meta.imageUrl,
-                      type: meta.type,
-                      retrievedAt:
-                        meta.retrievedAt instanceof Date
-                          ? meta.retrievedAt.toISOString()
-                          : meta.retrievedAt,
-                      doi: meta.doi,
-                      isbn: meta.isbn,
-                    };
-                  })(),
-                  urlLibraryCount: targetUrlStats.urlLibraryCount,
-                  urlInLibrary: targetUrlStats.urlInLibrary,
-                  urlConnectionCount: targetUrlStats.urlConnectionCount,
-                  urlIsConnected: targetUrlStats.urlIsConnected,
-                },
+                source: sourceEndpoint,
+                target: targetEndpoint,
               },
             };
 
@@ -472,6 +537,54 @@ export class GetMyNotificationsUseCase implements UseCase<
             continue;
           }
 
+          // Handle USER_ANNOTATED_YOUR_URL batches — the annotations were
+          // pre-enriched; they only need author profiles
+          if (notification.annotations) {
+            const annotations = notification.annotations
+              .map((entry) => {
+                const author = profileMap.get(entry.authorId);
+                if (!author) return null;
+
+                return {
+                  id: entry.cardId,
+                  type: 'ANNOTATION' as const,
+                  url: entry.url,
+                  uri: entry.uri,
+                  libraryCount: entry.libraryCount,
+                  selectors: toWireSelectors(entry.selectors),
+                  note: entry.note,
+                  createdAt: entry.createdAt.toISOString(),
+                  updatedAt: entry.updatedAt.toISOString(),
+                  author,
+                };
+              })
+              .filter(
+                (annotation): annotation is NonNullable<typeof annotation> =>
+                  annotation !== null,
+              );
+
+            if (annotations.length === 0) continue;
+
+            notificationItems.push({
+              id: notification.id,
+              user: {
+                id: actorProfile.id,
+                name: actorProfile.name,
+                handle: actorProfile.handle,
+                avatarUrl: actorProfile.avatarUrl,
+                bannerUrl: actorProfile.bannerUrl,
+                description: actorProfile.description,
+                isFollowing: actorProfile.isFollowing,
+              },
+              createdAt: notification.createdAt.toISOString(),
+              type: notification.type as any,
+              read: notification.read,
+              url: notification.annotatedUrl || '',
+              annotations,
+            } as NotificationItemDTO);
+            continue;
+          }
+
           // Handle card-based notifications
           const cardAuthorProfile = notification.cardAuthorId
             ? profileMap.get(notification.cardAuthorId)
@@ -527,41 +640,63 @@ export class GetMyNotificationsUseCase implements UseCase<
               description: actorProfile.description,
               isFollowing: actorProfile.isFollowing,
             },
-            card: {
-              id: notification.cardId,
-              type: 'URL' as const,
-              url: notification.cardUrl || '',
-              uri: notification.cardUri,
-              cardContent: {
-                url: notification.cardUrl || '',
-                title: notification.cardTitle,
-                description: notification.cardDescription,
-                author: notification.cardAuthor,
-                publishedDate: notification.cardPublishedDate?.toISOString(),
-                siteName: notification.cardSiteName,
-                imageUrl: notification.cardImageUrl,
-                type: notification.cardType,
-                retrievedAt: notification.cardRetrievedAt?.toISOString(),
-                doi: notification.cardDoi,
-                isbn: notification.cardIsbn,
-              },
-              libraryCount: notification.cardLibraryCount || 0,
-              urlLibraryCount: notification.cardUrlLibraryCount || 0,
-              urlInLibrary: notification.cardUrlInLibrary,
-              urlConnectionCount: notification.cardUrlConnectionCount,
-              urlIsConnected: notification.cardUrlIsConnected,
-              createdAt: notification.cardCreatedAt?.toISOString() || '',
-              updatedAt: notification.cardUpdatedAt?.toISOString() || '',
-              author: {
-                id: cardAuthorProfile.id,
-                name: cardAuthorProfile.name,
-                handle: cardAuthorProfile.handle,
-                avatarUrl: cardAuthorProfile.avatarUrl,
-                bannerUrl: cardAuthorProfile.bannerUrl,
-                description: cardAuthorProfile.description,
-              },
-              note: notification.cardNote,
-            },
+            card:
+              notification.cardKind === 'ANNOTATION'
+                ? {
+                    id: notification.cardId!,
+                    type: 'ANNOTATION' as const,
+                    url: notification.cardUrl || '',
+                    uri: notification.cardUri,
+                    libraryCount: notification.cardLibraryCount || 0,
+                    selectors: notification.cardSelectors || [],
+                    note: notification.cardNoteText,
+                    createdAt: notification.cardCreatedAt?.toISOString() || '',
+                    updatedAt: notification.cardUpdatedAt?.toISOString() || '',
+                    author: {
+                      id: cardAuthorProfile.id,
+                      name: cardAuthorProfile.name,
+                      handle: cardAuthorProfile.handle,
+                      avatarUrl: cardAuthorProfile.avatarUrl,
+                      bannerUrl: cardAuthorProfile.bannerUrl,
+                      description: cardAuthorProfile.description,
+                    },
+                  }
+                : {
+                    id: notification.cardId,
+                    type: 'URL' as const,
+                    url: notification.cardUrl || '',
+                    uri: notification.cardUri,
+                    cardContent: {
+                      url: notification.cardUrl || '',
+                      title: notification.cardTitle,
+                      description: notification.cardDescription,
+                      author: notification.cardAuthor,
+                      publishedDate:
+                        notification.cardPublishedDate?.toISOString(),
+                      siteName: notification.cardSiteName,
+                      imageUrl: notification.cardImageUrl,
+                      type: notification.cardType,
+                      retrievedAt: notification.cardRetrievedAt?.toISOString(),
+                      doi: notification.cardDoi,
+                      isbn: notification.cardIsbn,
+                    },
+                    libraryCount: notification.cardLibraryCount || 0,
+                    urlLibraryCount: notification.cardUrlLibraryCount || 0,
+                    urlInLibrary: notification.cardUrlInLibrary,
+                    urlConnectionCount: notification.cardUrlConnectionCount,
+                    urlIsConnected: notification.cardUrlIsConnected,
+                    createdAt: notification.cardCreatedAt?.toISOString() || '',
+                    updatedAt: notification.cardUpdatedAt?.toISOString() || '',
+                    author: {
+                      id: cardAuthorProfile.id,
+                      name: cardAuthorProfile.name,
+                      handle: cardAuthorProfile.handle,
+                      avatarUrl: cardAuthorProfile.avatarUrl,
+                      bannerUrl: cardAuthorProfile.bannerUrl,
+                      description: cardAuthorProfile.description,
+                    },
+                    note: notification.cardNote,
+                  },
             createdAt: notification.createdAt.toISOString(),
             collections,
             type: notification.type as any, // Cast to NotificationType enum

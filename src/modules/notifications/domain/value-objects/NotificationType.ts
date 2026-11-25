@@ -58,6 +58,14 @@ export class NotificationType extends ValueObject<NotificationTypeProps> {
     return this.create(NotificationTypeEnum.USER_CONNECTED_YOUR_COLLECTION);
   }
 
+  public static userConnectedYourAnnotation(): Result<NotificationType> {
+    return this.create(NotificationTypeEnum.USER_CONNECTED_YOUR_ANNOTATION);
+  }
+
+  public static userAnnotatedYourUrl(): Result<NotificationType> {
+    return this.create(NotificationTypeEnum.USER_ANNOTATED_YOUR_URL);
+  }
+
   public static subscribedUserAddedCard(): Result<NotificationType> {
     return this.create(NotificationTypeEnum.SUBSCRIBED_USER_ADDED_CARD);
   }

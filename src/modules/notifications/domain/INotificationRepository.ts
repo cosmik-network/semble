@@ -31,6 +31,18 @@ export interface EnrichedNotificationResult {
   cardId?: string;
   cardUrl?: string;
   cardUri?: string;
+  // 'URL' or 'ANNOTATION' — annotation cards carry selectors/note instead of
+  // link metadata
+  cardKind?: 'URL' | 'ANNOTATION';
+  // Text quote selectors for annotation cards (ordered by ordinal)
+  cardSelectors?: Array<{
+    type: string;
+    exact: string;
+    prefix?: string;
+    suffix?: string;
+  }>;
+  // Plain note text for annotation cards (URL cards use cardNote)
+  cardNoteText?: string;
   cardTitle?: string;
   cardDescription?: string;
   cardAuthor?: string;
@@ -102,10 +114,34 @@ export interface EnrichedNotificationResult {
   connectionCreatedAt?: Date;
   connectionUpdatedAt?: Date;
   connectionCuratorId?: string;
+  // URL endpoints carry url + metadata; CARD endpoints carry the annotation
+  // card id instead (resolved to a view by the query use case)
   sourceUrl?: string;
   sourceUrlMetadata?: any;
+  sourceCardId?: string;
   targetUrl?: string;
   targetUrlMetadata?: any;
+  targetCardId?: string;
+
+  // USER_ANNOTATED_YOUR_URL — the annotated URL and the batch of annotation
+  // cards created on it within the window
+  annotatedUrl?: string;
+  annotations?: Array<{
+    cardId: string;
+    authorId: string;
+    url: string;
+    uri?: string;
+    libraryCount: number;
+    selectors: Array<{
+      type: string;
+      exact: string;
+      prefix?: string;
+      suffix?: string;
+    }>;
+    note?: string;
+    createdAt: Date;
+    updatedAt: Date;
+  }>;
 }
 
 export interface PaginatedEnrichedNotificationResult {
@@ -148,6 +184,17 @@ export interface INotificationRepository {
     actorUserId: CuratorId,
     targetId: string,
     targetType: 'USER' | 'COLLECTION',
+  ): Promise<Result<Notification[]>>;
+  /**
+   * Notifications from one actor to one recipient of the given type created
+   * after `since` — used to batch USER_ANNOTATED_YOUR_URL into one
+   * notification per (recipient, actor, url) within a time window.
+   */
+  findByRecipientAndActorSince(
+    recipientId: CuratorId,
+    actorUserId: CuratorId,
+    type: string,
+    since: Date,
   ): Promise<Result<Notification[]>>;
   getUnreadCount(recipientId: CuratorId): Promise<Result<number>>;
   markAsRead(notificationIds: NotificationId[]): Promise<Result<void>>;

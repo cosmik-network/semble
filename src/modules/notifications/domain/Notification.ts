@@ -22,6 +22,13 @@ export interface ConnectionNotificationMetadata {
   connectionId: string;
 }
 
+// USER_ANNOTATED_YOUR_URL — annotations by one actor on one URL, batched
+// within a time window into a single notification.
+export interface AnnotationBatchNotificationMetadata {
+  url: string;
+  annotationIds: string[];
+}
+
 export type MentionSource = 'NOTE' | 'CONNECTION' | 'COLLECTION';
 
 // Exactly one of cardId/connectionId/collectionId is set, per mentionSource.
@@ -305,6 +312,52 @@ export class Notification extends AggregateRoot<NotificationProps> {
     });
   }
 
+  public static createUserConnectedYourAnnotation(
+    recipientUserId: CuratorId,
+    actorUserId: CuratorId,
+    connectionId: ConnectionId,
+  ): Result<Notification> {
+    const typeResult = NotificationType.userConnectedYourAnnotation();
+    if (typeResult.isErr()) {
+      return err(typeResult.error);
+    }
+
+    const metadata: ConnectionNotificationMetadata = {
+      connectionId: connectionId.getStringValue(),
+    };
+
+    return this.create({
+      recipientUserId,
+      actorUserId,
+      type: typeResult.value,
+      metadata: metadata as any,
+    });
+  }
+
+  public static createUserAnnotatedYourUrl(
+    recipientUserId: CuratorId,
+    actorUserId: CuratorId,
+    url: string,
+    annotationIds: string[],
+  ): Result<Notification> {
+    const typeResult = NotificationType.userAnnotatedYourUrl();
+    if (typeResult.isErr()) {
+      return err(typeResult.error);
+    }
+
+    const metadata: AnnotationBatchNotificationMetadata = {
+      url,
+      annotationIds,
+    };
+
+    return this.create({
+      recipientUserId,
+      actorUserId,
+      type: typeResult.value,
+      metadata: metadata as any,
+    });
+  }
+
   public static createSubscribedUserAddedCard(
     recipientUserId: CuratorId,
     actorUserId: CuratorId,
@@ -456,6 +509,20 @@ export class Notification extends AggregateRoot<NotificationProps> {
       type: typeResult.value,
       metadata: metadata as any,
     });
+  }
+
+  /**
+   * Append an annotation card to a USER_ANNOTATED_YOUR_URL batch. No-op if
+   * the card is already in the batch.
+   */
+  public addAnnotationToBatch(cardId: CardId): void {
+    const metadata = this.props
+      .metadata as unknown as AnnotationBatchNotificationMetadata;
+    const cardIdStr = cardId.getStringValue();
+    if (!metadata.annotationIds.includes(cardIdStr)) {
+      metadata.annotationIds.push(cardIdStr);
+    }
+    this.props.updatedAt = new Date();
   }
 
   public markAsRead(): void {

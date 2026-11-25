@@ -121,6 +121,25 @@ export class InMemoryNotificationRepository implements INotificationRepository {
     return ok(undefined);
   }
 
+  async findByRecipientAndActorSince(
+    recipientId: CuratorId,
+    actorUserId: CuratorId,
+    type: string,
+    since: Date,
+  ): Promise<Result<Notification[]>> {
+    const matchingNotifications = Array.from(
+      this.notifications.values(),
+    ).filter(
+      (notification) =>
+        notification.recipientUserId.equals(recipientId) &&
+        notification.actorUserId.equals(actorUserId) &&
+        notification.type.value === type &&
+        notification.createdAt >= since,
+    );
+
+    return ok(matchingNotifications);
+  }
+
   async findByCardAndActor(
     cardId: string,
     actorUserId: CuratorId,
@@ -293,26 +312,27 @@ export class InMemoryNotificationRepository implements INotificationRepository {
           );
           if (connectionResult.isOk() && connectionResult.value) {
             const connection = connectionResult.value;
-            if (connection.source.url && connection.target.url) {
-              enrichedNotifications.push({
-                id: notification.notificationId.getStringValue(),
-                type: notification.type.value,
-                read: notification.read,
-                createdAt: notification.createdAt,
-                actorUserId: notification.actorUserId.value,
-                connectionId: metadata.connectionId,
-                connectionType: connection.type?.value,
-                connectionNote: connection.note?.value,
-                connectionCreatedAt: connection.createdAt,
-                connectionUpdatedAt: connection.updatedAt,
-                connectionCuratorId: connection.curatorId.value,
-                sourceUrl: connection.source.url.value,
-                sourceUrlMetadata: connection.sourceUrlMetadata,
-                targetUrl: connection.target.url.value,
-                targetUrlMetadata: connection.targetUrlMetadata,
-              });
-              continue;
-            }
+            enrichedNotifications.push({
+              id: notification.notificationId.getStringValue(),
+              type: notification.type.value,
+              read: notification.read,
+              createdAt: notification.createdAt,
+              actorUserId: notification.actorUserId.value,
+              connectionId: metadata.connectionId,
+              mentionSource: metadata.mentionSource,
+              connectionType: connection.type?.value,
+              connectionNote: connection.note?.value,
+              connectionCreatedAt: connection.createdAt,
+              connectionUpdatedAt: connection.updatedAt,
+              connectionCuratorId: connection.curatorId.value,
+              sourceUrl: connection.source.url?.value,
+              sourceUrlMetadata: connection.sourceUrlMetadata,
+              sourceCardId: connection.source.cardId?.getStringValue(),
+              targetUrl: connection.target.url?.value,
+              targetUrlMetadata: connection.targetUrlMetadata,
+              targetCardId: connection.target.cardId?.getStringValue(),
+            });
+            continue;
           }
         }
       }
@@ -331,9 +351,66 @@ export class InMemoryNotificationRepository implements INotificationRepository {
           // Note: Collection enrichment not implemented in InMemoryRepo
           // Add followCollections if needed for testing
         });
+      } else if (metadata?.annotationIds !== undefined) {
+        // Handle USER_ANNOTATED_YOUR_URL batches
+        const annotationViews = await this.cardQueryRepository
+          .getBatchAnnotationCardViews(metadata.annotationIds as string[])
+          .catch(() => new Map());
+
+        const annotations = (metadata.annotationIds as string[])
+          .map((annotationId) => annotationViews.get(annotationId))
+          .filter((view): view is NonNullable<typeof view> => !!view)
+          .map((view) => ({
+            cardId: view.id,
+            authorId: view.authorId,
+            url: view.url,
+            uri: view.uri,
+            libraryCount: view.libraryCount,
+            selectors: view.selectors,
+            note: view.note,
+            createdAt: view.createdAt,
+            updatedAt: view.updatedAt,
+          }));
+
+        if (annotations.length === 0) continue;
+
+        enrichedNotifications.push({
+          id: notification.notificationId.getStringValue(),
+          type: notification.type.value,
+          read: notification.read,
+          createdAt: notification.createdAt,
+          actorUserId: notification.actorUserId.value,
+          annotatedUrl: metadata.url,
+          annotations,
+        });
       } else if (metadata?.cardId !== undefined) {
-        // Handle card-based notifications
+        // Handle card-based notifications — annotation cards first, since
+        // getUrlCardView returns nothing for them
         const cardId = metadata.cardId;
+
+        const annotationView =
+          await this.cardQueryRepository.getAnnotationCardById(cardId);
+        if (annotationView) {
+          enrichedNotifications.push({
+            id: notification.notificationId.getStringValue(),
+            type: notification.type.value,
+            read: notification.read,
+            createdAt: notification.createdAt,
+            actorUserId: notification.actorUserId.value,
+            mentionSource: metadata.mentionSource,
+            cardAuthorId: annotationView.authorId,
+            cardId: annotationView.id,
+            cardUrl: annotationView.url,
+            cardUri: annotationView.uri,
+            cardKind: 'ANNOTATION',
+            cardSelectors: annotationView.selectors,
+            cardNoteText: annotationView.note,
+            cardLibraryCount: annotationView.libraryCount,
+            cardCreatedAt: annotationView.createdAt,
+            cardUpdatedAt: annotationView.updatedAt,
+          });
+          continue;
+        }
 
         // Get enriched card data using the card query repository
         const cardView = await this.cardQueryRepository.getUrlCardView(

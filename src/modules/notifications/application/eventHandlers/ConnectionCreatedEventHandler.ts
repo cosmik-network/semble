@@ -21,6 +21,8 @@ import { CreateNotificationUseCase } from '../useCases/commands/CreateNotificati
 import { NotificationType } from '@semble/types';
 import { ConnectionId } from '../../../cards/domain/value-objects/ConnectionId';
 import { MentionRecipientResolver } from '../services/MentionRecipientResolver';
+import { UrlOrCardId } from '../../../cards/domain/value-objects/UrlOrCardId';
+import { normalizeQuotedText } from '../../../cards/domain/value-objects/selectors/normalizeQuotedText';
 
 export class ConnectionCreatedEventHandler implements IEventHandler<ConnectionCreatedEvent> {
   constructor(
@@ -82,14 +84,20 @@ export class ConnectionCreatedEventHandler implements IEventHandler<ConnectionCr
         }
       }
 
-      // Only create notifications if both source and target are URLs
-      if (!connection.source.url || !connection.target.url) {
-        // One or both are cards, not URLs - skip notification
+      // Resolve endpoints — URL endpoints carry a url, CARD endpoints
+      // reference an annotation card (its url + passage). A CARD endpoint
+      // that no longer resolves to an annotation is skipped on that side.
+      const endpoints = await Promise.all(
+        [connection.source, connection.target].map((endpoint) =>
+          this.resolveEndpoint(endpoint),
+        ),
+      );
+
+      // Unresolvable on both sides — nothing to notify about
+      if (endpoints[0] === null && endpoints[1] === null) {
         return ok(undefined);
       }
 
-      const sourceUrl = connection.source.url.value;
-      const targetUrl = connection.target.url.value;
       const curatorId = connection.curatorId;
       const appUrl = this.configService.getAppConfig().appUrl;
 
@@ -98,79 +106,119 @@ export class ConnectionCreatedEventHandler implements IEventHandler<ConnectionCr
       // (the mention) rather than a second generic one.
       const contentOwnerDids = new Set<string>(mentionedDids);
 
-      // Parse URLs to detect Bluesky posts or Semble collections
-      const parsedSourceUrl =
-        NotificationUrlParser.extractMentionedEntityFromUrl(sourceUrl, appUrl);
-      const parsedTargetUrl =
-        NotificationUrlParser.extractMentionedEntityFromUrl(targetUrl, appUrl);
+      // Parse URL endpoints to detect Bluesky posts or Semble collections
+      // (deduped — a CARD endpoint can anchor to the same URL as the other
+      // side)
+      const urlEndpoints = [
+        ...new Set(
+          endpoints
+            .filter(
+              (endpoint): endpoint is NonNullable<typeof endpoint> =>
+                endpoint !== null && endpoint.kind === 'URL',
+            )
+            .map((endpoint) => endpoint.url),
+        ),
+      ];
 
-      // Handle source URL if it's a Bluesky post or Semble collection
-      if (parsedSourceUrl) {
-        const sourceOwnerDid = await this.handleUrlOwnerNotification(
-          parsedSourceUrl,
+      for (const url of urlEndpoints) {
+        const parsedUrl = NotificationUrlParser.extractMentionedEntityFromUrl(
+          url,
+          appUrl,
+        );
+        if (!parsedUrl) continue;
+
+        const ownerDid = await this.handleUrlOwnerNotification(
+          parsedUrl,
           event.connectionId,
           curatorId,
         );
-        if (sourceOwnerDid) {
-          contentOwnerDids.add(sourceOwnerDid);
+        if (ownerDid) {
+          contentOwnerDids.add(ownerDid);
         }
       }
 
-      // Handle target URL if it's a Bluesky post or Semble collection
-      if (parsedTargetUrl) {
-        const targetOwnerDid = await this.handleUrlOwnerNotification(
-          parsedTargetUrl,
-          event.connectionId,
-          curatorId,
-        );
-        if (targetOwnerDid) {
-          contentOwnerDids.add(targetOwnerDid);
+      // Users who have any passage-matching annotation card in their
+      // library — they get USER_CONNECTED_YOUR_ANNOTATION. A user with both
+      // endpoints' annotations in their library still gets one notification.
+      const annotationRecipientIds = new Set<string>();
+      for (const endpoint of endpoints) {
+        if (!endpoint || endpoint.kind !== 'CARD') continue;
+
+        const librariesResult =
+          await this.cardQueryRepository.getLibrariesForAnnotation(
+            endpoint.url,
+            endpoint.exactNormalized,
+            {
+              page: 1,
+              limit: 1000,
+              sortBy: 'CREATED_AT' as any,
+              sortOrder: 'DESC' as any,
+            },
+          );
+
+        if (librariesResult.items) {
+          librariesResult.items.forEach((library) => {
+            if (
+              library.userId !== curatorId.value &&
+              !contentOwnerDids.has(library.userId)
+            ) {
+              annotationRecipientIds.add(library.userId);
+            }
+          });
         }
       }
 
-      // Find all users who have either URL in their library
+      await Promise.all(
+        Array.from(annotationRecipientIds).map(async (recipientUserId) => {
+          const recipientIdResult = CuratorId.create(recipientUserId);
+          if (recipientIdResult.isErr()) {
+            console.error('Invalid recipient ID:', recipientIdResult.error);
+            return;
+          }
+
+          const notificationResult =
+            await this.notificationService.createUserConnectedYourAnnotationNotification(
+              recipientIdResult.value,
+              curatorId,
+              event.connectionId,
+            );
+
+          if (notificationResult.isErr()) {
+            console.error(
+              'Failed to create annotation connection notification:',
+              notificationResult.error,
+            );
+          }
+        }),
+      );
+
+      // Find all users who have a connection URL in their library.
+      // Annotation-library users are excluded — the annotation notification
+      // is the more specific one.
       const recipientUserIds = new Set<string>();
 
-      // Get users with source URL
-      const sourceLibrariesResult =
-        await this.cardQueryRepository.getLibrariesForUrl(sourceUrl, {
-          page: 1,
-          limit: 1000, // Get all users, consider pagination for large datasets
-          sortBy: 'CREATED_AT' as any,
-          sortOrder: 'DESC' as any,
-        });
+      for (const url of urlEndpoints) {
+        const librariesResult =
+          await this.cardQueryRepository.getLibrariesForUrl(url, {
+            page: 1,
+            limit: 1000, // Get all users, consider pagination for large datasets
+            sortBy: 'CREATED_AT' as any,
+            sortOrder: 'DESC' as any,
+          });
 
-      if (sourceLibrariesResult.items) {
-        sourceLibrariesResult.items.forEach((library) => {
-          // Exclude the curator who created the connection and content owners
-          if (
-            library.userId !== curatorId.value &&
-            !contentOwnerDids.has(library.userId)
-          ) {
-            recipientUserIds.add(library.userId);
-          }
-        });
-      }
-
-      // Get users with target URL
-      const targetLibrariesResult =
-        await this.cardQueryRepository.getLibrariesForUrl(targetUrl, {
-          page: 1,
-          limit: 1000, // Get all users, consider pagination for large datasets
-          sortBy: 'CREATED_AT' as any,
-          sortOrder: 'DESC' as any,
-        });
-
-      if (targetLibrariesResult.items) {
-        targetLibrariesResult.items.forEach((library) => {
-          // Exclude the curator who created the connection and content owners
-          if (
-            library.userId !== curatorId.value &&
-            !contentOwnerDids.has(library.userId)
-          ) {
-            recipientUserIds.add(library.userId);
-          }
-        });
+        if (librariesResult.items) {
+          librariesResult.items.forEach((library) => {
+            // Exclude the curator who created the connection, content
+            // owners, and annotation-notification recipients
+            if (
+              library.userId !== curatorId.value &&
+              !contentOwnerDids.has(library.userId) &&
+              !annotationRecipientIds.has(library.userId)
+            ) {
+              recipientUserIds.add(library.userId);
+            }
+          });
+        }
       }
 
       // Filter recipients based on environment
@@ -209,25 +257,77 @@ export class ConnectionCreatedEventHandler implements IEventHandler<ConnectionCr
       await Promise.all(notificationPromises);
 
       // Subscription fan-out — exclude anyone who already got a more specific
-      // notification above (content owners + library-URL recipients) and the
-      // curator themselves.
+      // notification above (content owners + library recipients) and the
+      // curator themselves. CARD endpoints fan out via their anchor URL.
       const alreadyNotified = new Set<string>([curatorId.value]);
       for (const owner of contentOwnerDids) alreadyNotified.add(owner);
       for (const recipient of recipientUserIds) alreadyNotified.add(recipient);
+      for (const recipient of annotationRecipientIds) {
+        alreadyNotified.add(recipient);
+      }
 
-      await this.emitSubscriptionNotifications(
-        connection.source.url.value,
-        connection.target.url.value,
-        curatorId.value,
-        event.connectionId,
-        alreadyNotified,
-      );
+      const anchorUrls = endpoints
+        .filter(
+          (endpoint): endpoint is NonNullable<typeof endpoint> => !!endpoint,
+        )
+        .map((endpoint) => endpoint.url);
+      if (anchorUrls.length > 0) {
+        await this.emitSubscriptionNotifications(
+          anchorUrls[0]!,
+          anchorUrls[1] ?? anchorUrls[0]!,
+          curatorId.value,
+          event.connectionId,
+          alreadyNotified,
+        );
+      }
 
       return ok(undefined);
     } catch (error) {
       console.error('Error handling ConnectionCreatedEvent:', error);
       return err(error as Error);
     }
+  }
+
+  /**
+   * A connection endpoint as the notification policies see it: a URL, or an
+   * annotation card reduced to its anchor URL + normalized passage. Null
+   * when a CARD endpoint doesn't resolve to an annotation card.
+   */
+  private async resolveEndpoint(
+    endpoint: UrlOrCardId,
+  ): Promise<
+    | { kind: 'URL'; url: string }
+    | { kind: 'CARD'; url: string; exactNormalized: string }
+    | null
+  > {
+    if (endpoint.url) {
+      return { kind: 'URL', url: endpoint.url.value };
+    }
+
+    const cardId = endpoint.cardId;
+    if (!cardId) {
+      return null;
+    }
+
+    const view = await this.cardQueryRepository.getAnnotationCardById(
+      cardId.getStringValue(),
+    );
+    if (!view) {
+      return null;
+    }
+
+    const primary = view.selectors.find(
+      (selector) => selector.type === 'TextQuoteSelector',
+    );
+    if (!primary) {
+      return null;
+    }
+
+    return {
+      kind: 'CARD',
+      url: view.url,
+      exactNormalized: normalizeQuotedText(primary.exact),
+    };
   }
 
   /**

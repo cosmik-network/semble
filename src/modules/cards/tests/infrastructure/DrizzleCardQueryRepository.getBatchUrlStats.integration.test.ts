@@ -120,6 +120,7 @@ describe('DrizzleCardQueryRepository - getBatchUrlStats', () => {
       libraryCount: 0,
       noteCount: 0,
       collectionCount: 0,
+      annotationCount: 0,
       connections: {
         forwardTotal: 0,
         backwardTotal: 0,
@@ -160,7 +161,7 @@ describe('DrizzleCardQueryRepository - getBatchUrlStats', () => {
     });
   });
 
-  it('counts URL↔URL connections by direction and type, ignoring CARD counterparts', async () => {
+  it('counts connections by direction and type, including CARD counterparts', async () => {
     const url = (value: string) => ({ type: 'URL', value });
     await insertConnection(
       alice,
@@ -182,7 +183,7 @@ describe('DrizzleCardQueryRepository - getBatchUrlStats', () => {
     );
     // Untyped: counts toward totals only
     await insertConnection(bob, url(urlB), url(urlA));
-    // URL→CARD: excluded
+    // URL→CARD: counted for the URL endpoint
     await insertConnection(bob, url(urlA), {
       type: 'CARD',
       value: randomUUID(),
@@ -191,7 +192,7 @@ describe('DrizzleCardQueryRepository - getBatchUrlStats', () => {
     const result = await queryRepository.getBatchUrlStats([urlA, urlB]);
 
     const a = result.get(urlA)!.connections;
-    expect(a.forwardTotal).toBe(2);
+    expect(a.forwardTotal).toBe(3); // includes the URL→CARD connection
     expect(a.backwardTotal).toBe(2);
     expect(a.forwardByType).toEqual(
       new Map([[ConnectionTypeEnum.SUPPORTS, 2]]),
@@ -216,7 +217,7 @@ describe('DrizzleCardQueryRepository - getBatchUrlStats', () => {
       { type: 'URL', value: urlC },
       { type: 'URL', value: urlB },
     );
-    // Alice's URL→CARD connection does not mark urlA as connected
+    // Alice's URL→CARD connection marks urlA as connected
     await insertConnection(
       alice,
       { type: 'URL', value: urlA },
@@ -230,7 +231,7 @@ describe('DrizzleCardQueryRepository - getBatchUrlStats', () => {
 
     expect(result.get(urlA)).toMatchObject({
       urlInLibrary: true,
-      urlIsConnected: false,
+      urlIsConnected: true,
     });
     expect(result.get(urlB)).toMatchObject({
       urlInLibrary: false,

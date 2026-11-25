@@ -28,6 +28,8 @@ import { NoteCardUpdatedEventHandler } from 'src/modules/notifications/applicati
 import { ConnectionUpdatedEventHandler } from 'src/modules/notifications/application/eventHandlers/ConnectionUpdatedEventHandler';
 import { CollectionMentionEventHandler } from 'src/modules/notifications/application/eventHandlers/CollectionMentionEventHandler';
 import { BundleRecipientResolver } from 'src/modules/notifications/application/services/BundleRecipientResolver';
+import { AnnotationCreatedNotificationHandler } from 'src/modules/notifications/application/eventHandlers/AnnotationCreatedNotificationHandler';
+import { DistributedLockServiceFactory } from '../locking/DistributedLockServiceFactory';
 
 export class NotificationWorkerProcess extends BaseWorkerProcess {
   constructor(configService: EnvironmentConfigService) {
@@ -191,6 +193,19 @@ export class NotificationWorkerProcess extends BaseWorkerProcess {
     await subscriber.subscribe(
       EventNames.CARD_ADDED_TO_COLLECTION,
       cardActivityBufferingHandler,
+    );
+
+    // Annotation-created notifications batch by find-recent-and-merge (feed
+    // pattern), so they bypass the saga and consume the raw library event.
+    const annotationCreatedHandler = new AnnotationCreatedNotificationHandler(
+      repositories.cardRepository,
+      repositories.cardQueryRepository,
+      services.notificationService,
+      DistributedLockServiceFactory.create(),
+    );
+    await subscriber.subscribe(
+      EventNames.CARD_ADDED_TO_LIBRARY,
+      annotationCreatedHandler,
     );
 
     // Removal events bypass the saga; cleanup is policy-specific.

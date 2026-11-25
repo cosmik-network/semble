@@ -21,6 +21,8 @@ import { CollectionContributionBundleHandler } from '../../../modules/notificati
 import { SubscriptionBundleHandler } from '../../../modules/notifications/application/bundleHandlers/SubscriptionBundleHandler';
 import { UserFollowedTargetEventHandler } from '../../../modules/notifications/application/eventHandlers/UserFollowedTargetEventHandler';
 import { UserUnfollowedTargetEventHandler } from '../../../modules/notifications/application/eventHandlers/UserUnfollowedTargetEventHandler';
+import { AnnotationCreatedNotificationHandler } from '../../../modules/notifications/application/eventHandlers/AnnotationCreatedNotificationHandler';
+import { DistributedLockServiceFactory } from '../locking/DistributedLockServiceFactory';
 import { EventNames } from '../events/EventConfig';
 import { IProcess } from '../../domain/IProcess';
 import { IEventSubscriber } from '../../application/events/IEventSubscriber';
@@ -170,6 +172,16 @@ export class InMemoryEventWorkerProcess implements IProcess {
     const notificationCardActivityBufferingHandler =
       new CardActivityBufferingHandler(notificationBundlingSaga);
 
+    // Annotation-created notifications batch by find-recent-and-merge (feed
+    // pattern), so they bypass the saga and consume the raw library event.
+    const annotationCreatedNotificationHandler =
+      new AnnotationCreatedNotificationHandler(
+        repositories.cardRepository,
+        repositories.cardQueryRepository,
+        services.notificationService,
+        DistributedLockServiceFactory.create(),
+      );
+
     const notificationCardLibraryRemovalCleanupHandler =
       new CardLibraryRemovalCleanupHandler(
         repositories.notificationRepository,
@@ -271,6 +283,10 @@ export class InMemoryEventWorkerProcess implements IProcess {
     await subscriber.subscribe(
       EventNames.CARD_ADDED_TO_LIBRARY,
       notificationCardActivityBufferingHandler,
+    );
+    await subscriber.subscribe(
+      EventNames.CARD_ADDED_TO_LIBRARY,
+      annotationCreatedNotificationHandler,
     );
     await subscriber.subscribe(
       EventNames.CARD_ADDED_TO_COLLECTION,

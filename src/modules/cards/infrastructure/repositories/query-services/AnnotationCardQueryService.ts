@@ -280,10 +280,6 @@ export class AnnotationCardQueryService {
       const rows = await this.db
         .select({ id: cards.id })
         .from(cards)
-        .innerJoin(
-          annotationSelectors,
-          eq(annotationSelectors.cardId, cards.id),
-        )
         .where(this.matchingConditions(url, exactNormalized));
 
       return rows.map((row) => row.id);
@@ -321,23 +317,12 @@ export class AnnotationCardQueryService {
             updatedAt: cards.updatedAt,
           })
           .from(cards)
-          .innerJoin(
-            annotationSelectors,
-            eq(annotationSelectors.cardId, cards.id),
-          )
           .where(whereClause)
           .groupBy(cards.id)
           .orderBy(orderDirection(this.getSortColumn(sortBy)))
           .limit(limit)
           .offset(offset),
-        this.db
-          .select({ count: count() })
-          .from(cards)
-          .innerJoin(
-            annotationSelectors,
-            eq(annotationSelectors.cardId, cards.id),
-          )
-          .where(whereClause),
+        this.db.select({ count: count() }).from(cards).where(whereClause),
       ]);
 
       const totalCount = totalCountResult[0]?.count || 0;
@@ -362,10 +347,9 @@ export class AnnotationCardQueryService {
   }
 
   /**
-   * Library memberships of annotation cards matching a passage. A card with
-   * multiple matching selectors joins the selector table once per selector,
-   * so results are deduplicated on card id — but the domain only allows one
-   * TextQuoteSelector per card, making this a no-op safeguard.
+   * Library memberships of annotation cards matching a passage. Matching is
+   * an EXISTS subquery (see matchingConditions), so no selector join — and
+   * no row multiplication — here.
    */
   async getLibrariesForAnnotation(
     url: string,
@@ -490,12 +474,23 @@ export class AnnotationCardQueryService {
    * WHERE conditions for passage matching: ANNOTATION card on the URL with a
    * TextQuoteSelector whose exact_normalized equals the given key.
    */
+  /**
+   * Passage match: an ANNOTATION card on `url` with a TextQuoteSelector whose
+   * normalized exact equals `exactNormalized`. Self-contained (EXISTS, no
+   * annotation_selectors join required) so callers that don't select selector
+   * columns don't need the join — and cards with several matching selector
+   * rows don't multiply results.
+   */
   private matchingConditions(url: string, exactNormalized: string): SQL {
     return and(
       eq(cards.type, CardTypeEnum.ANNOTATION),
       eq(cards.url, url),
-      eq(annotationSelectors.selectorType, 'TextQuoteSelector'),
-      eq(annotationSelectors.exactNormalized, exactNormalized),
+      sql`EXISTS (
+        SELECT 1 FROM annotation_selectors matching_selectors
+        WHERE matching_selectors.card_id = ${cards.id}
+          AND matching_selectors.selector_type = 'TextQuoteSelector'
+          AND matching_selectors.exact_normalized = ${exactNormalized}
+      )`,
     )!;
   }
 

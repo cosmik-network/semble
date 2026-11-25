@@ -99,6 +99,9 @@ export class AddAnnotationToLibraryUseCase extends BaseUseCase<
         url: url.value,
         selectors: request.selectors,
         note: request.note,
+        // Carried on the card so the via-card notification handler can find
+        // it — mirrors how URL cards record their discovery origin
+        viaCardId: request.viaCardId,
       };
 
       const annotationCardResult = CardFactory.create({

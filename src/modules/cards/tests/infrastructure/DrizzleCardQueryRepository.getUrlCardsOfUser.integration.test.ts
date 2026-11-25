@@ -679,8 +679,10 @@ describe('DrizzleCardQueryRepository - getUrlCardsOfUser', () => {
 
       expect(result.items).toHaveLength(1);
       expect(result.items[0]?.url).toBe(sharedUrl);
-      expect(result.items[0]?.libraryCount).toBe(1); // Only in curator's library
-      expect(asUrlCard(result.items[0]).urlLibraryCount).toBe(3); // 3 users have this URL
+      // Entity-level: distinct users with any card for this URL (same value
+      // as urlLibraryCount, which it supersedes)
+      expect(result.items[0]?.libraryCount).toBe(3);
+      expect(asUrlCard(result.items[0]).urlLibraryCount).toBe(3);
     });
 
     it('should return different urlLibraryCounts for different URLs', async () => {
@@ -735,7 +737,7 @@ describe('DrizzleCardQueryRepository - getUrlCardsOfUser', () => {
       expect(card1?.libraryCount).toBe(1);
       expect(asUrlCard(card1).urlLibraryCount).toBe(1);
 
-      expect(card2?.libraryCount).toBe(1);
+      expect(card2?.libraryCount).toBe(2);
       expect(asUrlCard(card2).urlLibraryCount).toBe(2);
     });
 
@@ -781,8 +783,9 @@ describe('DrizzleCardQueryRepository - getUrlCardsOfUser', () => {
       });
 
       expect(result.items).toHaveLength(1);
-      expect(result.items[0]?.libraryCount).toBe(1); // Only in first user's library
-      expect(asUrlCard(result.items[0]).urlLibraryCount).toBe(2); // 2 unique users have this URL
+      // Entity-level: 2 unique users (same value as urlLibraryCount)
+      expect(result.items[0]?.libraryCount).toBe(2);
+      expect(asUrlCard(result.items[0]).urlLibraryCount).toBe(2);
     });
   });
 
