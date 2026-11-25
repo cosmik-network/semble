@@ -286,7 +286,8 @@ export class InMemoryCardQueryRepository implements ICardQueryRepository {
     );
   }
 
-  // URL↔URL connections only, matching the Drizzle implementation
+  // Only the counted endpoint must be the URL — the other side may be a CARD
+  // endpoint, matching the Drizzle implementation
   private async getUrlConnectionCounts(
     url: string,
   ): Promise<UrlConnectionCounts> {
@@ -314,12 +315,8 @@ export class InMemoryCardQueryRepository implements ICardQueryRepository {
       this.connectionRepository.findBySource(urlOrCardId),
       this.connectionRepository.findByTarget(urlOrCardId),
     ]);
-    const forward = (sourceResult.isOk() ? sourceResult.value : []).filter(
-      (conn) => conn.target.isUrl,
-    );
-    const backward = (targetResult.isOk() ? targetResult.value : []).filter(
-      (conn) => conn.source.isUrl,
-    );
+    const forward = sourceResult.isOk() ? sourceResult.value : [];
+    const backward = targetResult.isOk() ? targetResult.value : [];
 
     counts.forwardTotal = forward.length;
     counts.backwardTotal = backward.length;
@@ -373,13 +370,13 @@ export class InMemoryCardQueryRepository implements ICardQueryRepository {
 
       const connections = connectionsResult.value;
 
-      // Check if any connection involves this URL (as source or target)
-      // URL↔URL connections only, matching the Drizzle implementation
+      // Check if any connection involves this URL (as source or target).
+      // The other side may be a URL or a CARD endpoint, matching the
+      // Drizzle implementation
       return connections.some(
         (conn) =>
-          conn.source.isUrl &&
-          conn.target.isUrl &&
-          (conn.source.url?.value === url || conn.target.url?.value === url),
+          (conn.source.isUrl && conn.source.url?.value === url) ||
+          (conn.target.isUrl && conn.target.url?.value === url),
       );
     } catch (error) {
       return false;
@@ -1465,16 +1462,21 @@ export class InMemoryCardQueryRepository implements ICardQueryRepository {
 
   async getProfileCardStats(authorId: string): Promise<{
     urlCardCount: number;
+    annotationCardCount: number;
   }> {
     const allCards = this.cardRepository.getAllCards();
 
-    // Count URL cards authored by this user
-    const urlCardCount = allCards.filter(
-      (c) => c.type.value === 'URL' && c.curatorId.value === authorId,
+    // Count URL and annotation cards authored by this user — the two types
+    // the profile Cards tab lists. NOTE cards are excluded.
+    const authored = allCards.filter((c) => c.curatorId.value === authorId);
+    const urlCardCount = authored.filter((c) => c.type.value === 'URL').length;
+    const annotationCardCount = authored.filter(
+      (c) => c.type.value === 'ANNOTATION',
     ).length;
 
     return {
       urlCardCount,
+      annotationCardCount,
     };
   }
 

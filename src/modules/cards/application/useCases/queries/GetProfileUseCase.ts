@@ -144,6 +144,7 @@ export class GetProfileUseCase implements UseCase<
 
         profileStats = {
           urlCardCount: cardStats.urlCardCount,
+          annotationCardCount: cardStats.annotationCardCount,
           collectionCount: collectionCount,
           connectionCount: connectionStats.total,
           connectionsByType: connectionsByType,

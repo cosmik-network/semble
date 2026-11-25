@@ -27,6 +27,7 @@ export class ProfileMapper {
       followingCount: profile.followingCount,
       followedCollectionsCount: profile.followedCollectionsCount,
       urlCardCount: profile.urlCardCount,
+      annotationCardCount: profile.annotationCardCount,
       collectionCount: profile.collectionCount,
       connectionCount: profile.connectionCount,
       connectionsByType: profile.connectionsByType,

@@ -92,7 +92,9 @@ export function emptyUrlConnectionCounts(): UrlConnectionCounts {
   };
 }
 
-// URL↔URL connection counts by direction and type, in a single query
+// Connection counts by direction and type, in a single query. Only the
+// counted endpoint must be a URL — the other side may be a CARD endpoint
+// (an annotation card), matching what a URL's connections page lists
 export async function fetchUrlConnectionCounts(
   db: PostgresJsDatabase,
   urls: string[],
@@ -111,7 +113,6 @@ export async function fetchUrlConnectionCounts(
     .where(
       and(
         eq(connections.sourceType, 'URL'),
-        eq(connections.targetType, 'URL'),
         inArray(connections.sourceValue, urls),
       ),
     )
@@ -127,7 +128,6 @@ export async function fetchUrlConnectionCounts(
     .from(connections)
     .where(
       and(
-        eq(connections.sourceType, 'URL'),
         eq(connections.targetType, 'URL'),
         inArray(connections.targetValue, urls),
       ),
@@ -176,7 +176,9 @@ export async function fetchUrlsSavedByUser(
   return new Set(rows.map((row) => row.url as string));
 }
 
-// Of the given URLs, the subset the user has a URL↔URL connection with
+// Of the given URLs, the subset the user has a connection with — the other
+// side of the connection may be a URL or an annotation card. CARD endpoint
+// values are card ids, which never collide with the requested URLs.
 export async function fetchUrlsConnectedByUser(
   db: PostgresJsDatabase,
   userId: string,
@@ -192,11 +194,15 @@ export async function fetchUrlsConnectedByUser(
     .where(
       and(
         eq(connections.curatorId, userId),
-        eq(connections.sourceType, 'URL'),
-        eq(connections.targetType, 'URL'),
         or(
-          inArray(connections.sourceValue, urls),
-          inArray(connections.targetValue, urls),
+          and(
+            eq(connections.sourceType, 'URL'),
+            inArray(connections.sourceValue, urls),
+          ),
+          and(
+            eq(connections.targetType, 'URL'),
+            inArray(connections.targetValue, urls),
+          ),
         ),
       ),
     );

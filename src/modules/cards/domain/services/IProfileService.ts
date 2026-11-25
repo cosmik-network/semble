@@ -30,6 +30,7 @@ export interface UserProfile {
   followingCount?: number;
   followedCollectionsCount?: number;
   urlCardCount?: number;
+  annotationCardCount?: number;
   collectionCount?: number;
   connectionCount?: number;
   connectionsByType?: { total: number; [type: string]: number };

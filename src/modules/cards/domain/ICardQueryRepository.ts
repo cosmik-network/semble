@@ -243,8 +243,11 @@ export interface UserActivityStats {
 }
 
 /**
- * URL↔URL connection counts for a URL. Connections to non-URL targets/sources
- * are excluded. A self-loop counts once in each direction. Connections with no
+ * Connection counts for a URL. Only the counted endpoint must be the URL —
+ * the other side may be a URL or a CARD endpoint (an annotation card),
+ * matching what the URL's connections page lists. A passage's own
+ * connections are counted on the annotation card, not on its anchor URL
+ * here. A self-loop counts once in each direction. Connections with no
  * type count toward the totals but not the by-type maps.
  */
 export interface UrlConnectionCounts {
@@ -391,9 +394,12 @@ export interface ICardQueryRepository {
 
   /**
    * Get aggregate card statistics for a user profile
-   * Used for efficient counting of URL cards authored by user
+   * Used for efficient counting of cards authored by user. The profile Cards
+   * tab shows URL + annotation cards, so its count is urlCardCount +
+   * annotationCardCount. NOTE cards (notes attached to a URL) are excluded.
    */
   getProfileCardStats(authorId: string): Promise<{
     urlCardCount: number;
+    annotationCardCount: number;
   }>;
 }

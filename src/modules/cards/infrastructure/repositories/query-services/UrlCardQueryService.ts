@@ -1469,22 +1469,39 @@ export class UrlCardQueryService {
 
   async getProfileCardStats(authorId: string): Promise<{
     urlCardCount: number;
+    annotationCardCount: number;
   }> {
     try {
-      // Get count of URL cards authored by this user
-      const urlCardCountResult = await this.db
+      // Count URL and annotation cards authored by this user — the two types
+      // the profile Cards tab lists. NOTE cards are excluded.
+      const cardCountResults = await this.db
         .select({
+          type: cards.type,
           count: count(cards.id),
         })
         .from(cards)
         .where(
-          and(eq(cards.authorId, authorId), eq(cards.type, CardTypeEnum.URL)),
-        );
+          and(
+            eq(cards.authorId, authorId),
+            inArray(cards.type, [CardTypeEnum.URL, CardTypeEnum.ANNOTATION]),
+          ),
+        )
+        .groupBy(cards.type);
 
-      const urlCardCount = Number(urlCardCountResult[0]?.count || 0);
+      let urlCardCount = 0;
+      let annotationCardCount = 0;
+      for (const row of cardCountResults) {
+        const n = Number(row.count);
+        if (row.type === CardTypeEnum.URL) {
+          urlCardCount = n;
+        } else if (row.type === CardTypeEnum.ANNOTATION) {
+          annotationCardCount = n;
+        }
+      }
 
       return {
         urlCardCount,
+        annotationCardCount,
       };
     } catch (error) {
       console.error('Error in getProfileCardStats:', error);

@@ -207,6 +207,7 @@ export class DrizzleCardQueryRepository implements ICardQueryRepository {
 
   async getProfileCardStats(authorId: string): Promise<{
     urlCardCount: number;
+    annotationCardCount: number;
   }> {
     return this.urlCardQueryService.getProfileCardStats(authorId);
   }
