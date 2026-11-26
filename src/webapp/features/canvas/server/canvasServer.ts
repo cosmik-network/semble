@@ -2,6 +2,7 @@ import { queryOptions } from '@tanstack/react-query';
 import type { AppBskyFeedDefs } from '@atproto/api';
 import type { ConnectionType, UrlMetadata, User } from '@semble/types';
 import { canvasKeys } from '../lib/canvasKeys';
+import type { SearchScope } from '@/features/search/lib/searchScope';
 
 export interface ConnectionNote {
   text: string;
@@ -184,7 +185,7 @@ export function linkQuery(server: CanvasServer, url: string) {
   });
 }
 
-export type SearchScope = 'mine' | 'everyone';
+export type { SearchScope };
 
 export function linkSearchQuery(
   server: CanvasServer,

@@ -6,7 +6,6 @@ interface Props {
   collection: Collection;
 }
 
-// Its tile and tag set it apart from the link rows it's listed with
 export default function CollectionOptionRow(props: Props) {
   const count = props.collection.cardCount;
 
@@ -24,9 +23,6 @@ export default function CollectionOptionRow(props: Props) {
           {count === 1 ? 'card' : 'cards'}
         </Text>
       </Stack>
-      <Text c="dimmed" size="xs">
-        Collection
-      </Text>
     </Group>
   );
 }
