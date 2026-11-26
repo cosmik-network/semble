@@ -1,4 +1,5 @@
 import {
+  Button,
   Group,
   Kbd,
   Loader,
@@ -8,7 +9,7 @@ import {
 } from '@mantine/core';
 import { useDebouncedValue } from '@mantine/hooks';
 import { createSpotlight, Spotlight, useSpotlight } from '@mantine/spotlight';
-import { Fragment, useEffect, useRef, useState } from 'react';
+import { Fragment, useCallback, useEffect, useRef, useState } from 'react';
 import { BiLink, BiPlus, BiSearch } from 'react-icons/bi';
 import { useValue } from 'tldraw';
 import UrlOptionRow from '@/features/cards/components/urlOptionRow/UrlOptionRow';
@@ -30,9 +31,15 @@ interface Props {
   quickAdd: QuickAddController;
 }
 
+// How close to the end of the list the next page starts loading
+const LOAD_MORE_DISTANCE = 120;
+const LOAD_MORE_MARGIN = `0px 0px ${LOAD_MORE_DISTANCE}px 0px`;
+
 export default function QuickAdd(props: Props) {
   const [[store, spotlight]] = useState(createSpotlight);
   const searchRef = useRef<HTMLInputElement>(null);
+  const [isNearEnd, setIsNearEnd] = useState(false);
+  const endMarkerRef = useRef<HTMLDivElement | null>(null);
   const [input, setInput] = useState('');
   const [query] = useDebouncedValue(input.trim(), 200);
   const scope = useValue(props.quickAdd.scope);
@@ -68,15 +75,66 @@ export default function QuickAdd(props: Props) {
     else spotlight.close();
   }, [isOpen, spotlight]);
 
-  // Results land after the query selected its first one, so the next arrow
-  // down starts at the top. A pasted link stays selected for Enter.
   const resultKeys = [
     ...linkResults.map((link) => link.url),
     ...collectionResults.map((collection) => collection.id),
   ].join(' ');
+  // Appended pages keep the selection, so only the first result counts
+  const resultsHead = [
+    kind,
+    scope,
+    query,
+    linkResults[0]?.url,
+    collectionResults[0]?.id,
+  ].join(' ');
+  // Results land after the query selected its first one, so the next arrow
+  // down starts at the top. A pasted link stays selected for Enter.
   useEffect(() => {
     if (!url) store.setState((state) => ({ ...state, selected: -1 }));
-  }, [resultKeys, url, store]);
+  }, [resultsHead, url, store]);
+
+  // Watches the end of the list from inside Spotlight's scroll area, whose
+  // viewport it doesn't hand out
+  const setEndMarker = useCallback((el: HTMLDivElement | null) => {
+    endMarkerRef.current = el;
+    if (!el) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => setIsNearEnd(entry.isIntersecting),
+      {
+        root: el.closest('[data-scrollarea-viewport]'),
+        rootMargin: LOAD_MORE_MARGIN,
+      },
+    );
+    observer.observe(el);
+    return () => {
+      observer.disconnect();
+      setIsNearEnd(false);
+    };
+  }, []);
+
+  // A failed page waits for Retry rather than looping
+  const canLoadMore =
+    isNearEnd &&
+    active.hasNextPage &&
+    !active.isFetching &&
+    !active.isFetchNextPageError;
+  const { fetchNextPage } = active;
+  const loadedCount = linkResults.length + collectionResults.length;
+  useEffect(() => {
+    if (!canLoadMore) return;
+    // The observer's last report predates the rows that just landed, so the
+    // marker is measured again. Also loads when a page doesn't fill the list.
+    const marker = endMarkerRef.current;
+    const viewport = marker?.closest('[data-scrollarea-viewport]');
+    if (!marker || !viewport) return;
+    const distance =
+      marker.getBoundingClientRect().top -
+      viewport.getBoundingClientRect().bottom;
+    if (distance < LOAD_MORE_DISTANCE) fetchNextPage();
+  }, [canLoadMore, fetchNextPage, loadedCount]);
+
+  // The list shows its own spinner for a further page
+  const isSearching = active.isFetching && !active.isFetchingNextPage;
 
   const emptyMessage = () => {
     if (active.isError) return messages.failed;
@@ -115,7 +173,7 @@ export default function QuickAdd(props: Props) {
           aria-label={messages.prompt}
           placeholder={messages.prompt}
           leftSection={<BiSearch />}
-          rightSection={active.isFetching && <Loader size="xs" />}
+          rightSection={isSearching && <Loader size="xs" />}
           onKeyDown={(event) => {
             // Mantine moves the selection after this without telling
             // useSpotlight, which the footer hint reads
@@ -185,9 +243,30 @@ export default function QuickAdd(props: Props) {
               <CollectionOptionRow collection={collection} />
             </Spotlight.Action>
           ))}
+          {!url && active.isFetchingNextPage && (
+            <Group justify="center" py="xs">
+              <Loader size="xs" color="gray" />
+            </Group>
+          )}
           {!url && !resultKeys && emptyMessage() && (
             <Spotlight.Empty>{emptyMessage()}</Spotlight.Empty>
           )}
+          {!url && active.isFetchNextPageError && (
+            <Group justify="center" gap={4} py="xs">
+              <Text size="xs" c="dimmed">
+                Couldn&rsquo;t load more
+              </Text>
+              <Button
+                variant="subtle"
+                color="gray"
+                size="compact-xs"
+                onClick={() => active.fetchNextPage()}
+              >
+                Retry
+              </Button>
+            </Group>
+          )}
+          {!url && <div ref={setEndMarker} />}
         </Spotlight.ActionsList>
         <Spotlight.Footer>
           <Group justify="space-between">
