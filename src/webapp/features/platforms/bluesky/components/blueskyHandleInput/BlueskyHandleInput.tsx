@@ -53,7 +53,6 @@ export default function BlueskyHandleInput(props: Props) {
   return (
     <Combobox
       shadow="sm"
-      radius="md"
       store={combobox}
       onOptionSubmit={(handle) => {
         combobox.closeDropdown();

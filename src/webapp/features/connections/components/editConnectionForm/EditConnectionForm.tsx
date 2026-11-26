@@ -264,7 +264,6 @@ export default function EditConnectionForm(props: Props) {
               <Group gap={'xs'} align="center" justify="center">
                 <Combobox
                   shadow="sm"
-                  radius="md"
                   store={typeCombobox}
                   position="bottom"
                   width={320}

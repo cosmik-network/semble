@@ -174,7 +174,6 @@ function NoteEditor(props: PopupProps) {
       position="bottom"
       width={300}
       shadow="md"
-      radius="md"
       withinPortal={false}
       trapFocus
       opened={isOpen}

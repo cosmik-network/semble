@@ -92,7 +92,6 @@ export default function NoteTextarea({ value, onValueChange, ...rest }: Props) {
   return (
     <Combobox
       shadow="sm"
-      radius="md"
       store={combobox}
       width={280}
       position="bottom-start"

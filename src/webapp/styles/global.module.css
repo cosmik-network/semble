@@ -3,6 +3,9 @@
 }
 
 .option {
+  /* The dropdown's radius less its padding, so the corners stay parallel */
+  border-radius: calc(var(--mantine-radius-lg) - var(--combobox-padding));
+
   &[data-combobox-selected] {
     color: var(--mantine-color-white);
 
