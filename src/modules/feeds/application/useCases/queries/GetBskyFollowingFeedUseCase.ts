@@ -33,8 +33,11 @@ import {
   UserAnnotatedUrlMetadata,
 } from '../../../domain/FeedActivity';
 import { ActivityType as ActivityTypeEnum } from '@semble/types';
-import { toUrlMetadataDTO } from 'src/modules/cards/domain/value-objects/urlMetadataMapping';
 import { toAnnotationCardDTO } from '../../services/AnnotationCardDto';
+import {
+  ConnectionFeedData,
+  hydrateConnectionFeedData,
+} from '../../services/ConnectionFeedData';
 import { IIdentityResolutionService } from 'src/modules/atproto/domain/services/IIdentityResolutionService';
 import { DIDOrHandle } from 'src/modules/atproto/domain/DIDOrHandle';
 
@@ -452,31 +455,8 @@ export class GetBskyFollowingFeedUseCase implements UseCase<
         (activity) => activity.connectionCreated,
       );
 
-      let connectionDataMap = new Map<
-        string,
-        {
-          id: string;
-          type?: string;
-          note?: string;
-          createdAt: string;
-          updatedAt: string;
-          curatorId: string;
-          sourceUrl: string;
-          sourceUrlMetadata?: any;
-          targetUrl: string;
-          targetUrlMetadata?: any;
-        }
-      >();
+      let connectionDataMap = new Map<string, ConnectionFeedData>();
       let connectionCuratorProfiles = new Map<string, any>();
-      let connectionUrlStatsMap = new Map<
-        string,
-        {
-          urlLibraryCount: number;
-          urlInLibrary?: boolean;
-          urlConnectionCount?: number;
-          urlIsConnected?: boolean;
-        }
-      >();
 
       if (connectionActivities.length > 0) {
         // Get unique connection IDs
@@ -506,29 +486,16 @@ export class GetBskyFollowingFeedUseCase implements UseCase<
           return err(AppError.UnexpectedError.create(connectionsResult.error));
         }
 
-        const connections = connectionsResult.value;
-
-        // Build connection data map
-        for (const connection of connections) {
-          const sourceUrl = connection.source.url?.value;
-          const targetUrl = connection.target.url?.value;
-
-          // Only include connections where both source and target are URLs
-          if (sourceUrl && targetUrl) {
-            connectionDataMap.set(connection.connectionId.getStringValue(), {
-              id: connection.connectionId.getStringValue(),
-              type: connection.type?.value,
-              note: connection.note?.value,
-              createdAt: connection.createdAt.toISOString(),
-              updatedAt: connection.updatedAt.toISOString(),
-              curatorId: connection.curatorId.value,
-              sourceUrl,
-              sourceUrlMetadata: connection.sourceUrlMetadata,
-              targetUrl,
-              targetUrlMetadata: connection.targetUrlMetadata,
-            });
-          }
-        }
+        // Hydrate typed endpoints (URL or annotation card); the shared
+        // annotation view and card author maps are extended in place
+        connectionDataMap = await hydrateConnectionFeedData(
+          connectionsResult.value,
+          this.cardQueryRepository,
+          profileEnricher,
+          annotationViewMap,
+          cardAuthorProfiles,
+          query.callingUserId,
+        );
 
         // Get unique curator IDs for connections
         const connectionCuratorIds = [
@@ -557,33 +524,6 @@ export class GetBskyFollowingFeedUseCase implements UseCase<
         }
 
         connectionCuratorProfiles = connectionCuratorProfilesResult.value;
-
-        // Fetch URL library info for connection URLs
-        const connectionUrls = Array.from(
-          new Set([
-            ...Array.from(connectionDataMap.values()).map((c) => c.sourceUrl),
-            ...Array.from(connectionDataMap.values()).map((c) => c.targetUrl),
-          ]),
-        );
-
-        const connectionUrlLibraryInfoMap =
-          await this.cardQueryRepository.getBatchUrlLibraryInfo(
-            connectionUrls,
-            query.callingUserId,
-          );
-
-        // Build a map of URL to stats for easy lookup
-        connectionUrls.forEach((url) => {
-          const urlInfo = connectionUrlLibraryInfoMap.get(url);
-          if (urlInfo) {
-            connectionUrlStatsMap.set(url, {
-              urlLibraryCount: urlInfo.urlLibraryCount,
-              urlInLibrary: urlInfo.urlInLibrary,
-              urlConnectionCount: urlInfo.urlConnectionCount,
-              urlIsConnected: urlInfo.urlIsConnected,
-            });
-          }
-        });
       }
 
       // Transform activities to FeedItem in chronological order
@@ -698,58 +638,6 @@ export class GetBskyFollowingFeedUseCase implements UseCase<
             continue; // Skip if we can't get curator profile
           }
 
-          // Build UrlView for source and target
-          // Extract metadata props to avoid the value object wrapper
-          const sourceUrlStats = connectionUrlStatsMap.get(
-            connectionData.sourceUrl,
-          ) || {
-            urlLibraryCount: 0,
-            urlInLibrary: undefined,
-            urlConnectionCount: undefined,
-            urlIsConnected: undefined,
-          };
-
-          const targetUrlStats = connectionUrlStatsMap.get(
-            connectionData.targetUrl,
-          ) || {
-            urlLibraryCount: 0,
-            urlInLibrary: undefined,
-            urlConnectionCount: undefined,
-            urlIsConnected: undefined,
-          };
-
-          const sourceUrlView = {
-            url: connectionData.sourceUrl,
-            metadata: toUrlMetadataDTO({
-              ...(connectionData.sourceUrlMetadata?.props ||
-                connectionData.sourceUrlMetadata),
-              url:
-                connectionData.sourceUrlMetadata?.props?.url ||
-                connectionData.sourceUrlMetadata?.url ||
-                connectionData.sourceUrl,
-            }),
-            urlLibraryCount: sourceUrlStats.urlLibraryCount,
-            urlInLibrary: sourceUrlStats.urlInLibrary,
-            urlConnectionCount: sourceUrlStats.urlConnectionCount,
-            urlIsConnected: sourceUrlStats.urlIsConnected,
-          };
-
-          const targetUrlView = {
-            url: connectionData.targetUrl,
-            metadata: toUrlMetadataDTO({
-              ...(connectionData.targetUrlMetadata?.props ||
-                connectionData.targetUrlMetadata),
-              url:
-                connectionData.targetUrlMetadata?.props?.url ||
-                connectionData.targetUrlMetadata?.url ||
-                connectionData.targetUrl,
-            }),
-            urlLibraryCount: targetUrlStats.urlLibraryCount,
-            urlInLibrary: targetUrlStats.urlInLibrary,
-            urlConnectionCount: targetUrlStats.urlConnectionCount,
-            urlIsConnected: targetUrlStats.urlIsConnected,
-          };
-
           feedItems.push({
             id: activity.activityId.getStringValue(),
             activityType: 'CONNECTION_CREATED' as const,
@@ -764,8 +652,8 @@ export class GetBskyFollowingFeedUseCase implements UseCase<
                 updatedAt: connectionData.updatedAt,
                 curator,
               },
-              source: sourceUrlView,
-              target: targetUrlView,
+              source: connectionData.source,
+              target: connectionData.target,
             },
           } as ConnectionCreatedFeedItem);
         } else if (activity.userAnnotatedUrl) {

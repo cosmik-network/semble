@@ -2,7 +2,7 @@ import { z } from 'zod';
 import { UserSchema } from './user';
 import { AnnotationCardSchema, UrlCardSchema } from './card';
 import { CollectionSchema } from './collection';
-import { ConnectionWithSourceAndTargetSchema } from './connection';
+import { ConnectionWithEndpointsAndCuratorSchema } from './connection';
 
 export enum ActivityType {
   CARD_COLLECTED = 'CARD_COLLECTED',
@@ -37,9 +37,11 @@ export const CardCollectedFeedItemSchema = BaseFeedItemSchema.extend({
 });
 export type CardCollectedFeedItem = z.infer<typeof CardCollectedFeedItemSchema>;
 
+// Connection endpoints can be URLs or annotation cards — the same
+// discriminated-union shape the connection endpoints return
 export const ConnectionCreatedFeedItemSchema = BaseFeedItemSchema.extend({
   activityType: z.literal(ActivityType.CONNECTION_CREATED),
-  connection: ConnectionWithSourceAndTargetSchema,
+  connection: ConnectionWithEndpointsAndCuratorSchema,
 });
 export type ConnectionCreatedFeedItem = z.infer<
   typeof ConnectionCreatedFeedItemSchema
