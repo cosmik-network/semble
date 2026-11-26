@@ -238,7 +238,7 @@ export const cardsContract = c.router(
       responses: { 200: SearchUrlsResponseSchema },
       summary: 'Search cards',
       description:
-        'Full-text search across URL Cards titles, descriptions and URLs. With cardType=ANNOTATION, matches annotation notes, highlighted passages and URLs; cardType=ALL blends both (URL and annotation pages fetched with parallel offset windows, so cross-type interleaving is approximate for pages beyond the first). Defaults to URL-only for backward compatibility.',
+        'Full-text search across URL Cards titles, descriptions and URLs. With cardType=ANNOTATION, matches annotation notes, highlighted passages and URLs; cardType=ALL (the default) blends both (URL and annotation pages fetched with parallel offset windows, so cross-type interleaving is approximate for pages beyond the first). Pass cardType=URL for URL-only results.',
     },
     cardById: {
       method: 'GET',

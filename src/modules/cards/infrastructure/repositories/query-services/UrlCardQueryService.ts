@@ -131,7 +131,12 @@ export class UrlCardQueryService {
               ${cards.contentData}->'metadata'->>'title' ILIKE ${pattern} OR
               ${cards.contentData}->'metadata'->>'description' ILIKE ${pattern} OR
               ${cards.contentData}->>'note' ILIKE ${pattern} OR
-              ${cards.url} ILIKE ${pattern}
+              ${cards.url} ILIKE ${pattern} OR
+              EXISTS (
+                SELECT 1 FROM ${annotationSelectors} search_selectors
+                WHERE search_selectors.card_id = ${cards.id}
+                  AND search_selectors.exact ILIKE ${pattern}
+              )
             )`,
           );
         }

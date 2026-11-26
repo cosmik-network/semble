@@ -1298,5 +1298,32 @@ describe('DrizzleCardQueryRepository - getUrlCardsOfUser', () => {
         },
       ]);
     });
+
+    it('matches searchText against the annotation passage', async () => {
+      const url = URL.create('https://example.com/annotated-search').unwrap();
+      const annotationCard = new CardBuilder()
+        .withCuratorId(curatorId.value)
+        .withAnnotationCard(url, [
+          { exact: 'the committee found no evidence of collusion' },
+        ])
+        .buildOrThrow();
+      await cardRepository.save(annotationCard);
+      annotationCard.addToLibrary(curatorId);
+      await cardRepository.save(annotationCard);
+
+      // Passage text lives in annotation_selectors, not contentData — the
+      // search must reach it for annotation cards to be findable
+      const result = await queryRepository.getUrlCardsOfUser(curatorId.value, {
+        page: 1,
+        limit: 10,
+        sortBy: CardSortField.UPDATED_AT,
+        sortOrder: SortOrder.DESC,
+        cardTypes: [CardTypeEnum.URL, CardTypeEnum.ANNOTATION],
+        searchText: 'committee collusion',
+      });
+
+      expect(result.items).toHaveLength(1);
+      expect(result.items[0]!.type).toBe(CardTypeEnum.ANNOTATION);
+    });
   });
 });

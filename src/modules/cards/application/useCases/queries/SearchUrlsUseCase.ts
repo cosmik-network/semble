@@ -28,7 +28,7 @@ export interface SearchUrlsQuery {
   urlType?: UrlType;
   authorDid?: DID;
   collectionId?: CollectionId;
-  /** URL (default, backward compatible), ANNOTATION, or ALL for blended */
+  /** ALL (default, blended), URL, or ANNOTATION */
   cardType?: 'URL' | 'ANNOTATION' | 'ALL';
 }
 
@@ -63,7 +63,7 @@ export class SearchUrlsUseCase implements UseCase<
     const limit = Math.min(query.limit || 20, 100); // Cap at 100
     const sortBy = query.sortBy || CardSortField.UPDATED_AT;
     const sortOrder = query.sortOrder || SortOrder.DESC;
-    const cardType = query.cardType || 'URL';
+    const cardType = query.cardType || 'ALL';
 
     // Validate urlType if provided
     if (query.urlType && !Object.values(UrlType).includes(query.urlType)) {

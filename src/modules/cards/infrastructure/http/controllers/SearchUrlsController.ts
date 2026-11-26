@@ -33,7 +33,7 @@ export class SearchUrlsController extends Controller {
       // Parse urlType filter
       const urlType = req.query.urlType as UrlType | undefined;
 
-      // Parse cardType filter (URL default, ANNOTATION, or ALL)
+      // Parse cardType filter (ALL default, URL, or ANNOTATION)
       const cardType = req.query.cardType as
         | 'URL'
         | 'ANNOTATION'
