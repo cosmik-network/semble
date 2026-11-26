@@ -21,7 +21,9 @@ export const cards: PgTableWithColumns<any> = pgTable(
     url: text('url'), // Optional URL field for all card types
     urlType: text('url_type'), // Optional URL type field (article, video, etc.)
     parentCardId: uuid('parent_card_id').references(() => cards.id),
-    viaCardId: uuid('via_card_id').references(() => cards.id),
+    viaCardId: uuid('via_card_id').references(() => cards.id, {
+      onDelete: 'set null',
+    }),
     publishedRecordId: uuid('published_record_id').references(
       () => publishedRecords.id,
     ),
