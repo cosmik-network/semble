@@ -1,6 +1,6 @@
 'use client';
 
-import { Container, Drawer } from '@mantine/core';
+import { Container, Drawer, FocusTrap } from '@mantine/core';
 import { DEFAULT_OVERLAY_PROPS } from '@/styles/overlays';
 import AddCardForm from './AddCardForm';
 import { Collection } from '@semble/types';
@@ -23,6 +23,8 @@ export default function AddCardDrawer(props: Props) {
       position="bottom"
       overlayProps={DEFAULT_OVERLAY_PROPS}
     >
+      {/* Focusing the URL input would open its dropdown */}
+      {props.selectedCollection && <FocusTrap.InitialFocus />}
       <Drawer.Header>
         <Drawer.Title fz={'xl'} fw={600} mx={'auto'}>
           New Card

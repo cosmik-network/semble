@@ -14,52 +14,17 @@ import { useValue } from 'tldraw';
 import UrlOptionRow from '@/features/cards/components/urlOptionRow/UrlOptionRow';
 import CreateCollectionDrawer from '@/features/collections/components/createCollectionDrawer/CreateCollectionDrawer';
 import { UPDATE_OVERLAY_PROPS } from '@/styles/overlays';
-import type {
-  QuickAdd as QuickAddController,
-  QuickAddKind,
-} from '../../controller/quickAdd';
-import useQuickAddCollections from '../../lib/queries/useQuickAddCollections';
+import type { QuickAdd as QuickAddController } from '../../controller/quickAdd';
+import useScopedCollectionSearch from '@/features/collections/lib/queries/useScopedCollectionSearch';
 import useLinkSearch from '../../lib/queries/useLinkSearch';
-import type { SearchScope } from '../../server/canvasServer';
 import { linkKey } from '../../model/linkCards';
-import CollectionOptionRow from './CollectionOptionRow';
+import {
+  SEARCH_KINDS,
+  SEARCH_MESSAGES,
+  SEARCH_SCOPES,
+} from '@/features/search/lib/searchScope';
+import CollectionOptionRow from '@/features/collections/components/collectionOptionRow/CollectionOptionRow';
 import classes from './QuickAdd.module.css';
-
-const SCOPES: { value: SearchScope; label: string }[] = [
-  { value: 'mine', label: 'Mine' },
-  { value: 'everyone', label: 'Everyone' },
-];
-
-const KINDS: { value: QuickAddKind; label: string }[] = [
-  { value: 'cards', label: 'Cards' },
-  { value: 'collections', label: 'Collections' },
-];
-
-const MESSAGES: Record<
-  SearchScope,
-  {
-    prompt: string;
-    failed: string;
-    noMatch: Record<QuickAddKind, string>;
-  }
-> = {
-  mine: {
-    prompt: 'Paste a link or search your library',
-    failed: "Couldn't search your library",
-    noMatch: {
-      cards: 'No cards in your library match',
-      collections: 'None of your collections match',
-    },
-  },
-  everyone: {
-    prompt: 'Paste a link or search all of Semble',
-    failed: "Couldn't search Semble",
-    noMatch: {
-      cards: 'No cards on Semble match',
-      collections: 'No collections on Semble match',
-    },
-  },
-};
 
 interface Props {
   quickAdd: QuickAddController;
@@ -79,14 +44,14 @@ export default function QuickAdd(props: Props) {
   );
   // Stays mounted with the board, so it only searches while open
   const links = useLinkSearch(scope, query, isOpen && kind === 'cards');
-  const collections = useQuickAddCollections(
+  const collections = useScopedCollectionSearch(
     scope,
     query,
     isOpen && kind === 'collections',
   );
   const active = kind === 'cards' ? links : collections;
   const url = linkKey(input);
-  const messages = MESSAGES[scope];
+  const messages = SEARCH_MESSAGES[scope];
   const linkResults = url || kind !== 'cards' ? [] : (links.data ?? []);
   const collectionResults =
     url || kind !== 'collections' ? [] : collections.collections;
@@ -167,7 +132,8 @@ export default function QuickAdd(props: Props) {
                 props.quickAdd.setKind(value);
                 searchRef.current?.focus();
               }}
-              data={KINDS}
+              data={SEARCH_KINDS}
+              aria-label="Search for"
               size="xs"
             />
           </div>
@@ -231,7 +197,8 @@ export default function QuickAdd(props: Props) {
                 props.quickAdd.setScope(value);
                 searchRef.current?.focus();
               }}
-              data={SCOPES}
+              data={SEARCH_SCOPES}
+              aria-label="Search in"
               size="xs"
             />
             <Group gap="md" visibleFrom="xs">

@@ -3,8 +3,12 @@
 }
 
 .option {
+  /* The dropdown's radius less its padding, so the corners stay parallel */
+  border-radius: calc(var(--mantine-radius-lg) - var(--combobox-padding));
+
+  /* Text keeps its own colour; only the background marks the selection */
   &[data-combobox-selected] {
-    color: var(--mantine-color-white);
+    color: inherit;
 
     @mixin light {
       background-color: var(--mantine-color-gray-2);

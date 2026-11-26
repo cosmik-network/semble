@@ -23,6 +23,7 @@ import {
   Menu,
   SegmentedControl,
   Anchor,
+  Popover,
 } from '@mantine/core';
 import { Lightbox } from '@mantine/lightbox';
 
@@ -197,11 +198,19 @@ export const theme = createTheme({
         },
       },
     }),
+    // Rounded like Menu; Select and the other inputs build their dropdowns
+    // from Combobox, so they take this too
     Combobox: Combobox.extend({
       defaultProps: {
+        radius: 'lg',
         classNames: {
           option: classes.option,
         },
+      },
+    }),
+    Popover: Popover.extend({
+      defaultProps: {
+        radius: 'lg',
       },
     }),
     Indicator: Indicator.extend({

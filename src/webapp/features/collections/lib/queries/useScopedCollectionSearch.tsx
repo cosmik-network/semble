@@ -1,13 +1,12 @@
-import useCollectionSearch from '@/features/collections/lib/queries/useCollectionSearch';
-import { useMyCollectionsInfinite } from '@/features/collections/lib/queries/useMyCollections';
-import useSearchCollections from '@/features/collections/lib/queries/useSearchCollections';
-import type { SearchScope } from '../../server/canvasServer';
+import type { SearchScope } from '@/features/search/lib/searchScope';
+import useCollectionSearch from './useCollectionSearch';
+import { useMyCollectionsInfinite } from './useMyCollections';
+import useSearchCollections from './useSearchCollections';
 
 const RESULTS = 8;
 
-// Collections to place from quick-add: the viewer's own, or
-// those matching the query, theirs or anyone's
-export default function useQuickAddCollections(
+// The viewer's own collections, or those matching the query, theirs or anyone's
+export default function useScopedCollectionSearch(
   scope: SearchScope,
   query: string,
   enabled: boolean,
