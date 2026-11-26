@@ -93,9 +93,12 @@ export function testCollection(
 }
 
 function linksMatching(links: UrlMetadata[], query: string) {
-  return links.filter((link) =>
-    `${link.title} ${link.url}`.toLowerCase().includes(query.toLowerCase()),
-  );
+  return {
+    links: links.filter((link) =>
+      `${link.title} ${link.url}`.toLowerCase().includes(query.toLowerCase()),
+    ),
+    hasMore: false,
+  };
 }
 
 export class FakeServer implements CanvasServer {
@@ -249,13 +252,13 @@ export class FakeServer implements CanvasServer {
     );
   }
 
-  async searchLibrary(query: string) {
-    this.calls.push({ method: 'searchLibrary', args: [query] });
+  async searchLibrary(query: string, page: number) {
+    this.calls.push({ method: 'searchLibrary', args: [query, page] });
     return linksMatching(this.library, query);
   }
 
-  async searchEveryone(query: string) {
-    this.calls.push({ method: 'searchEveryone', args: [query] });
+  async searchEveryone(query: string, page: number) {
+    this.calls.push({ method: 'searchEveryone', args: [query, page] });
     return linksMatching(this.everyone, query);
   }
 }

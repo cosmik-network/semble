@@ -1271,7 +1271,13 @@ describe('quick-add', () => {
     board.runAction('quick-add');
 
     // Act
-    const [result] = await board.queryClient.fetchQuery(
+    const {
+      pages: [
+        {
+          links: [result],
+        },
+      ],
+    } = await board.queryClient.fetchInfiniteQuery(
       linkSearchQuery(board.server, 'mine', 'climate'),
     );
     board.quickAdd.place(result.url);
@@ -1282,7 +1288,7 @@ describe('quick-add', () => {
     ]);
     expect(board.server.calls).toContainEqual({
       method: 'searchLibrary',
-      args: ['climate'],
+      args: ['climate', 1],
     });
   });
 
@@ -1295,22 +1301,28 @@ describe('quick-add', () => {
     board.runAction('quick-add');
 
     // Act
-    const mine = await board.queryClient.fetchQuery(
+    const mine = await board.queryClient.fetchInfiniteQuery(
       linkSearchQuery(board.server, 'mine', 'climate'),
     );
-    const [result] = await board.queryClient.fetchQuery(
+    const {
+      pages: [
+        {
+          links: [result],
+        },
+      ],
+    } = await board.queryClient.fetchInfiniteQuery(
       linkSearchQuery(board.server, 'everyone', 'climate'),
     );
     board.quickAdd.place(result.url);
 
     // Assert
-    expect(mine).toEqual([]);
+    expect(mine.pages[0].links).toEqual([]);
     expect(board.linkCards().map((card) => card.props.url)).toEqual([
       'https://example.com/climate',
     ]);
     expect(board.server.calls).toContainEqual({
       method: 'searchEveryone',
-      args: ['climate'],
+      args: ['climate', 1],
     });
   });
 
@@ -1322,12 +1334,12 @@ describe('quick-add', () => {
     ];
 
     // Act
-    const results = await board.queryClient.fetchQuery(
+    const results = await board.queryClient.fetchInfiniteQuery(
       linkSearchQuery(board.server, 'everyone', ''),
     );
 
     // Assert
-    expect(results).toEqual([]);
+    expect(results.pages[0].links).toEqual([]);
     expect(board.server.calls.map((call) => call.method)).not.toContain(
       'searchEveryone',
     );
