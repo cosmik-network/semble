@@ -192,7 +192,7 @@ Copy table (`{actor}` is the actor's handle, or `"Someone"` when it is unknown):
 | `USER_ADDED_SUBSCRIBED_COLLECTION`         | `{actor} added a collection you follow`           |
 | `USER_CONNECTED_SUBSCRIBED_COLLECTION`     | `{actor} connected a collection you follow`       |
 
-The copy is a first draft. To be reviewed. 
+The copy is a first draft. To be reviewed.
 
 ## 4. Preference gate
 
@@ -252,7 +252,9 @@ Fan-out, in order:
 3. **Dedupe.** `SET push:sent:<sha256(recipient|actor|type|metadata)> 1 EX 3600 NX` on the saga state store. `null` back means we already pushed this one: return. (D6)
 4. Read the unread count and the actor handle. Build the payload.
 5. Send to each token in parallel. Per token: up to 3 attempts, backoff 500 ms then 1500 ms, 5 s timeout per attempt. The whole step has a 15 s ceiling.
-6. After the retries: log `push.dropped` with a counter and move on.
+6. After the retries: log `push.dropped` with a counter and move on. The 15 s ceiling also logs `push.dropped`, with `reason: "deadline"`. That line does not prove the push failed (see section 9).
+
+Timing logs. `push.attempt` records `durationMs` for each send, without the backoff. `push.timing` records how long `save` waited on the whole step, with `result` set to `completed`, `deadline` or `error`. Skipped pushes log `push.timing` too, so filter them out when you measure send latency.
 
 The step catches everything. The DB write has already committed. The handler returns `ok`. APNs trouble cannot fail the job, cannot trigger a BullMQ retry, and cannot poison the queue.
 
@@ -263,12 +265,14 @@ the phone twice. The 1 h TTL covers BullMQ's retry window (3 attempts, 2 s
 exponential backoff). A user who really repeats the same action after an hour
 gets a new push.
 
+The key does not cover retries inside one fan-out. We check it once, before the first attempt. A retry after a lost reply can send the same push twice (see section 9).
+
 Only new events push. The decorator only sees `save()` calls made while a worker
 handles a live event. Nothing replays or backfills history.
 
 ## 6. Config, secrets, flag
 
-Environment variables, read in `EnvironmentConfigService` (new `getApnsConfig()`):
+Environment variables, read in `EnvironmentConfigService` (new `getPushConfig()`):
 
 | Variable                     | Purpose                                                                                                                                         |
 | ---------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -300,6 +304,140 @@ The flag defaults off. With it off, the worker runs the plain repository code pa
 - **Q2.** API-key auth on `registerPushToken` is allowed in v1. JWT or session stays the primary path for the app.
 - **Q3.** Retries run inline: 3 attempts, 15 s ceiling. Revisit a dedicated queue only if APNs latency hurts worker throughput.
 - **Q4.** Copy is an English-only draft for all 15 types. Product reviews it before wider rollout. D8 stands.
+
+## 9. Future channels and a delivery worker
+
+This section covers the backend only. It does not change the API or payload contract.
+
+### Decision
+
+We do not add a delivery worker now. The notification worker sends push inline. `PushNotifyingNotificationRepository` writes the row, then calls `PushFanout`.
+
+**Revisit this if:**
+
+- We plan to add email or another delivery channel very soon. Build the delivery queue and worker before that channel.
+- APNs latency hurts notification worker throughput (see Q3). The `push.timing` and `push.attempt` logs record how long push takes (see section 5).
+- Missed deliveries stop being acceptable.
+
+### Why not now
+
+- Push is the only outside delivery channel we are building. It is best effort. The in-app tab is the source of truth.
+- A new worker needs a job format, a queue, routing, a worker entry point, build and dev script entries, and a Fly process. We would also have to run and monitor it.
+- The decorator leaves the existing handlers unchanged.
+
+### What we accept
+
+- **Shared capacity.** `save` waits for the push, for up to 15 s. A slow APNs can delay in-app notifications.
+- **Deadline.** At 15 s the worker stops waiting. It does not cancel the send or the remaining retries. Three 5 s timeouts and 2 s of backoff add up to 17 s, so this can happen.
+- **Misleading deadline log.** The deadline logs `push.dropped` with `reason: "deadline"`. The push may still succeed after that line. A later `push.attempt` with `status: "sent"` shows that APNs accepted it. If the process stops first, the push can be lost.
+- **Duplicate pushes.** APNs may accept a push while its reply does not reach us in time. We treat that as a failed attempt and retry, so the user can get the same push twice. The dedupe key does not stop this. We check it once, before the first attempt. Both copies carry the same `notification_id`.
+- **Lost pushes.** The in-process retries do not survive a crash. The worker claims the dedupe key before it sends, so a crash after the claim means a redelivered job skips the push.
+- **Hidden side effect.** A repository sends network requests. A reader of `NotificationService` cannot see this.
+
+### Capacity
+
+The `notifications` queue sets `concurrency: 10` (`QueueConfig.ts`). The limit applies to each worker instance. We can run more than one. They share the queue and the Redis dedupe keys.
+
+This estimate uses 92 weekly users (November 2026). The other numbers are **assumptions, not measurements**: 50 notifications per user per week, one notification per job, and 10 jobs at once.
+
+- 4,600 a week is about 27 an hour, or one every 2 minutes.
+
+| Time per job           | One worker handles             |
+| ---------------------- | ------------------------------ |
+| 0.5 s (assumed normal) | 20 per second                  |
+| 5 s (assumed slow)     | 2 per second                   |
+| 15 s (push deadline)   | 0.67 per second, 2,400 an hour |
+
+Jobs in progress equal arrivals per second times seconds per job. A burst at 100 times the average is about 0.76 per second. At 0.5 s per job, that is less than one job in progress. At 15 s, it is about 11, so a backlog grows while the burst lasts.
+
+Under these assumptions, one worker has enough capacity. A second one may help if a machine fails. A job that notifies several people takes longer. The queue also carries events that create no notification.
+
+The Fly config does not set the number of notification workers. `fly scale show` and `fly status` show what is deployed.
+
+To check the estimate, find the busiest hours in production. This counts only rows still in the table, and it can hide short spikes.
+
+```sql
+select date_trunc('hour', created_at) as hour, count(*)
+from notifications
+where created_at > now() - interval '7 days'
+group by 1
+order by 2 desc
+limit 10;
+```
+
+**Result, run on 2026-11-26** (production, the 7 days before):
+
+- The busiest hour had **37** notifications, about one every 97 seconds on average. The next busiest had 33, 29 and 28. The tenth had 16.
+- The week had **at most 2,767** notifications. The top ten hours add up to 239. Each of the other 158 hours had 16 or fewer. The real total may be much lower. The assumed 4,600 a week was too high.
+- The peak hour is about 1.5% of the 2,400 an hour that one worker can handle at 15 s per job. If all 37 arrived at once, one per job, 10 slots would clear them in about 60 s at 15 s per job, or about 2 s at 0.5 s per job.
+
+One notification worker has enough capacity for this traffic. This is one week of data. It does not show shorter spikes, job times, queue wait or bursts to one recipient. Check again as traffic grows.
+
+Also watch the push timing logs and the queue backlog. The timing logs do not measure how long a job waits in the queue.
+
+More workers add capacity. Each `save` still waits just as long.
+
+### Options for splitting delivery
+
+A delivery queue does not make APNs faster, and delivery still needs resources. It changes what a slow provider holds up. `save` would wait for Postgres and for Redis to accept the delivery job. It would not wait for APNs. At our estimated size, the reason to split is isolation or new channels, not capacity.
+
+| Option                                      | Resources        | What it separates                                                    |
+| ------------------------------------------- | ---------------- | -------------------------------------------------------------------- |
+| Keep push inline (now)                      | No new machine   | Nothing                                                              |
+| New queue, consumed by the existing process | No new machine   | Job slots and delivery retries. CPU, memory and crashes stay shared. |
+| New queue and a new process                 | One more machine | Also CPU, memory, crashes, deploys and scaling                       |
+
+In the middle option, one process runs two BullMQ `Worker` instances, one for each queue, each with its own concurrency. `BaseWorkerProcess` handles one queue today, so this needs a code change.
+
+### Why email changes the answer
+
+Another decorator, or a list of channels in this one, could send an email right away. It would add more waiting inside `save`. Email may also need to wait (send only if still unread after an hour) or batch (a daily digest). Delayed or scheduled jobs fit that. `save` does not.
+
+### Delivery worker design
+
+```
+event → notification worker: save row → add delivery job
+        delivery queue → delivery worker → push / email
+```
+
+A delivery worker isolates slow providers, lets BullMQ keep and retry jobs, and can scale on its own. A separate queue and a separate process are two choices. The queue separates delivery retries from the notification write. The process also isolates memory, crashes and scaling. One delivery worker can serve both channels at first.
+
+It still has to handle:
+
+- **Duplicates.** A job can run more than once, so we still need dedupe. A redelivered event can also create a second notification row.
+- **Partial failure.** Use a separate job for each channel, so an email retry does not resend a push. Track push retries for each device.
+- **Lost handoff.** The row can be saved and the delivery job never added. An outbox closes this gap. The worker writes the notification and a pending delivery record in one Postgres transaction. A relay then adds the job to the queue. The relay can add a job twice, so dedupe stays. An outbox does not guarantee that a provider delivers the message. We would add one only for messages that must not be lost.
+- **Job format.** The two workers deploy separately, so format changes must stay compatible.
+
+The device token and preference tables, the endpoints, the payload builder and the APNs client can stay. `PushGate` can move to the delivery worker. Wiring, retries, dedupe and their tests would change. Email preferences and copy are not designed yet. We will design a multi-channel interface once we know what email needs.
+
+## 10. Combining pushes: deferred
+
+**Today.** If three people save a user's post at the same time, the user gets three notifications and the worker attempts three pushes. Each has a different actor, so each has a different dedupe key. The card activity saga groups one actor's actions on one card. It does not group across actors.
+
+**Decision.** We do not combine pushes in this release. Every notification is sent separately, and we do not set `apns-collapse-id`. At our estimated volume (section 9), capacity does not call for it.
+
+**Revisit this if** users report too many pushes, or production data shows frequent bursts to one recipient. To check, group the hourly query in section 9 by `recipient_user_id` too.
+
+### Choices
+
+| Choice                | What the user gets                              | What it takes                                                            |
+| --------------------- | ----------------------------------------------- | ------------------------------------------------------------------------ |
+| Sending together      | No change                                       | APNs takes one request per device token. Our client reuses a connection. |
+| Grouping on the phone | Separate notifications, stacked by iOS          | Add `aps.thread-id`. Agree on grouping values with the iOS team.         |
+| Combining             | One message, such as "3 people added your card" | Wait, collect events, then send a summary                                |
+| Replacing             | A newer notification replaces an older one      | `apns-collapse-id`, which this contract rules out                        |
+
+If pushes feel noisy, try grouping first. It is a small change and keeps each `notification_id`. It organizes notifications. It does not by itself reduce sounds or alerts. It changes the payload, so update this contract with the iOS team.
+
+### What combining would affect
+
+- **Waiting.** We must choose how long to collect events. A longer wait combines more and delays the push. This needs a delayed job. It must not wait inside `save`.
+- **App behavior.** One push stands for several notification rows. We must decide what `notification_id` means and where a tap goes. The iOS team must agree.
+- **Changes while waiting.** The user may read a notification or turn push off. The actor may undo the action. We must check again before we send.
+- **Retries and duplicates.** We must track which notifications each summary includes.
+
+Product decides when to combine notifications.
 
 ---
 
