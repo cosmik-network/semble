@@ -15,4 +15,11 @@ describe('BullMQEventPublisher queue routing', () => {
   ])('routes %s to the notifications queue', (eventName) => {
     expect(targetQueues(eventName)).toContain(QueueNames.NOTIFICATIONS);
   });
+
+  it('routes card removal to notifications and search (vector cleanup)', () => {
+    expect(targetQueues(EventNames.CARD_REMOVED_FROM_LIBRARY)).toEqual([
+      QueueNames.NOTIFICATIONS,
+      QueueNames.SEARCH,
+    ]);
+  });
 });

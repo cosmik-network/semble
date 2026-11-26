@@ -2,10 +2,16 @@ import { Result, ok, err } from '../../../shared/core/Result';
 import {
   IVectorDatabase,
   IndexUrlParams,
+  IndexAnnotationParams,
   SemanticSearchUrlsParams,
+  SemanticSearchCardsParams,
+  CardSearchResult,
   UrlSearchResult,
 } from '../domain/IVectorDatabase';
 import { UrlMetadataProps } from '../../cards/domain/value-objects/UrlMetadata';
+import { annotationVectorId } from '../domain/value-objects/AnnotationVectorId';
+import { CardTypeEnum } from '../../cards/domain/value-objects/CardType';
+import { UrlType } from '../../cards/domain/value-objects/UrlType';
 
 interface IndexedUrl {
   url: string;
@@ -14,9 +20,21 @@ interface IndexedUrl {
   indexedAt: Date;
 }
 
+interface IndexedAnnotation {
+  url: string;
+  exactNormalized: string;
+  passage: string;
+  urlType?: string;
+  indexedAt: Date;
+}
+
+// Mirrors UpstashVectorDatabase.MAX_HITS_PER_URL
+const MAX_HITS_PER_URL = 2;
+
 export class InMemoryVectorDatabase implements IVectorDatabase {
   private static instance: InMemoryVectorDatabase;
   private urls: Map<string, IndexedUrl> = new Map();
+  private annotations: Map<string, IndexedAnnotation> = new Map();
 
   private constructor() {}
 
@@ -70,44 +88,138 @@ export class InMemoryVectorDatabase implements IVectorDatabase {
   async semanticSearchUrls(
     params: SemanticSearchUrlsParams,
   ): Promise<Result<UrlSearchResult[]>> {
+    const cardsResult = await this.semanticSearchCards({
+      ...params,
+      cardType: CardTypeEnum.URL,
+    });
+    if (cardsResult.isErr()) {
+      return err(
+        new Error(`Failed to search URLs: ${cardsResult.error.message}`),
+      );
+    }
+    return ok(
+      cardsResult.value
+        .filter(
+          (
+            result,
+          ): result is Extract<
+            CardSearchResult,
+            { cardType: typeof CardTypeEnum.URL }
+          > => result.cardType === CardTypeEnum.URL,
+        )
+        .map(({ url, similarity, metadata }) => ({
+          url,
+          similarity,
+          metadata,
+        })),
+    );
+  }
+
+  async indexAnnotation(params: IndexAnnotationParams): Promise<Result<void>> {
     try {
-      console.log('Searching through', this.urls.size, 'indexed URLs');
-      const results: UrlSearchResult[] = [];
-      const queryTerms = this.extractSearchTerms(params.query);
-
-      console.log('Search terms:', queryTerms);
-
-      for (const [url, indexed] of this.urls.entries()) {
-        // Filter by URL type if specified
-        if (params.urlType && indexed.metadata.type !== params.urlType) {
-          continue;
-        }
-
-        const matchScore = this.calculateTextMatch(queryTerms, indexed.content);
-
-        console.log(`Match score for "${indexed.content}": ${matchScore}`);
-
-        // Include result if any search terms match
-        if (matchScore > 0) {
-          results.push({
-            url: indexed.url,
-            similarity: matchScore, // Use match score as similarity
-            metadata: indexed.metadata,
-          });
-        }
-      }
-
-      // Sort by match score (highest first) and limit results
-      results.sort((a, b) => b.similarity - a.similarity);
-      const limitedResults = results.slice(0, params.limit);
-
-      console.log(`Found ${limitedResults.length} matching URLs`);
-
-      return ok(limitedResults);
+      const id = annotationVectorId(params.url, params.exactNormalized);
+      this.annotations.set(id, {
+        url: params.url,
+        exactNormalized: params.exactNormalized,
+        passage: params.passage,
+        urlType: params.urlType,
+        indexedAt: new Date(),
+      });
+      return ok(undefined);
     } catch (error) {
       return err(
         new Error(
-          `Failed to search URLs: ${error instanceof Error ? error.message : 'Unknown error'}`,
+          `Failed to index annotation: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        ),
+      );
+    }
+  }
+
+  async semanticSearchCards(
+    params: SemanticSearchCardsParams,
+  ): Promise<Result<CardSearchResult[]>> {
+    try {
+      const queryTerms = this.extractSearchTerms(params.query);
+      const threshold = params.threshold || 0.3;
+      const results: CardSearchResult[] = [];
+
+      // cardType routes the query to namespaces — it is never a metadata filter
+      if (params.cardType !== CardTypeEnum.ANNOTATION) {
+        for (const indexed of this.urls.values()) {
+          if (params.urlType && indexed.metadata.type !== params.urlType) {
+            continue;
+          }
+
+          const matchScore = this.calculateTextMatch(
+            queryTerms,
+            indexed.content,
+          );
+          if (matchScore >= threshold) {
+            results.push({
+              cardType: CardTypeEnum.URL,
+              url: indexed.url,
+              similarity: matchScore,
+              metadata: indexed.metadata,
+            });
+          }
+        }
+      }
+
+      if (params.cardType !== CardTypeEnum.URL) {
+        for (const indexed of this.annotations.values()) {
+          if (params.urlType && indexed.urlType !== params.urlType) {
+            continue;
+          }
+
+          const matchScore = this.calculateTextMatch(
+            queryTerms,
+            indexed.passage,
+          );
+          if (matchScore >= threshold) {
+            results.push({
+              cardType: CardTypeEnum.ANNOTATION,
+              url: indexed.url,
+              exactNormalized: indexed.exactNormalized,
+              similarity: matchScore,
+              urlType: indexed.urlType as UrlType | undefined,
+            });
+          }
+        }
+      }
+
+      // Same merge semantics as UpstashVectorDatabase: sort by similarity,
+      // cap hits per URL across both card types, then limit.
+      const perUrlCount = new Map<string, number>();
+      const merged = results
+        .sort((a, b) => b.similarity - a.similarity)
+        .filter((result) => {
+          const count = (perUrlCount.get(result.url) ?? 0) + 1;
+          perUrlCount.set(result.url, count);
+          return count <= MAX_HITS_PER_URL;
+        })
+        .slice(0, params.limit);
+
+      return ok(merged);
+    } catch (error) {
+      return err(
+        new Error(
+          `Failed to search cards: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        ),
+      );
+    }
+  }
+
+  async deleteAnnotation(
+    url: string,
+    exactNormalized: string,
+  ): Promise<Result<void>> {
+    try {
+      this.annotations.delete(annotationVectorId(url, exactNormalized));
+      return ok(undefined);
+    } catch (error) {
+      return err(
+        new Error(
+          `Failed to delete annotation: ${error instanceof Error ? error.message : 'Unknown error'}`,
         ),
       );
     }
@@ -163,10 +275,11 @@ export class InMemoryVectorDatabase implements IVectorDatabase {
   }
 
   /**
-   * Clear all indexed URLs (useful for testing)
+   * Clear all indexed URLs and annotations (useful for testing)
    */
   clear(): void {
     this.urls.clear();
+    this.annotations.clear();
   }
 
   /**
@@ -174,6 +287,13 @@ export class InMemoryVectorDatabase implements IVectorDatabase {
    */
   getIndexedUrlCount(): number {
     return this.urls.size;
+  }
+
+  /**
+   * Get count of indexed annotations (useful for testing/monitoring)
+   */
+  getIndexedAnnotationCount(): number {
+    return this.annotations.size;
   }
 
   /**

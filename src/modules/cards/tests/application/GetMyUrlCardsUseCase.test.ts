@@ -701,6 +701,11 @@ describe('GetUrlCardsUseCase', () => {
         getBatchUrlStats: jest.fn(),
         getUsersForUrls: jest.fn(),
         getUrlsSavedByUser: jest.fn(),
+        getUrlTypes: jest.fn().mockResolvedValue(new Map()),
+        getAnnotationCardsByPassages: jest.fn().mockResolvedValue(new Map()),
+        searchAnnotations: jest
+          .fn()
+          .mockResolvedValue({ items: [], totalCount: 0, hasMore: false }),
         getBatchUserActivityStats: jest.fn(),
         searchUrls: jest.fn(),
         getProfileCardStats: jest.fn(),

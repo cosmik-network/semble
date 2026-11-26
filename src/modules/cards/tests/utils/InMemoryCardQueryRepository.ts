@@ -21,10 +21,13 @@ import {
   UrlConnectionCounts,
   UserActivityStats,
   SearchUrlsOptions,
+  SearchAnnotationsOptions,
   UrlSearchResultDTO,
 } from '../../domain/ICardQueryRepository';
 import { CardTypeEnum } from '../../domain/value-objects/CardType';
+import { UrlType } from '../../domain/value-objects/UrlType';
 import { SelectorTypeEnum } from '../../domain/value-objects/selectors/SelectorType';
+import { annotationPassageKey } from '../../domain/value-objects/selectors/normalizeQuotedText';
 import { InMemoryCardRepository } from './InMemoryCardRepository';
 import { InMemoryCollectionRepository } from './InMemoryCollectionRepository';
 import { IConnectionRepository } from '../../domain/IConnectionRepository';
@@ -1054,6 +1057,31 @@ export class InMemoryCardQueryRepository implements ICardQueryRepository {
     return viewMap;
   }
 
+  async getAnnotationCardsByPassages(
+    passages: { url: string; exactNormalized: string }[],
+  ): Promise<Map<string, AnnotationCardView[]>> {
+    const viewMap = new Map<string, AnnotationCardView[]>();
+    const seen = new Set<string>();
+    for (const passage of passages) {
+      const key = annotationPassageKey(passage.url, passage.exactNormalized);
+      if (seen.has(key)) {
+        continue;
+      }
+      seen.add(key);
+
+      const matching = await Promise.all(
+        this.getMatchingAnnotationCards(
+          passage.url,
+          passage.exactNormalized,
+        ).map((card) => this.toAnnotationView(card)),
+      );
+      if (matching.length > 0) {
+        viewMap.set(key, matching);
+      }
+    }
+    return viewMap;
+  }
+
   async getMatchingAnnotationCardIds(
     url: string,
     exactNormalized: string,
@@ -1323,6 +1351,21 @@ export class InMemoryCardQueryRepository implements ICardQueryRepository {
     return savedUrls;
   }
 
+  async getUrlTypes(urls: string[]): Promise<Map<string, UrlType>> {
+    const urlSet = new Set(urls);
+    const urlTypes = new Map<string, UrlType>();
+    const allCards = this.cardRepository.getAllCards();
+
+    allCards.forEach((card) => {
+      const type = card.content.urlContent?.metadata?.type;
+      if (card.isUrlCard && card.url && urlSet.has(card.url.value) && type) {
+        urlTypes.set(card.url.value, type);
+      }
+    });
+
+    return urlTypes;
+  }
+
   async getBatchUserActivityStats(
     userIds: string[],
   ): Promise<Map<string, UserActivityStats>> {
@@ -1400,6 +1443,84 @@ export class InMemoryCardQueryRepository implements ICardQueryRepository {
     });
 
     return resultMap;
+  }
+
+  async searchAnnotations(
+    options: SearchAnnotationsOptions,
+  ): Promise<PaginatedQueryResult<AnnotationCardView>> {
+    const { searchQuery, page, limit, sortBy, sortOrder, urlType, authorDid } =
+      options;
+
+    let annotationCards = this.cardRepository
+      .getAllCards()
+      .filter((card) => card.isAnnotationCard);
+
+    if (authorDid) {
+      annotationCards = annotationCards.filter(
+        (card) => card.curatorId.value === authorDid.value,
+      );
+    }
+
+    // Annotations carry no urlType — resolve through the URL's URL cards
+    if (urlType) {
+      const urlsOfType = new Set(
+        this.cardRepository
+          .getAllCards()
+          .filter(
+            (card) =>
+              card.isUrlCard &&
+              card.url &&
+              card.content.urlContent?.metadata?.type === urlType,
+          )
+          .map((card) => card.url!.value),
+      );
+      annotationCards = annotationCards.filter(
+        (card) => card.url && urlsOfType.has(card.url.value),
+      );
+    }
+
+    const searchWords = searchQuery.trim().toLowerCase().split(/\s+/);
+
+    const matchingCards = annotationCards.filter((card) => {
+      const note = card.content.annotationContent?.note?.toLowerCase() || '';
+      const passage = (
+        card.content.annotationContent?.textQuoteSelector?.exact || ''
+      ).toLowerCase();
+      const url = card.url?.value.toLowerCase() || '';
+
+      return searchWords.every(
+        (word) =>
+          note.includes(word) || passage.includes(word) || url.includes(word),
+      );
+    });
+
+    // Sort
+    const sorted = [...matchingCards].sort((a, b) => {
+      let comparison = 0;
+      switch (sortBy) {
+        case CardSortField.CREATED_AT:
+          comparison = a.createdAt.getTime() - b.createdAt.getTime();
+          break;
+        case CardSortField.LIBRARY_COUNT:
+          comparison = a.libraryCount - b.libraryCount;
+          break;
+        default:
+          comparison = a.updatedAt.getTime() - b.updatedAt.getTime();
+      }
+      return sortOrder === SortOrder.ASC ? comparison : -comparison;
+    });
+
+    const offset = (page - 1) * limit;
+    const pageCards = sorted.slice(offset, offset + limit);
+    const items = await Promise.all(
+      pageCards.map((card) => this.toAnnotationView(card)),
+    );
+
+    return {
+      items,
+      totalCount: sorted.length,
+      hasMore: offset + items.length < sorted.length,
+    };
   }
 
   async searchUrls(

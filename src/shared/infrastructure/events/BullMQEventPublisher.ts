@@ -89,7 +89,7 @@ export class BullMQEventPublisher implements IEventPublisher {
       case EventNames.CARD_ADDED_TO_COLLECTION:
         return [QueueNames.FEEDS, QueueNames.NOTIFICATIONS];
       case EventNames.CARD_REMOVED_FROM_LIBRARY:
-        return [QueueNames.NOTIFICATIONS];
+        return [QueueNames.NOTIFICATIONS, QueueNames.SEARCH];
       case EventNames.CARD_REMOVED_FROM_COLLECTION:
         return [QueueNames.NOTIFICATIONS];
       case EventNames.USER_FOLLOWED_TARGET:

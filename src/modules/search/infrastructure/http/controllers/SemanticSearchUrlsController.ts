@@ -10,7 +10,8 @@ export class SemanticSearchUrlsController extends Controller {
 
   async executeImpl(req: AuthenticatedRequest, res: Response): Promise<any> {
     try {
-      const { query, page, limit, threshold, urlType, identifier } = req.query;
+      const { query, page, limit, threshold, urlType, identifier, cardType } =
+        req.query;
 
       if (!query || typeof query !== 'string') {
         return this.fail(res, 'Query parameter is required');
@@ -24,6 +25,7 @@ export class SemanticSearchUrlsController extends Controller {
         limit: limit ? parseInt(limit as string) : undefined,
         threshold: threshold ? parseFloat(threshold as string) : undefined,
         urlType: urlType as string | undefined,
+        cardType: cardType as 'URL' | 'ANNOTATION' | undefined,
       });
 
       if (result.isErr()) {

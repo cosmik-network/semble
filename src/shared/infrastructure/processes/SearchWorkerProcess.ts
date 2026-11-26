@@ -5,6 +5,7 @@ import {
 } from '../http/factories/ServiceFactory';
 import { UseCaseFactory } from '../http/factories/UseCaseFactory';
 import { CardAddedToLibraryEventHandler } from '../../../modules/search/application/eventHandlers/CardAddedToLibraryEventHandler';
+import { CardRemovedFromLibraryEventHandler } from '../../../modules/search/application/eventHandlers/CardRemovedFromLibraryEventHandler';
 import { ConnectionCreatedEventHandler } from '../../../modules/search/application/eventHandlers/ConnectionCreatedEventHandler';
 import { UrlCardMetadataUpdatedEventHandler } from '../../../modules/search/application/eventHandlers/UrlCardMetadataUpdatedEventHandler';
 import { QueueNames } from '../events/QueueConfig';
@@ -49,11 +50,22 @@ export class SearchWorkerProcess extends BaseWorkerProcess {
     const cardAddedToLibraryHandler = new CardAddedToLibraryEventHandler(
       useCases.indexUrlForSearchUseCase,
       repositories.cardRepository,
+      useCases.indexAnnotationForSearchUseCase,
     );
 
     await subscriber.subscribe(
       EventNames.CARD_ADDED_TO_LIBRARY,
       cardAddedToLibraryHandler,
+    );
+
+    const cardRemovedFromLibraryHandler =
+      new CardRemovedFromLibraryEventHandler(
+        useCases.deleteAnnotationFromSearchUseCase,
+      );
+
+    await subscriber.subscribe(
+      EventNames.CARD_REMOVED_FROM_LIBRARY,
+      cardRemovedFromLibraryHandler,
     );
 
     const connectionCreatedHandler = new ConnectionCreatedEventHandler(

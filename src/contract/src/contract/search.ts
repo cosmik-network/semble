@@ -4,6 +4,7 @@ import {
   paths,
   UrlTypeSchema,
   ActivitySourceSchema,
+  CardTypeFilterSchema,
   GetSimilarUrlsForUrlResponseSchema,
   SemanticSearchUrlsResponseSchema,
   SearchBskyPostsForUrlResponseSchema,
@@ -26,11 +27,12 @@ export const searchContract = c.router(
         url: z.string(),
         threshold: z.coerce.number().optional(),
         urlType: UrlTypeSchema.optional(),
+        cardType: CardTypeFilterSchema.optional(),
       }),
       responses: { 200: GetSimilarUrlsForUrlResponseSchema },
       summary: 'Find similar URLs',
       description:
-        'Returns URLs semantically similar to a given URL using vector similarity search.',
+        'Returns URLs and annotation passages semantically similar to a given URL using vector similarity search. Results are a discriminated union on cardType, merged by similarity score; pass cardType to restrict to one type.',
     },
     semantic: {
       method: 'GET',
@@ -40,11 +42,12 @@ export const searchContract = c.router(
         threshold: z.coerce.number().optional(),
         urlType: UrlTypeSchema.optional(),
         identifier: z.string().optional(),
+        cardType: CardTypeFilterSchema.optional(),
       }),
       responses: { 200: SemanticSearchUrlsResponseSchema },
       summary: 'Semantic search',
       description:
-        'Returns URLs matching a natural-language query using vector search, optionally scoped to a user and filtered by type.',
+        'Returns URLs and annotation passages matching a natural-language query using vector search, optionally scoped to a user and filtered by type. Results are a discriminated union on cardType, merged by similarity score; pass cardType to restrict to one type.',
     },
     bskyPosts: {
       method: 'GET',

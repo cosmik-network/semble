@@ -372,8 +372,18 @@ export class Card extends AggregateRoot<CardProps> {
     this.props.libraryCount = this.props.libraryMemberships.length;
     this.props.updatedAt = new Date();
 
-    // Raise domain event
-    const domainEvent = CardRemovedFromLibraryEvent.create(this.cardId, userId);
+    // Raise domain event, with a snapshot of the removed card so async
+    // consumers (search index cleanup) can act after the row is deleted
+    const selector = this.content.annotationContent?.textQuoteSelector;
+    const domainEvent = CardRemovedFromLibraryEvent.create(
+      this.cardId,
+      userId,
+      {
+        cardType: this.props.type.value,
+        url: this.props.url?.value,
+        ...(selector ? { exactNormalized: [selector.normalizedExact] } : {}),
+      },
+    );
     if (domainEvent.isErr()) {
       return err(new CardValidationError(domainEvent.error.message));
     }

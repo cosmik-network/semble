@@ -3,7 +3,10 @@ import { Result, ok, err } from '../../../shared/core/Result';
 import {
   IVectorDatabase,
   IndexUrlParams,
+  IndexAnnotationParams,
   SemanticSearchUrlsParams,
+  SemanticSearchCardsParams,
+  CardSearchResult,
   UrlSearchResult,
 } from '../domain/IVectorDatabase';
 import {
@@ -12,13 +15,25 @@ import {
 } from '../../cards/domain/value-objects/UrlMetadata';
 import { Chunk } from '../domain/value-objects/Chunk';
 import { IEmbeddingService } from '../domain/services/IEmbeddingService';
+import { annotationVectorId } from '../domain/value-objects/AnnotationVectorId';
+import { CardTypeEnum } from '../../cards/domain/value-objects/CardType';
+import { UrlType } from '../../cards/domain/value-objects/UrlType';
 
 interface UpstashMetadata extends UrlMetadataProps {
   [key: string]: any; // Add this index signature for additional flexibility
 }
 
+// Blended results cap: how many hits (URL card + annotations counted together)
+// a single URL can contribute, so one page-match query can't be dominated by
+// that page's own annotations
+const MAX_HITS_PER_URL = 2;
+
 export class UpstashVectorDatabase implements IVectorDatabase {
   private index: Index<UpstashMetadata>;
+  // Annotation passage vectors live in a separate namespace of the same index.
+  // URL vectors stay in the (default) base index — routing them through a named
+  // namespace would orphan every existing vector.
+  private annotationsIndex: ReturnType<Index<UpstashMetadata>['namespace']>;
   private embeddingService?: IEmbeddingService;
 
   constructor(
@@ -30,6 +45,7 @@ export class UpstashVectorDatabase implements IVectorDatabase {
       url,
       token,
     });
+    this.annotationsIndex = this.index.namespace('annotations');
     this.embeddingService = embeddingService;
   }
 
@@ -56,38 +72,16 @@ export class UpstashVectorDatabase implements IVectorDatabase {
         type: params.type,
       };
 
-      try {
-        await this.index.upsert({
-          id: params.url,
-          data: content,
-          metadata,
-        });
-        return ok(undefined);
-      } catch (upsertError) {
-        if (this.embeddingService && this.isEmbeddingError(upsertError)) {
-          console.log(
-            `[UpstashVectorDatabase] Upstash embedding failed for URL ${params.url}, falling back to embedding service: ${this.errorMessage(
-              upsertError,
-            )}`,
-          );
-          const embedResult = await this.embeddingService.embed(content);
-          if (embedResult.isErr()) {
-            return err(
-              new Error(
-                `[UpstashVectorDatabase] Failed to index URL: Upstash embedding failed (${this.errorMessage(upsertError)}) and HuggingFace fallback failed (${embedResult.error.message})`,
-              ),
-            );
-          }
-
-          await this.index.upsert({
-            id: params.url,
-            vector: embedResult.value,
-            metadata,
-          });
-          return ok(undefined);
-        }
-        throw upsertError;
-      }
+      return await this.upsertWithFallback(
+        (embedded) =>
+          this.index.upsert(
+            embedded
+              ? { id: params.url, vector: embedded, metadata }
+              : { id: params.url, data: content, metadata },
+          ),
+        content,
+        `URL ${params.url}`,
+      );
     } catch (error) {
       return err(
         new Error(
@@ -97,86 +91,177 @@ export class UpstashVectorDatabase implements IVectorDatabase {
     }
   }
 
+  async indexAnnotation(params: IndexAnnotationParams): Promise<Result<void>> {
+    try {
+      const id = annotationVectorId(params.url, params.exactNormalized);
+      // Metadata is a pointer back to Postgres, not a copy of card state —
+      // everything else (author, note, counts) is resolved from the
+      // (url, exactNormalized) pair at query time.
+      const metadata = {
+        url: params.url,
+        exactNormalized: params.exactNormalized,
+        ...(params.urlType ? { urlType: params.urlType } : {}),
+      };
+
+      return await this.upsertWithFallback(
+        (embedded) =>
+          this.annotationsIndex.upsert(
+            embedded
+              ? { id, vector: embedded, metadata }
+              : { id, data: params.passage, metadata },
+          ),
+        params.passage,
+        `annotation ${id}`,
+      );
+    } catch (error) {
+      return err(
+        new Error(
+          `Failed to index annotation: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        ),
+      );
+    }
+  }
+
   async semanticSearchUrls(
     params: SemanticSearchUrlsParams,
   ): Promise<Result<UrlSearchResult[]>> {
+    const cardsResult = await this.semanticSearchCards({
+      ...params,
+      cardType: CardTypeEnum.URL,
+    });
+    if (cardsResult.isErr()) {
+      return err(
+        new Error(`Failed to search URLs: ${cardsResult.error.message}`),
+      );
+    }
+    return ok(
+      cardsResult.value
+        .filter(
+          (
+            result,
+          ): result is Extract<
+            CardSearchResult,
+            { cardType: typeof CardTypeEnum.URL }
+          > => result.cardType === CardTypeEnum.URL,
+        )
+        .map(({ url, similarity, metadata }) => ({
+          url,
+          similarity,
+          metadata,
+        })),
+    );
+  }
+
+  async semanticSearchCards(
+    params: SemanticSearchCardsParams,
+  ): Promise<Result<CardSearchResult[]>> {
     try {
       // Callers can widen the net with topK; Upstash caps topK at 1000
       const topK = params.topK
         ? Math.min(params.topK, 1000)
         : Math.min(params.limit * 10, 100);
-      const filter = params.urlType ? `type = '${params.urlType}'` : undefined;
+      const threshold = params.threshold || 0.3;
 
-      let queryResult;
-      try {
-        queryResult = await this.index.query({
-          data: params.query,
-          topK,
-          includeMetadata: true,
-          includeVectors: false, // We don't need the vectors in the response
-          filter,
-        });
-      } catch (queryError) {
-        if (this.embeddingService && this.isEmbeddingError(queryError)) {
-          console.log(
-            `[UpstashVectorDatabase] Upstash embedding failed for search query, falling back to embedding service: ${this.errorMessage(
-              queryError,
-            )}`,
+      // cardType routes the query to namespaces — it is never a metadata filter
+      const queryUrls = params.cardType !== CardTypeEnum.ANNOTATION;
+      const queryAnnotations = params.cardType !== CardTypeEnum.URL;
+
+      const urlResults: CardSearchResult[] = [];
+      const annotationResults: CardSearchResult[] = [];
+
+      if (queryUrls) {
+        const filter = params.urlType
+          ? `type = '${params.urlType}'`
+          : undefined;
+        const queryResult = await this.queryWithFallback(
+          (embedded) =>
+            this.index.query({
+              ...(embedded ? { vector: embedded } : { data: params.query }),
+              topK,
+              includeMetadata: true,
+              includeVectors: false, // We don't need the vectors in the response
+              filter,
+            }),
+          params.query,
+        );
+        if (queryResult.isErr()) {
+          return err(
+            new Error(`Failed to search URLs: ${queryResult.error.message}`),
           );
-          const embedResult = await this.embeddingService.embed(params.query);
-          if (embedResult.isErr()) {
-            return err(
-              new Error(
-                `[UpstashVectorDatabase] Failed to search URLs: Upstash embedding failed (${this.errorMessage(queryError)}) and HuggingFace fallback failed (${embedResult.error.message})`,
-              ),
-            );
-          }
-
-          queryResult = await this.index.query({
-            vector: embedResult.value,
-            topK,
-            includeMetadata: true,
-            includeVectors: false,
-            filter,
+        }
+        for (const result of queryResult.value) {
+          if (result.score < threshold) continue;
+          urlResults.push({
+            cardType: CardTypeEnum.URL,
+            url: result.id as string, // URLs are used as IDs in the base index
+            similarity: result.score,
+            metadata: {
+              url: result.metadata?.url || (result.id as string),
+              title: result.metadata?.title,
+              description: result.metadata?.description,
+              author: result.metadata?.author,
+              publishedDate: result.metadata?.publishedDate,
+              siteName: result.metadata?.siteName,
+              imageUrl: result.metadata?.imageUrl,
+              type: result.metadata?.type,
+            },
           });
-        } else {
-          throw queryError;
         }
       }
 
-      // Apply threshold filter
-      const threshold = params.threshold || 0.3;
-      const results: UrlSearchResult[] = [];
-
-      for (const result of queryResult) {
-        // Apply threshold filter
-        if (result.score < threshold) continue;
-
-        results.push({
-          url: result.id as string, // Cast to string since we use URLs as IDs
-          similarity: result.score,
-          metadata: {
-            url: result.metadata?.url || (result.id as string),
-            title: result.metadata?.title,
-            description: result.metadata?.description,
-            author: result.metadata?.author,
-            publishedDate: result.metadata?.publishedDate,
-            siteName: result.metadata?.siteName,
-            imageUrl: result.metadata?.imageUrl,
-            type: result.metadata?.type,
-          },
-        });
+      if (queryAnnotations) {
+        const filter = params.urlType
+          ? `urlType = '${params.urlType}'`
+          : undefined;
+        const queryResult = await this.queryWithFallback(
+          (embedded) =>
+            this.annotationsIndex.query({
+              ...(embedded ? { vector: embedded } : { data: params.query }),
+              topK,
+              includeMetadata: true,
+              includeVectors: false,
+              filter,
+            }),
+          params.query,
+        );
+        if (queryResult.isErr()) {
+          return err(
+            new Error(
+              `Failed to search annotations: ${queryResult.error.message}`,
+            ),
+          );
+        }
+        for (const result of queryResult.value) {
+          if (result.score < threshold) continue;
+          const metadata = result.metadata as
+            | { url?: string; exactNormalized?: string; urlType?: string }
+            | undefined;
+          if (!metadata?.url || !metadata.exactNormalized) {
+            continue; // Unresolvable record — skip rather than guess
+          }
+          annotationResults.push({
+            cardType: CardTypeEnum.ANNOTATION,
+            url: metadata.url,
+            exactNormalized: metadata.exactNormalized,
+            similarity: result.score,
+            urlType: metadata.urlType as UrlType | undefined,
+          });
+        }
       }
 
-      // Sort by similarity (highest first) and limit results
-      results.sort((a, b) => b.similarity - a.similarity);
-      const limitedResults = results.slice(0, params.limit);
+      // Both namespaces share one embedding model, so raw cosine scores are
+      // on the same scale and can be merged by score. RRF is the documented
+      // fallback if the distributions prove incomparable in practice.
+      const merged = this.mergeCardResults(
+        [...urlResults, ...annotationResults],
+        params.limit,
+      );
 
-      return ok(limitedResults);
+      return ok(merged);
     } catch (error) {
       return err(
         new Error(
-          `Failed to search URLs: ${error instanceof Error ? error.message : 'Unknown error'}`,
+          `Failed to search cards: ${error instanceof Error ? error.message : 'Unknown error'}`,
         ),
       );
     }
@@ -195,6 +280,24 @@ export class UpstashVectorDatabase implements IVectorDatabase {
     }
   }
 
+  async deleteAnnotation(
+    url: string,
+    exactNormalized: string,
+  ): Promise<Result<void>> {
+    try {
+      await this.annotationsIndex.delete(
+        annotationVectorId(url, exactNormalized),
+      );
+      return ok(undefined);
+    } catch (error) {
+      return err(
+        new Error(
+          `Failed to delete annotation: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        ),
+      );
+    }
+  }
+
   async healthCheck(): Promise<Result<boolean>> {
     try {
       // Try to get index info as a health check
@@ -206,6 +309,96 @@ export class UpstashVectorDatabase implements IVectorDatabase {
           `Health check failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
         ),
       );
+    }
+  }
+
+  /**
+   * Merge results from both namespaces: sort by similarity, cap hits per URL
+   * (counted across both card types), then limit.
+   */
+  private mergeCardResults(
+    results: CardSearchResult[],
+    limit: number,
+  ): CardSearchResult[] {
+    const perUrlCount = new Map<string, number>();
+    return results
+      .sort((a, b) => b.similarity - a.similarity)
+      .filter((result) => {
+        const count = (perUrlCount.get(result.url) ?? 0) + 1;
+        perUrlCount.set(result.url, count);
+        return count <= MAX_HITS_PER_URL;
+      })
+      .slice(0, limit);
+  }
+
+  /**
+   * Upsert raw text, retrying with an explicit embedding if Upstash's own
+   * embedding generation fails. Shared by both namespaces.
+   */
+  private async upsertWithFallback(
+    doUpsert: (embedded?: number[]) => Promise<unknown>,
+    content: string,
+    label: string,
+  ): Promise<Result<void>> {
+    try {
+      await doUpsert();
+      return ok(undefined);
+    } catch (upsertError) {
+      if (this.embeddingService && this.isEmbeddingError(upsertError)) {
+        console.log(
+          `[UpstashVectorDatabase] Upstash embedding failed for ${label}, falling back to embedding service: ${this.errorMessage(
+            upsertError,
+          )}`,
+        );
+        const embedResult = await this.embeddingService.embed(content);
+        if (embedResult.isErr()) {
+          return err(
+            new Error(
+              `[UpstashVectorDatabase] Failed to index ${label}: Upstash embedding failed (${this.errorMessage(upsertError)}) and HuggingFace fallback failed (${embedResult.error.message})`,
+            ),
+          );
+        }
+
+        await doUpsert(embedResult.value);
+        return ok(undefined);
+      }
+      return err(
+        new Error(
+          `Failed to index ${label}: ${this.errorMessage(upsertError)}`,
+        ),
+      );
+    }
+  }
+
+  /**
+   * Query with raw text, retrying with an explicit embedding if Upstash's own
+   * embedding generation fails. Shared by both namespaces.
+   */
+  private async queryWithFallback<T>(
+    doQuery: (embedded?: number[]) => Promise<T>,
+    queryText: string,
+  ): Promise<Result<T>> {
+    try {
+      return ok(await doQuery());
+    } catch (queryError) {
+      if (this.embeddingService && this.isEmbeddingError(queryError)) {
+        console.log(
+          `[UpstashVectorDatabase] Upstash embedding failed for search query, falling back to embedding service: ${this.errorMessage(
+            queryError,
+          )}`,
+        );
+        const embedResult = await this.embeddingService.embed(queryText);
+        if (embedResult.isErr()) {
+          return err(
+            new Error(
+              `[UpstashVectorDatabase] Failed to search: Upstash embedding failed (${this.errorMessage(queryError)}) and HuggingFace fallback failed (${embedResult.error.message})`,
+            ),
+          );
+        }
+
+        return ok(await doQuery(embedResult.value));
+      }
+      return err(new Error(this.errorMessage(queryError)));
     }
   }
 

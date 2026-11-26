@@ -13,12 +13,14 @@ import {
   UrlStats,
   UserActivityStats,
   SearchUrlsOptions,
+  SearchAnnotationsOptions,
   UrlSearchResultDTO,
   AnnotationCardView,
   AnnotationView,
   NoteForAnnotationRawDTO,
   LibraryForAnnotationDTO,
 } from '../../domain/ICardQueryRepository';
+import { UrlType } from '../../domain/value-objects/UrlType';
 import { UrlCardQueryService } from './query-services/UrlCardQueryService';
 import { CollectionCardQueryService } from './query-services/CollectionCardQueryService';
 import { LibraryQueryService } from './query-services/LibraryQueryService';
@@ -125,6 +127,14 @@ export class DrizzleCardQueryRepository implements ICardQueryRepository {
     );
   }
 
+  async getAnnotationCardsByPassages(
+    passages: { url: string; exactNormalized: string }[],
+  ): Promise<Map<string, AnnotationCardView[]>> {
+    return this.annotationCardQueryService.getAnnotationCardsByPassages(
+      passages,
+    );
+  }
+
   async getNotesForAnnotation(
     url: string,
     exactNormalized: string,
@@ -188,6 +198,10 @@ export class DrizzleCardQueryRepository implements ICardQueryRepository {
     return this.urlCardQueryService.getUrlsSavedByUser(userId, urls);
   }
 
+  async getUrlTypes(urls: string[]): Promise<Map<string, UrlType>> {
+    return this.urlCardQueryService.getUrlTypes(urls);
+  }
+
   async getBatchUserActivityStats(
     userIds: string[],
   ): Promise<Map<string, UserActivityStats>> {
@@ -204,6 +218,12 @@ export class DrizzleCardQueryRepository implements ICardQueryRepository {
     options: SearchUrlsOptions,
   ): Promise<PaginatedQueryResult<UrlSearchResultDTO>> {
     return this.urlCardQueryService.searchUrls(options);
+  }
+
+  async searchAnnotations(
+    options: SearchAnnotationsOptions,
+  ): Promise<PaginatedQueryResult<AnnotationCardView>> {
+    return this.annotationCardQueryService.searchAnnotations(options);
   }
 
   async getProfileCardStats(authorId: string): Promise<{

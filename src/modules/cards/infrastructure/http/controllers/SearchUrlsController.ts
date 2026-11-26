@@ -33,6 +33,13 @@ export class SearchUrlsController extends Controller {
       // Parse urlType filter
       const urlType = req.query.urlType as UrlType | undefined;
 
+      // Parse cardType filter (URL default, ANNOTATION, or ALL)
+      const cardType = req.query.cardType as
+        | 'URL'
+        | 'ANNOTATION'
+        | 'ALL'
+        | undefined;
+
       const result = await this.searchUrlsUseCase.execute({
         searchQuery,
         callingUserId,
@@ -41,6 +48,7 @@ export class SearchUrlsController extends Controller {
         sortBy,
         sortOrder,
         urlType,
+        cardType,
       });
 
       if (result.isErr()) {

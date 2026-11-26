@@ -6,6 +6,7 @@ import {
 import { UseCaseFactory } from '../http/factories/UseCaseFactory';
 import { CardAddedToLibraryEventHandler as FeedCardAddedToLibraryEventHandler } from '../../../modules/feeds/application/eventHandlers/CardAddedToLibraryEventHandler';
 import { CardAddedToLibraryEventHandler as SearchCardAddedToLibraryEventHandler } from '../../../modules/search/application/eventHandlers/CardAddedToLibraryEventHandler';
+import { CardRemovedFromLibraryEventHandler as SearchCardRemovedFromLibraryEventHandler } from '../../../modules/search/application/eventHandlers/CardRemovedFromLibraryEventHandler';
 import { CardAddedToCollectionEventHandler } from '../../../modules/feeds/application/eventHandlers/CardAddedToCollectionEventHandler';
 import { CardAddedToLibraryEventHandler as MetadataCardAddedToLibraryEventHandler } from '../../../modules/cards/application/eventHandlers/CardAddedToLibraryEventHandler';
 import { ConnectionCreatedEventHandler as MetadataConnectionCreatedEventHandler } from '../../../modules/cards/application/eventHandlers/ConnectionCreatedEventHandler';
@@ -79,6 +80,11 @@ export class InMemoryEventWorkerProcess implements IProcess {
       new SearchCardAddedToLibraryEventHandler(
         useCases.indexUrlForSearchUseCase,
         repositories.cardRepository,
+        useCases.indexAnnotationForSearchUseCase,
+      );
+    const searchCardRemovedFromLibraryHandler =
+      new SearchCardRemovedFromLibraryEventHandler(
+        useCases.deleteAnnotationFromSearchUseCase,
       );
 
     // Metadata enrichment handlers
@@ -259,6 +265,10 @@ export class InMemoryEventWorkerProcess implements IProcess {
     await subscriber.subscribe(
       EventNames.CARD_ADDED_TO_LIBRARY,
       searchCardAddedToLibraryHandler,
+    );
+    await subscriber.subscribe(
+      EventNames.CARD_REMOVED_FROM_LIBRARY,
+      searchCardRemovedFromLibraryHandler,
     );
 
     // Register metadata enrichment handlers

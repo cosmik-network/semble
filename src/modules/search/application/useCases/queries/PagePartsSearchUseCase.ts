@@ -339,15 +339,19 @@ export class PagePartsSearchUseCase implements UseCase<
       return err(AppError.UnexpectedError.create(result.error));
     }
 
-    const mappedResults: PagePartsSearchResult[] = result.value.urls.map(
-      (urlView) => ({
+    // Page-parts search is URL-only — annotations have no page metadata
+    const mappedResults: PagePartsSearchResult[] = result.value.results
+      .filter(
+        (result): result is Extract<typeof result, { cardType: 'URL' }> =>
+          result.cardType === 'URL',
+      )
+      .map((urlView) => ({
         uri: urlView.url,
         name: urlView.metadata.title || urlView.url,
         description: urlView.metadata.description,
         href: `${query.appUrl}/url?id=${encodeURIComponent(urlView.url)}`,
         icon: urlView.metadata.imageUrl,
-      }),
-    );
+      }));
 
     return ok({ results: mappedResults });
   }

@@ -66,6 +66,7 @@ export * from './connections/listByUser';
 
 export * from './search/similarUrls';
 export * from './search/semantic';
+export * from './search/searchResults';
 export * from './search/bskyPosts';
 export * from './search/accounts';
 export * from './search/leaflet';

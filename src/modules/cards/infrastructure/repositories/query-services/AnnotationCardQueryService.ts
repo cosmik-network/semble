@@ -1,10 +1,11 @@
 import { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
-import { eq, and, inArray, desc, asc, count, SQL, sql } from 'drizzle-orm';
+import { eq, and, inArray, desc, asc, count, or, SQL, sql } from 'drizzle-orm';
 import {
   CardQueryOptions,
   PaginatedQueryResult,
   CardSortField,
   SortOrder,
+  SearchAnnotationsOptions,
   AnnotationCardView,
   AnnotationView,
   ANNOTATION_CARDS_PREVIEW_LIMIT,
@@ -21,6 +22,10 @@ import {
   fetchAnnotationEngagement,
   annotationEngagementKey,
 } from './annotationEngagementQueries';
+import {
+  normalizeQuotedText,
+  annotationPassageKey,
+} from '../../../domain/value-objects/selectors/normalizeQuotedText';
 
 export class AnnotationCardQueryService {
   constructor(private db: PostgresJsDatabase) {}
@@ -264,6 +269,196 @@ export class AnnotationCardQueryService {
       return viewMap;
     } catch (error) {
       console.error('Error in getBatchAnnotationCardViews:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Keyword search over annotation cards: tokenized substring match over the
+   * note, selector passages and the URL. Card-level results — no per-URL
+   * dedup (annotations ARE the cards). Annotations carry no urlType of their
+   * own, so the urlType filter resolves through the URL's URL cards.
+   */
+  async searchAnnotations(
+    options: SearchAnnotationsOptions,
+  ): Promise<PaginatedQueryResult<AnnotationCardView>> {
+    try {
+      const {
+        searchQuery,
+        page,
+        limit,
+        sortBy,
+        sortOrder,
+        urlType,
+        authorDid,
+      } = options;
+      const offset = (page - 1) * limit;
+
+      // Tokenized substring conditions, same semantics as URL search
+      const searchConditions: SQL[] = [];
+      if (searchQuery && searchQuery.trim().length > 0) {
+        const searchWords = searchQuery.trim().split(/\s+/);
+        for (const word of searchWords) {
+          const pattern = `%${word}%`;
+          searchConditions.push(
+            sql`(
+              ${cards.contentData}->>'note' ILIKE ${pattern} OR
+              EXISTS (
+                SELECT 1 FROM annotation_selectors search_selectors
+                WHERE search_selectors.card_id = ${cards.id}
+                  AND search_selectors.exact ILIKE ${pattern}
+              ) OR
+              ${cards.url} ILIKE ${pattern}
+            )`,
+          );
+        }
+      }
+
+      const whereConditions: SQL[] = [
+        eq(cards.type, CardTypeEnum.ANNOTATION),
+        ...searchConditions,
+      ];
+
+      if (authorDid) {
+        whereConditions.push(eq(cards.authorId, authorDid.value));
+      }
+
+      if (urlType) {
+        // Resolve the urlType through the URL's URL cards — annotations
+        // carry no urlType of their own
+        whereConditions.push(
+          sql`EXISTS (
+            SELECT 1 FROM cards url_cards
+            WHERE url_cards.type = 'URL'
+              AND url_cards.url = ${cards.url}
+              AND url_cards.url_type = ${urlType}
+          )`,
+        );
+      }
+
+      const whereClause = and(...whereConditions);
+
+      const totalCountRows = await this.db
+        .select({ count: count() })
+        .from(cards)
+        .where(whereClause);
+      const totalCount = totalCountRows[0]?.count ?? 0;
+
+      // LIBRARY_COUNT falls back to the card's own library count (entity
+      // counts are already on the views via assembleAnnotationViews)
+      const sortColumn =
+        sortBy === CardSortField.CREATED_AT ? cards.createdAt : cards.updatedAt;
+      const orderDirection = sortOrder === SortOrder.ASC ? asc : desc;
+      const orderBy: SQL[] =
+        sortBy === CardSortField.LIBRARY_COUNT
+          ? [orderDirection(cards.libraryCount), desc(cards.updatedAt)]
+          : [orderDirection(sortColumn)];
+
+      const rows = await this.db
+        .select({
+          id: cards.id,
+          authorId: cards.authorId,
+          url: cards.url,
+          publishedRecordUri: publishedRecords.uri,
+          contentData: cards.contentData,
+          libraryCount: cards.libraryCount,
+          createdAt: cards.createdAt,
+          updatedAt: cards.updatedAt,
+        })
+        .from(cards)
+        .leftJoin(
+          publishedRecords,
+          eq(cards.publishedRecordId, publishedRecords.id),
+        )
+        .where(whereClause)
+        .orderBy(...orderBy)
+        .limit(limit)
+        .offset(offset);
+
+      const items = await this.assembleAnnotationViews(rows);
+
+      return {
+        items,
+        totalCount,
+        hasMore: offset + items.length < totalCount,
+      };
+    } catch (error) {
+      console.error('Error in searchAnnotations:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Annotation cards grouped by passage, for resolving vector-search hits
+   * back to domain objects. Map keys are `annotationPassageKey(url,
+   * exactNormalized)`; only requested passages with at least one card are
+   * present.
+   */
+  async getAnnotationCardsByPassages(
+    passages: { url: string; exactNormalized: string }[],
+  ): Promise<Map<string, AnnotationCardView[]>> {
+    try {
+      const viewMap = new Map<string, AnnotationCardView[]>();
+      if (passages.length === 0) {
+        return viewMap;
+      }
+
+      // Dedupe passages — one OR branch per unique key
+      const seenKeys = new Set<string>();
+      const uniquePassages = passages.filter((passage) => {
+        const key = annotationPassageKey(passage.url, passage.exactNormalized);
+        if (seenKeys.has(key)) {
+          return false;
+        }
+        seenKeys.add(key);
+        return true;
+      });
+
+      const rows = await this.db
+        .select({
+          id: cards.id,
+          authorId: cards.authorId,
+          url: cards.url,
+          publishedRecordUri: publishedRecords.uri,
+          contentData: cards.contentData,
+          libraryCount: cards.libraryCount,
+          createdAt: cards.createdAt,
+          updatedAt: cards.updatedAt,
+        })
+        .from(cards)
+        .leftJoin(
+          publishedRecords,
+          eq(cards.publishedRecordId, publishedRecords.id),
+        )
+        .where(
+          or(
+            ...uniquePassages.map((passage) =>
+              this.matchingConditions(passage.url, passage.exactNormalized),
+            ),
+          ),
+        );
+
+      const views = await this.assembleAnnotationViews(rows);
+      for (const view of views) {
+        // Recompute the passage key with the canonical normalizer — same
+        // function that produced the stored exact_normalized at write time
+        const quoteSelector = view.selectors.find(
+          (selector) => selector.type === 'TextQuoteSelector',
+        );
+        if (!quoteSelector) {
+          continue;
+        }
+        const key = annotationPassageKey(
+          view.url,
+          normalizeQuotedText(quoteSelector.exact),
+        );
+        const list = viewMap.get(key) ?? [];
+        list.push(view);
+        viewMap.set(key, list);
+      }
+      return viewMap;
+    } catch (error) {
+      console.error('Error in getAnnotationCardsByPassages:', error);
       throw error;
     }
   }

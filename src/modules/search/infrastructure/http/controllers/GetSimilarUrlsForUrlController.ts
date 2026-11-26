@@ -12,7 +12,7 @@ export class GetSimilarUrlsForUrlController extends Controller {
 
   async executeImpl(req: AuthenticatedRequest, res: Response): Promise<any> {
     try {
-      const { url, page, limit, threshold, urlType } = req.query;
+      const { url, page, limit, threshold, urlType, cardType } = req.query;
 
       if (!url || typeof url !== 'string') {
         return this.fail(res, 'URL parameter is required');
@@ -25,6 +25,7 @@ export class GetSimilarUrlsForUrlController extends Controller {
         limit: limit ? parseInt(limit as string) : undefined,
         threshold: threshold ? parseFloat(threshold as string) : undefined,
         urlType: urlType as string | undefined,
+        cardType: cardType as 'URL' | 'ANNOTATION' | undefined,
       });
 
       if (result.isErr()) {

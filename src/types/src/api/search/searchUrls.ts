@@ -5,16 +5,18 @@ import {
   CardSortingSchema,
   UrlTypeSchema,
 } from '../../entities/common';
-import { UrlViewSchema } from '../../entities/connection';
+import { CardSearchResultViewSchema } from './searchResults';
 
 export const SearchUrlsParamsSchema = PaginatedCardSortedParamsSchema.extend({
   searchQuery: z.string(),
   urlType: UrlTypeSchema.optional(),
+  /** URL (default, backward compatible), ANNOTATION, or ALL for blended */
+  cardType: z.enum(['URL', 'ANNOTATION', 'ALL']).optional(),
 });
 export type SearchUrlsParams = z.infer<typeof SearchUrlsParamsSchema>;
 
 export const SearchUrlsResponseSchema = z.object({
-  urls: z.array(UrlViewSchema),
+  results: z.array(CardSearchResultViewSchema),
   pagination: PaginationSchema,
   sorting: CardSortingSchema,
 });

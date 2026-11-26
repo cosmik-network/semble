@@ -233,11 +233,12 @@ export const cardsContract = c.router(
       query: CoercedPaginatedCardSortedQuery.extend({
         searchQuery: z.string(),
         urlType: UrlTypeSchema.optional(),
+        cardType: z.enum(['URL', 'ANNOTATION', 'ALL']).optional(),
       }),
       responses: { 200: SearchUrlsResponseSchema },
       summary: 'Search cards',
       description:
-        'Full-text search across URL Cards titles, descriptions and URLs.',
+        'Full-text search across URL Cards titles, descriptions and URLs. With cardType=ANNOTATION, matches annotation notes, highlighted passages and URLs; cardType=ALL blends both (URL and annotation pages fetched with parallel offset windows, so cross-type interleaving is approximate for pages beyond the first). Defaults to URL-only for backward compatibility.',
     },
     cardById: {
       method: 'GET',

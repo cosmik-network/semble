@@ -3,16 +3,27 @@ import { UseCase } from '../../../../../shared/core/UseCase';
 import { UseCaseError } from '../../../../../shared/core/UseCaseError';
 import { AppError } from '../../../../../shared/core/AppError';
 import { URL } from '../../../../cards/domain/value-objects/URL';
-import { SearchService } from '../../../domain/services/SearchService';
-import { GetSimilarUrlsForUrlParams, UrlView, Pagination } from '@semble/types';
+import {
+  SearchService,
+  CardViewSearchResult,
+} from '../../../domain/services/SearchService';
+import {
+  GetSimilarUrlsForUrlParams,
+  CardSearchResultView,
+  Pagination,
+} from '@semble/types';
 import { UrlType } from '../../../../cards/domain/value-objects/UrlType';
+import { CardTypeEnum } from '../../../../cards/domain/value-objects/CardType';
+import { IProfileService } from '../../../../cards/domain/services/IProfileService';
+import { ProfileEnricher } from '../../../../cards/application/services/ProfileEnricher';
+import { toAnnotationSearchResultDTO } from '../../services/AnnotationSearchResultDto';
 
 export interface GetSimilarUrlsForUrlQuery extends GetSimilarUrlsForUrlParams {
   callingUserId?: string;
 }
 
 export interface GetSimilarUrlsForUrlResult {
-  urls: UrlView[];
+  results: CardSearchResultView[];
   pagination: Pagination;
 }
 
@@ -26,7 +37,10 @@ export class GetSimilarUrlsForUrlUseCase implements UseCase<
   GetSimilarUrlsForUrlQuery,
   Result<GetSimilarUrlsForUrlResult, ValidationError | AppError.UnexpectedError>
 > {
-  constructor(private searchService: SearchService) {}
+  constructor(
+    private searchService: SearchService,
+    private profileService: IProfileService,
+  ) {}
 
   async execute(
     query: GetSimilarUrlsForUrlQuery,
@@ -61,33 +75,47 @@ export class GetSimilarUrlsForUrlUseCase implements UseCase<
         }
       }
 
+      // cardType routes the vector query to the URL index, the annotation
+      // namespace, or both
+      const cardType = query.cardType as CardTypeEnum | undefined;
+
       // Always get 50 results from vector database
       const vectorDbLimit = 50;
-      const similarUrlsResult = await this.searchService.findSimilarUrls(
+      const similarCardsResult = await this.searchService.findSimilarCards(
         urlResult.value,
         {
           limit: vectorDbLimit,
           threshold,
           urlType,
+          cardType,
           callingUserId: query.callingUserId,
         },
       );
 
       // If search fails, return empty results instead of erroring
-      const allUrls = similarUrlsResult.isOk() ? similarUrlsResult.value : [];
-      const totalAvailable = allUrls.length; // This is max 50
+      const allResults = similarCardsResult.isOk()
+        ? similarCardsResult.value
+        : [];
+      const totalAvailable = allResults.length; // This is max 50
+
+      // Hydrate annotation authors before mapping to the wire shape;
+      // annotation hits whose author can't be resolved are dropped
+      const mappedResults = await this.mapToWireResults(
+        allResults,
+        query.callingUserId,
+      );
 
       // Apply pagination to the 50 results
       const startIndex = (page - 1) * limit;
       const endIndex = startIndex + limit;
-      const paginatedUrls = allUrls.slice(startIndex, endIndex);
+      const paginatedResults = mappedResults.slice(startIndex, endIndex);
 
       // Calculate pagination info based on the 50 results we have
       const totalPages = Math.ceil(totalAvailable / limit);
       const hasMore = endIndex < totalAvailable;
 
       return ok({
-        urls: paginatedUrls,
+        results: paginatedResults,
         pagination: {
           currentPage: page,
           totalPages,
@@ -99,5 +127,53 @@ export class GetSimilarUrlsForUrlUseCase implements UseCase<
     } catch (error) {
       return err(AppError.UnexpectedError.create(error));
     }
+  }
+
+  private async mapToWireResults(
+    results: CardViewSearchResult[],
+    callingUserId?: string,
+  ): Promise<CardSearchResultView[]> {
+    // Collect annotation author ids for profile enrichment
+    const annotationAuthorIds = [
+      ...new Set(
+        results
+          .filter((result) => result.cardType === CardTypeEnum.ANNOTATION)
+          .map((result) => result.view.authorId),
+      ),
+    ];
+
+    const profileEnricher = new ProfileEnricher(this.profileService);
+    const authorProfilesResult = await profileEnricher.buildProfileMap(
+      annotationAuthorIds,
+      callingUserId,
+      {
+        skipFailures: true, // Skip annotations with failed author profiles
+        mapToUser: false, // Use inline profile (without isFollowing)
+      },
+    );
+    // buildProfileMap failures just mean empty/sparse results — fall back
+    // to an empty map so annotation hits get dropped rather than erroring
+    const authorProfiles = authorProfilesResult.isOk()
+      ? authorProfilesResult.value
+      : new Map<string, never>();
+
+    const mapped: CardSearchResultView[] = [];
+    for (const result of results) {
+      if (result.cardType === CardTypeEnum.URL) {
+        mapped.push({
+          cardType: 'URL',
+          ...result.view,
+        });
+      } else {
+        const author = authorProfiles.get(result.view.authorId);
+        if (!author) {
+          continue; // Skip annotations with missing author profiles
+        }
+        mapped.push(
+          toAnnotationSearchResultDTO(result.view, author, result.similarity),
+        );
+      }
+    }
+    return mapped;
   }
 }

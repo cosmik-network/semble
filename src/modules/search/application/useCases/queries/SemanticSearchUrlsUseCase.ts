@@ -2,11 +2,22 @@ import { Result, ok, err } from '../../../../../shared/core/Result';
 import { UseCase } from '../../../../../shared/core/UseCase';
 import { UseCaseError } from '../../../../../shared/core/UseCaseError';
 import { AppError } from '../../../../../shared/core/AppError';
-import { SearchService } from '../../../domain/services/SearchService';
-import { SemanticSearchUrlsParams, UrlView, Pagination } from '@semble/types';
+import {
+  SearchService,
+  CardViewSearchResult,
+} from '../../../domain/services/SearchService';
+import {
+  SemanticSearchUrlsParams,
+  CardSearchResultView,
+  Pagination,
+} from '@semble/types';
 import { UrlType } from '../../../../cards/domain/value-objects/UrlType';
+import { CardTypeEnum } from '../../../../cards/domain/value-objects/CardType';
 import { IIdentityResolutionService } from '../../../../atproto/domain/services/IIdentityResolutionService';
 import { DIDOrHandle } from '../../../../atproto/domain/DIDOrHandle';
+import { IProfileService } from '../../../../cards/domain/services/IProfileService';
+import { ProfileEnricher } from '../../../../cards/application/services/ProfileEnricher';
+import { toAnnotationSearchResultDTO } from '../../services/AnnotationSearchResultDto';
 
 export interface SemanticSearchUrlsQuery extends SemanticSearchUrlsParams {
   callingUserId?: string;
@@ -14,7 +25,7 @@ export interface SemanticSearchUrlsQuery extends SemanticSearchUrlsParams {
 }
 
 export interface SemanticSearchUrlsResult {
-  urls: UrlView[];
+  results: CardSearchResultView[];
   pagination: Pagination;
 }
 
@@ -31,6 +42,7 @@ export class SemanticSearchUrlsUseCase implements UseCase<
   constructor(
     private searchService: SearchService,
     private identityResolutionService: IIdentityResolutionService,
+    private profileService: IProfileService,
   ) {}
 
   async execute(
@@ -60,6 +72,10 @@ export class SemanticSearchUrlsUseCase implements UseCase<
         }
       }
 
+      // cardType routes the vector query to the URL index, the annotation
+      // namespace, or both
+      const cardType = query.cardType as CardTypeEnum | undefined;
+
       // Resolve identifier to DID if provided
       let filterByUserId: string | undefined;
       if (query.filterByIdentifier) {
@@ -88,12 +104,13 @@ export class SemanticSearchUrlsUseCase implements UseCase<
 
       // Get more results if filtering by user to account for filtering
       const vectorDbLimit = filterByUserId ? 100 : 50;
-      const searchResult = await this.searchService.semanticSearchUrls(
+      const searchResult = await this.searchService.semanticSearchCards(
         query.query.trim(),
         {
           limit: vectorDbLimit,
           threshold,
           urlType,
+          cardType,
           callingUserId: query.callingUserId,
           filterByUserId,
         },
@@ -107,24 +124,31 @@ export class SemanticSearchUrlsUseCase implements UseCase<
         );
       }
 
-      const allUrls = searchResult.value;
-      const totalAvailable = allUrls.length; // This is max 50
+      const allResults = searchResult.value;
+      const totalAvailable = allResults.length; // This is max 100
 
-      // Apply pagination to the 50 results
+      // Hydrate annotation authors before mapping to the wire shape;
+      // annotation hits whose author can't be resolved are dropped
+      const mappedResults = await this.mapToWireResults(
+        allResults,
+        query.callingUserId,
+      );
+
+      // Apply pagination to the vector-db-sized result pool
       const startIndex = (page - 1) * limit;
       const endIndex = startIndex + limit;
-      const paginatedUrls = allUrls.slice(startIndex, endIndex);
+      const paginatedResults = mappedResults.slice(startIndex, endIndex);
 
-      // Calculate pagination info based on the 50 results we have
+      // Calculate pagination info based on the pool we have
       const totalPages = Math.ceil(totalAvailable / limit);
       const hasMore = endIndex < totalAvailable;
 
       return ok({
-        urls: paginatedUrls,
+        results: paginatedResults,
         pagination: {
           currentPage: page,
           totalPages,
-          totalCount: totalAvailable, // This will be max 50
+          totalCount: totalAvailable, // This will be max 100
           hasMore,
           limit,
         },
@@ -132,5 +156,53 @@ export class SemanticSearchUrlsUseCase implements UseCase<
     } catch (error) {
       return err(AppError.UnexpectedError.create(error));
     }
+  }
+
+  private async mapToWireResults(
+    results: CardViewSearchResult[],
+    callingUserId?: string,
+  ): Promise<CardSearchResultView[]> {
+    // Collect annotation author ids for profile enrichment
+    const annotationAuthorIds = [
+      ...new Set(
+        results
+          .filter((result) => result.cardType === CardTypeEnum.ANNOTATION)
+          .map((result) => result.view.authorId),
+      ),
+    ];
+
+    const profileEnricher = new ProfileEnricher(this.profileService);
+    const authorProfilesResult = await profileEnricher.buildProfileMap(
+      annotationAuthorIds,
+      callingUserId,
+      {
+        skipFailures: true, // Skip annotations with failed author profiles
+        mapToUser: false, // Use inline profile (without isFollowing)
+      },
+    );
+    // buildProfileMap failures just mean empty/sparse results — fall back
+    // to an empty map so annotation hits get dropped rather than erroring
+    const authorProfiles = authorProfilesResult.isOk()
+      ? authorProfilesResult.value
+      : new Map<string, never>();
+
+    const mapped: CardSearchResultView[] = [];
+    for (const result of results) {
+      if (result.cardType === CardTypeEnum.URL) {
+        mapped.push({
+          cardType: 'URL',
+          ...result.view,
+        });
+      } else {
+        const author = authorProfiles.get(result.view.authorId);
+        if (!author) {
+          continue; // Skip annotations with missing author profiles
+        }
+        mapped.push(
+          toAnnotationSearchResultDTO(result.view, author, result.similarity),
+        );
+      }
+    }
+    return mapped;
   }
 }

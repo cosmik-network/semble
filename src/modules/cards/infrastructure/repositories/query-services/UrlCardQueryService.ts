@@ -65,6 +65,39 @@ export class UrlCardQueryService {
     return fetchUrlsSavedByUser(this.db, userId, urls);
   }
 
+  /**
+   * Resolve each URL's type from its URL cards. One row per URL —
+   * served by idx_cards_url_type.
+   */
+  async getUrlTypes(urls: string[]): Promise<Map<string, UrlType>> {
+    if (urls.length === 0) {
+      return new Map();
+    }
+
+    const rows = await this.db
+      .selectDistinctOn([cards.url], {
+        url: cards.url,
+        urlType: cards.urlType,
+      })
+      .from(cards)
+      .where(
+        and(
+          eq(cards.type, CardTypeEnum.URL),
+          inArray(cards.url, urls),
+          isNotNull(cards.urlType),
+        ),
+      )
+      .orderBy(cards.url);
+
+    const urlTypes = new Map<string, UrlType>();
+    for (const row of rows) {
+      if (row.urlType) {
+        urlTypes.set(row.url, row.urlType as UrlType);
+      }
+    }
+    return urlTypes;
+  }
+
   async getUrlCardsOfUser(
     userId: string,
     options: CardQueryOptions,

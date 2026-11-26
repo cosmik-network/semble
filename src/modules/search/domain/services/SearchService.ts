@@ -1,19 +1,50 @@
 import { Result, ok, err } from '../../../../shared/core/Result';
 import { URL } from '../../../cards/domain/value-objects/URL';
 import { IMetadataService } from '../../../cards/domain/services/IMetadataService';
-import { ICardQueryRepository } from '../../../cards/domain/ICardQueryRepository';
-import { IVectorDatabase, SemanticSearchUrlsParams } from '../IVectorDatabase';
+import {
+  ICardQueryRepository,
+  AnnotationCardView,
+} from '../../../cards/domain/ICardQueryRepository';
+import {
+  IVectorDatabase,
+  SemanticSearchCardsParams,
+  CardSearchResult,
+} from '../IVectorDatabase';
 import { UrlView } from '@semble/types';
 import {
   UrlMetadata,
   UrlMetadataProps,
 } from 'src/modules/cards/domain/value-objects/UrlMetadata';
 import { Chunk } from '../value-objects/Chunk';
+import { AnnotationPassage } from '../value-objects/AnnotationPassage';
 import { UrlType } from 'src/modules/cards/domain/value-objects/UrlType';
+import { CardTypeEnum } from 'src/modules/cards/domain/value-objects/CardType';
+import { annotationPassageKey } from 'src/modules/cards/domain/value-objects/selectors/normalizeQuotedText';
 
 // Candidate pool for user-filtered searches: the index is network-wide, so
 // over-fetch in one query and filter down to the user's URLs in memory
 const USER_FILTER_CANDIDATE_POOL = 200;
+
+/**
+ * A hydrated search hit. URL hits carry a UrlView (library counts and
+ * connection context enriched); annotation hits carry the most recently
+ * updated card sharing the passage (its view already holds entity-level
+ * counts, selectors and note).
+ */
+export type CardViewSearchResult =
+  | {
+      cardType: typeof CardTypeEnum.URL;
+      url: string;
+      similarity: number;
+      view: UrlView;
+    }
+  | {
+      cardType: typeof CardTypeEnum.ANNOTATION;
+      url: string;
+      exactNormalized: string;
+      similarity: number;
+      view: AnnotationCardView;
+    };
 
 export class SearchService {
   constructor(
@@ -71,16 +102,63 @@ export class SearchService {
     }
   }
 
-  async findSimilarUrls(
+  /**
+   * Index an annotation passage. Idempotent — a second user highlighting the
+   * same passage on the same URL upserts the same vector. Passages below the
+   * min-length floor are skipped silently, mirroring the URL chunk gate.
+   */
+  async indexAnnotation(
+    url: URL,
+    exact: string,
+    exactNormalized: string,
+  ): Promise<Result<void>> {
+    try {
+      // 1. Check the passage meets the minimum length for indexing
+      const passage = AnnotationPassage.create(exact, exactNormalized);
+      if (!passage.meetsMinLength()) {
+        // Skip indexing silently - passage too short
+        return ok(undefined);
+      }
+
+      // 2. Annotation cards carry no urlType of their own — resolve it from
+      // the URL's cards so the urlType search filter keeps working
+      const urlTypes = await this.cardQueryRepository.getUrlTypes([url.value]);
+      const urlType = urlTypes.get(url.value);
+
+      // 3. Index in the annotations namespace
+      const indexResult = await this.vectorDatabase.indexAnnotation({
+        url: url.value,
+        exactNormalized,
+        passage: exact,
+        urlType,
+      });
+
+      if (indexResult.isErr()) {
+        return err(
+          new Error(`Failed to index annotation: ${indexResult.error.message}`),
+        );
+      }
+
+      return ok(undefined);
+    } catch (error) {
+      return err(
+        new Error(
+          `Search service error: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        ),
+      );
+    }
+  }
+
+  async findSimilarCards(
     url: URL,
     options: {
       limit: number;
       threshold?: number;
       urlType?: UrlType;
+      cardType?: CardTypeEnum;
       callingUserId?: string;
-      filterByUserId?: string;
     },
-  ): Promise<Result<UrlView[]>> {
+  ): Promise<Result<CardViewSearchResult[]>> {
     try {
       // 1. Get metadata for the URL to extract title + description. Fast
       // mode: this only feeds the vector query text, so don't block the
@@ -102,15 +180,16 @@ export class SearchService {
       const chunk = Chunk.create(metadataResult.value);
       const searchQuery = chunk.value || url.value; // Fallback to URL if no content
 
-      // 3. Find similar URLs using the content as query
-      const searchParams: SemanticSearchUrlsParams = {
+      // 3. Find similar cards using the content as query
+      const searchParams: SemanticSearchCardsParams = {
         query: searchQuery,
         limit: options.limit * 2, // Get more results to account for filtering
         threshold: options.threshold,
         urlType: options.urlType,
+        cardType: options.cardType,
       };
 
-      return await this.processSemanticSearchResults(searchParams, {
+      return await this.processCardSearchResults(searchParams, {
         ...options,
         excludeUrl: url.value,
       });
@@ -217,28 +296,27 @@ export class SearchService {
     }
   }
 
-  async semanticSearchUrls(
+  async semanticSearchCards(
     query: string,
     options: {
       limit: number;
       threshold?: number;
       urlType?: UrlType;
+      cardType?: CardTypeEnum;
       callingUserId?: string;
       filterByUserId?: string;
     },
-  ): Promise<Result<UrlView[]>> {
+  ): Promise<Result<CardViewSearchResult[]>> {
     try {
-      const searchParams: SemanticSearchUrlsParams = {
+      const searchParams: SemanticSearchCardsParams = {
         query,
         limit: options.limit * 2, // Get more results to account for filtering
         threshold: options.threshold,
         urlType: options.urlType,
+        cardType: options.cardType,
       };
 
-      return await this.processSemanticSearchResults(searchParams, {
-        ...options,
-        filterByUserId: options.filterByUserId,
-      });
+      return await this.processCardSearchResults(searchParams, options);
     } catch (error) {
       return err(
         new Error(
@@ -252,61 +330,86 @@ export class SearchService {
     return await this.vectorDatabase.healthCheck();
   }
 
-  private async processSemanticSearchResults(
-    searchParams: SemanticSearchUrlsParams,
+  /**
+   * Delete an annotation passage vector. Callers must first verify no other
+   * annotation card shares the passage — the vector is passage-shared.
+   */
+  async deleteAnnotation(
+    url: URL,
+    exactNormalized: string,
+  ): Promise<Result<void>> {
+    try {
+      const deleteResult = await this.vectorDatabase.deleteAnnotation(
+        url.value,
+        exactNormalized,
+      );
+      if (deleteResult.isErr()) {
+        return err(
+          new Error(
+            `Failed to delete annotation: ${deleteResult.error.message}`,
+          ),
+        );
+      }
+      return ok(undefined);
+    } catch (error) {
+      return err(
+        new Error(
+          `Search service error: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        ),
+      );
+    }
+  }
+
+  private async processCardSearchResults(
+    searchParams: SemanticSearchCardsParams,
     options: {
       limit: number;
       callingUserId?: string;
       excludeUrl?: string;
       filterByUserId?: string;
     },
-  ): Promise<Result<UrlView[]>> {
+  ): Promise<Result<CardViewSearchResult[]>> {
     if (options.filterByUserId) {
-      return await this.processSemanticSearchWithUserFilter(
-        searchParams,
-        options,
-      );
+      return await this.processCardSearchWithUserFilter(searchParams, options);
     }
 
     // Standard processing without user filtering
     const searchResult =
-      await this.vectorDatabase.semanticSearchUrls(searchParams);
+      await this.vectorDatabase.semanticSearchCards(searchParams);
     if (searchResult.isErr()) {
       return err(
         new Error(`Vector search failed: ${searchResult.error.message}`),
       );
     }
 
-    // Filter out excluded URL and results with insufficient content
-    const filteredResults = searchResult.value.filter((result) =>
-      this.isUsableCandidate(result, options.excludeUrl),
+    // Filter out excluded URL and URL results with insufficient content.
+    // Annotation hits have no metadata to gate on — orphans (passages whose
+    // cards are all deleted) are dropped at hydration instead.
+    const filteredResults = searchResult.value.filter(
+      (result) =>
+        result.cardType === CardTypeEnum.ANNOTATION ||
+        this.isUsableCandidate(result, options.excludeUrl),
     );
 
     // Limit to requested amount after filtering
     const limitedResults = filteredResults.slice(0, options.limit);
 
-    // Enrich results with library counts and context
-    const enrichedUrls = await this.enrichUrlsWithContext(
-      limitedResults,
-      options.callingUserId,
-    );
-
-    return ok(enrichedUrls);
+    return await this.hydrateCardResults(limitedResults, options.callingUserId);
   }
 
-  private async processSemanticSearchWithUserFilter(
-    searchParams: SemanticSearchUrlsParams,
+  private async processCardSearchWithUserFilter(
+    searchParams: SemanticSearchCardsParams,
     options: {
       limit: number;
       callingUserId?: string;
       excludeUrl?: string;
       filterByUserId?: string;
     },
-  ): Promise<Result<UrlView[]>> {
-    // Single wide query: repeat queries against the index return the same
-    // top candidates, so cast one wide net and filter in memory. Best-effort —
-    // may return fewer than options.limit results.
-    const searchResult = await this.vectorDatabase.semanticSearchUrls({
+  ): Promise<Result<CardViewSearchResult[]>> {
+    // Single wide query per namespace: repeat queries against the index return
+    // the same top candidates, so cast one wide net and filter in memory.
+    // Best-effort — may return fewer than options.limit results.
+    const searchResult = await this.vectorDatabase.semanticSearchCards({
       ...searchParams,
       limit: USER_FILTER_CANDIDATE_POOL,
       topK: USER_FILTER_CANDIDATE_POOL,
@@ -317,25 +420,125 @@ export class SearchService {
       );
     }
 
+    const results = searchResult.value;
+
+    // "Saved by user" per type: URLs the user saved as URL cards, passages
+    // the user annotated (any matching card authored by them)
     const userUrlSet = await this.cardQueryRepository.getUrlsSavedByUser(
       options.filterByUserId!,
-      searchResult.value.map((result) => result.url),
+      results
+        .filter((result) => result.cardType === CardTypeEnum.URL)
+        .map((result) => result.url),
     );
+    const annotationCardsByPassage =
+      await this.cardQueryRepository.getAnnotationCardsByPassages(
+        results
+          .filter((result) => result.cardType === CardTypeEnum.ANNOTATION)
+          .map((result) => ({
+            url: result.url,
+            exactNormalized: result.exactNormalized,
+          })),
+      );
 
-    const filteredResults = searchResult.value
-      .filter(
-        (result) =>
+    const filteredResults = results
+      .filter((result) => {
+        if (result.cardType === CardTypeEnum.ANNOTATION) {
+          return (
+            result.url !== options.excludeUrl &&
+            (
+              annotationCardsByPassage.get(
+                annotationPassageKey(result.url, result.exactNormalized),
+              ) ?? []
+            ).some((card) => card.authorId === options.filterByUserId)
+          );
+        }
+        return (
           userUrlSet.has(result.url) &&
-          this.isUsableCandidate(result, options.excludeUrl),
-      )
+          this.isUsableCandidate(result, options.excludeUrl)
+        );
+      })
       .slice(0, options.limit);
 
-    const enrichedResults = await this.enrichUrlsWithContext(
+    return await this.hydrateCardResults(
       filteredResults,
       options.callingUserId,
     );
+  }
 
-    return ok(enrichedResults);
+  /**
+   * Resolve vector hits to domain views, preserving similarity order. URL
+   * hits are enriched with library/connection context; annotation hits
+   * resolve to the most recently updated card sharing the passage, and are
+   * dropped when the passage no longer resolves to any card.
+   */
+  private async hydrateCardResults(
+    results: CardSearchResult[],
+    callingUserId?: string,
+  ): Promise<Result<CardViewSearchResult[]>> {
+    const urlHits = results.filter(
+      (
+        result,
+      ): result is Extract<
+        CardSearchResult,
+        { cardType: typeof CardTypeEnum.URL }
+      > => result.cardType === CardTypeEnum.URL,
+    );
+    const annotationHits = results.filter(
+      (
+        result,
+      ): result is Extract<
+        CardSearchResult,
+        { cardType: typeof CardTypeEnum.ANNOTATION }
+      > => result.cardType === CardTypeEnum.ANNOTATION,
+    );
+
+    const annotationCardsByPassage =
+      await this.cardQueryRepository.getAnnotationCardsByPassages(
+        annotationHits.map((hit) => ({
+          url: hit.url,
+          exactNormalized: hit.exactNormalized,
+        })),
+      );
+
+    const enrichedUrls = await this.enrichUrlsWithContext(
+      urlHits,
+      callingUserId,
+    );
+    const enrichedByUrl = new Map(enrichedUrls.map((view) => [view.url, view]));
+
+    const hydrated: CardViewSearchResult[] = [];
+    for (const result of results) {
+      if (result.cardType === CardTypeEnum.URL) {
+        const view = enrichedByUrl.get(result.url);
+        if (view) {
+          hydrated.push({
+            cardType: CardTypeEnum.URL,
+            url: result.url,
+            similarity: result.similarity,
+            view,
+          });
+        }
+      } else {
+        const cards =
+          annotationCardsByPassage.get(
+            annotationPassageKey(result.url, result.exactNormalized),
+          ) ?? [];
+        const representative = [...cards].sort(
+          (a, b) => b.updatedAt.getTime() - a.updatedAt.getTime(),
+        )[0];
+        if (representative) {
+          hydrated.push({
+            cardType: CardTypeEnum.ANNOTATION,
+            url: result.url,
+            exactNormalized: result.exactNormalized,
+            similarity: result.similarity,
+            view: representative,
+          });
+        }
+      }
+    }
+
+    return ok(hydrated);
   }
 
   /**

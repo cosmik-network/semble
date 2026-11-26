@@ -2,6 +2,7 @@ import { IDomainEvent } from '../../domain/events/IDomainEvent';
 import { CardAddedToLibraryEvent } from '../../../modules/cards/domain/events/CardAddedToLibraryEvent';
 import { CardAddedToCollectionEvent } from '../../../modules/cards/domain/events/CardAddedToCollectionEvent';
 import { CardRemovedFromLibraryEvent } from '../../../modules/cards/domain/events/CardRemovedFromLibraryEvent';
+import { CardTypeEnum } from '../../../modules/cards/domain/value-objects/CardType';
 import { CardRemovedFromCollectionEvent } from '../../../modules/cards/domain/events/CardRemovedFromCollectionEvent';
 import { CollectionCreatedEvent } from '../../../modules/cards/domain/events/CollectionCreatedEvent';
 import { UrlCardMetadataUpdatedEvent } from '../../../modules/cards/domain/events/UrlCardMetadataUpdatedEvent';
@@ -46,6 +47,11 @@ export interface SerializedCardRemovedFromLibraryEvent extends SerializedEvent {
   eventType: typeof EventNames.CARD_REMOVED_FROM_LIBRARY;
   cardId: string;
   curatorId: string;
+  removedCard?: {
+    cardType: string;
+    url?: string;
+    exactNormalized?: string[];
+  };
 }
 
 export interface SerializedCardRemovedFromCollectionEvent extends SerializedEvent {
@@ -163,6 +169,15 @@ export class EventMapper {
         dateTimeOccurred: event.dateTimeOccurred.toISOString(),
         cardId: event.cardId.getValue().toString(),
         curatorId: event.curatorId.value,
+        ...(event.removedCard
+          ? {
+              removedCard: {
+                cardType: event.removedCard.cardType,
+                url: event.removedCard.url,
+                exactNormalized: event.removedCard.exactNormalized,
+              },
+            }
+          : {}),
       };
     }
 
@@ -320,6 +335,13 @@ export class EventMapper {
           cardId,
           curatorId,
           dateTimeOccurred,
+          eventData.removedCard
+            ? {
+                cardType: eventData.removedCard.cardType as CardTypeEnum,
+                url: eventData.removedCard.url,
+                exactNormalized: eventData.removedCard.exactNormalized,
+              }
+            : undefined,
         ).unwrap();
       }
       case EventNames.CARD_REMOVED_FROM_COLLECTION: {

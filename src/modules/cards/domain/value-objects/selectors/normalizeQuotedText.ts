@@ -23,3 +23,16 @@
 export function normalizeQuotedText(text: string): string {
   return text.replace(/\s+/g, ' ').trim();
 }
+
+/**
+ * Map key for a passage: (url, exact_normalized) joined with a newline so
+ * url+passage concatenation can never alias. Shared by the query services
+ * that group annotation cards by passage and the callers that look results
+ * up again.
+ */
+export function annotationPassageKey(
+  url: string,
+  exactNormalized: string,
+): string {
+  return `${url}\n${exactNormalized}`;
+}

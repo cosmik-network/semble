@@ -109,12 +109,16 @@ import { GetCollectionFollowersCountUseCase } from '../../../../modules/user/app
 import { GetUserStatsUseCase } from '../../../../modules/user/application/useCases/queries/GetUserStatsUseCase';
 import { GetCollectionContributorsUseCase } from '../../../../modules/cards/application/useCases/queries/GetCollectionContributorsUseCase';
 import { SearchUrlsUseCase } from '../../../../modules/cards/application/useCases/queries/SearchUrlsUseCase';
+import { IndexAnnotationForSearchUseCase } from '../../../../modules/search/application/useCases/commands/IndexAnnotationForSearchUseCase';
+import { DeleteAnnotationFromSearchUseCase } from '../../../../modules/search/application/useCases/commands/DeleteAnnotationFromSearchUseCase';
 import { GetGraphDataUseCase } from '../../../../modules/cards/application/useCases/queries/GetGraphDataUseCase';
 import { GetUrlSubGraphUseCase } from '../../../../modules/cards/application/useCases/queries/GetUrlSubGraphUseCase';
 
 export interface WorkerUseCases {
   addActivityToFeedUseCase: AddActivityToFeedUseCase;
   indexUrlForSearchUseCase: IndexUrlForSearchUseCase;
+  indexAnnotationForSearchUseCase: IndexAnnotationForSearchUseCase;
+  deleteAnnotationFromSearchUseCase: DeleteAnnotationFromSearchUseCase;
   createNotificationUseCase: CreateNotificationUseCase;
   syncAccountDataUseCase: SyncAccountDataUseCase;
   // Firehose-specific use cases
@@ -276,6 +280,7 @@ export class UseCaseFactory {
 
     const searchUrlsUseCase = new SearchUrlsUseCase(
       repositories.cardQueryRepository,
+      services.profileService,
     );
 
     const searchCollectionsUseCase = new SearchCollectionsUseCase(
@@ -706,10 +711,12 @@ export class UseCaseFactory {
       // Search use cases
       getSimilarUrlsForUrlUseCase: new GetSimilarUrlsForUrlUseCase(
         services.searchService,
+        services.profileService,
       ),
       semanticSearchUrlsUseCase: new SemanticSearchUrlsUseCase(
         services.searchService,
         services.identityResolutionService,
+        services.profileService,
       ),
       recommendedCardsUseCase: new RecommendedCardsUseCase(
         services.vectorDatabase,
@@ -783,6 +790,14 @@ export class UseCaseFactory {
     const indexUrlForSearchUseCase = new IndexUrlForSearchUseCase(
       services.searchService,
     );
+    const indexAnnotationForSearchUseCase = new IndexAnnotationForSearchUseCase(
+      services.searchService,
+    );
+    const deleteAnnotationFromSearchUseCase =
+      new DeleteAnnotationFromSearchUseCase(
+        services.searchService,
+        repositories.cardQueryRepository,
+      );
 
     // Notification use cases
     const createNotificationUseCase = new CreateNotificationUseCase(
@@ -977,6 +992,8 @@ export class UseCaseFactory {
       // Level 1
       addActivityToFeedUseCase,
       indexUrlForSearchUseCase,
+      indexAnnotationForSearchUseCase,
+      deleteAnnotationFromSearchUseCase,
       createNotificationUseCase,
       addUrlToLibraryUseCase,
       updateUrlCardMetadataUseCase,

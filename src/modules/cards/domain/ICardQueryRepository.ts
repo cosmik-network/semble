@@ -27,6 +27,18 @@ export interface SearchUrlsOptions {
   collectionId?: CollectionId;
 }
 
+// Keyword search over annotation cards — card-level (no per-URL dedup),
+// matching note text, selector passages and the URL
+export interface SearchAnnotationsOptions {
+  searchQuery: string;
+  page: number;
+  limit: number;
+  sortBy: CardSortField;
+  sortOrder: SortOrder;
+  urlType?: UrlType;
+  authorDid?: DID;
+}
+
 // Raw result from URL search - will be enriched with library info in use case
 export interface UrlSearchResultDTO {
   url: string;
@@ -376,6 +388,15 @@ export interface ICardQueryRepository {
     exactNormalized: string,
   ): Promise<string[]>;
 
+  /**
+   * Annotation cards grouped by passage, for resolving vector-search hits
+   * back to domain objects. Map keys are `${url}\n${exactNormalized}`;
+   * only requested passages with at least one card are present.
+   */
+  getAnnotationCardsByPassages(
+    passages: { url: string; exactNormalized: string }[],
+  ): Promise<Map<string, AnnotationCardView[]>>;
+
   /** Note-bearing annotation cards matching a passage (see above) */
   getNotesForAnnotation(
     url: string,
@@ -424,6 +445,13 @@ export interface ICardQueryRepository {
    */
   getUrlsSavedByUser(userId: string, urls: string[]): Promise<Set<string>>;
 
+  /**
+   * Resolve the URL type of each URL from its URL cards (annotation cards
+   * carry no urlType of their own). Only URLs with a known type are present
+   * in the result.
+   */
+  getUrlTypes(urls: string[]): Promise<Map<string, UrlType>>;
+
   getBatchUserActivityStats(
     userIds: string[],
   ): Promise<Map<string, UserActivityStats>>;
@@ -436,6 +464,15 @@ export interface ICardQueryRepository {
   searchUrls(
     options: SearchUrlsOptions,
   ): Promise<PaginatedQueryResult<UrlSearchResultDTO>>;
+
+  /**
+   * Keyword search over annotation cards: matches note text, selector
+   * passages and the URL. Card-level results (one per annotation card), with
+   * entity-level engagement counts on the views.
+   */
+  searchAnnotations(
+    options: SearchAnnotationsOptions,
+  ): Promise<PaginatedQueryResult<AnnotationCardView>>;
 
   /**
    * Get aggregate card statistics for a user profile
