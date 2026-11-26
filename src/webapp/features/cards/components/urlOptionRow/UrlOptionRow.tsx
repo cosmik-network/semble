@@ -35,7 +35,7 @@ export default function UrlOptionRow(props: Props) {
           />
         </Card>
       )}
-      <Stack gap={0}>
+      <Stack gap={0} flex={1} miw={0}>
         <Text fw={500} c={'bright'} lineClamp={1} size="sm">
           {props.title || props.url}
         </Text>

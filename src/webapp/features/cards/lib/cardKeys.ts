@@ -1,3 +1,4 @@
+import type { SearchScope } from '@/features/search/lib/searchScope';
 import { CardSortField, SortOrder, UrlType } from '@semble/types';
 import { RankingWeights } from './types/rankingWeights';
 
@@ -7,6 +8,8 @@ export const cardKeys = {
   byUrl: (url: string) => [...cardKeys.all(), url] as const,
   mine: (limit?: number) => [...cardKeys.all(), 'mine', limit] as const,
   search: (query: string) => [...cardKeys.all(), 'search', query],
+  linkSearch: (scope: SearchScope, query: string) =>
+    [...cardKeys.all(), 'link search', scope, query] as const,
   bySembleUrl: (url: string) => [...cardKeys.all(), url],
   libraries: (id: string) => [...cardKeys.all(), 'libraries', id],
   infinite: (
