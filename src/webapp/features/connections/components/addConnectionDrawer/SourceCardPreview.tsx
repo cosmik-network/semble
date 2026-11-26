@@ -15,10 +15,13 @@ import { useQuery } from '@tanstack/react-query';
 import { createSembleClient } from '@/services/client.apiClient';
 import { getDomain } from '@/lib/utils/link';
 
+// UrlSearchInput's field height, so swapping to the preview doesn't shift
+const ROW_HEIGHT = 'calc(2.625rem * var(--mantine-scale) + 5px)';
+
 function SourceCardPreviewSkeleton() {
   return (
     <Card withBorder component="article" p={'xs'} radius={'lg'}>
-      <Group gap="xs" wrap="nowrap">
+      <Group gap="xs" wrap="nowrap" mih={ROW_HEIGHT}>
         <Skeleton width={45} height={45} radius={'md'} />
         <Stack gap={0} style={{ flex: 1 }}>
           <Skeleton height={21.5} width="80%" radius="sm" />
@@ -50,7 +53,7 @@ export default function SourceCardPreview(props: Props) {
 
   return (
     <Card withBorder component="article" p={'xs'} radius={'lg'}>
-      <Group gap="xs" wrap="nowrap">
+      <Group gap="xs" wrap="nowrap" mih={ROW_HEIGHT}>
         {data?.metadata?.imageUrl && (
           <Card
             p={0}
