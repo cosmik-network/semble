@@ -335,7 +335,29 @@ export default function UrlSearchInput(props: Props) {
     return linkToAdd ? `${found}. Add this link is selected` : found;
   };
 
-  const loader = active.isFetching && <Loader size="xs" />;
+  const clearInput = () => {
+    setInputValue('');
+    props.onInputChange?.('');
+    inputRef.current?.focus();
+    combobox.openDropdown();
+  };
+
+  const hasInput = inputValue.length > 0;
+  const rightSection = (active.isFetching || hasInput) && (
+    <Group gap={4} wrap="nowrap">
+      {active.isFetching && <Loader size="xs" />}
+      {hasInput && (
+        <Input.ClearButton
+          aria-label="Clear search"
+          // Keeps focus in the input, so the dropdown stays open
+          onMouseDown={(event) => event.preventDefault()}
+          onClick={clearInput}
+        />
+      )}
+    </Group>
+  );
+  // Room for the spinner beside the clear button
+  const rightSectionWidth = active.isFetching && hasInput ? 56 : undefined;
 
   const isPlainLayout = !!props.inputProps;
 
@@ -351,7 +373,8 @@ export default function UrlSearchInput(props: Props) {
       ref={inputRef}
       onBlur={handleBlur}
       onKeyDown={handleInputKeyDown}
-      rightSection={loader || props.inputProps?.rightSection}
+      rightSection={rightSection || props.inputProps?.rightSection}
+      rightSectionWidth={rightSectionWidth}
       error={props.error}
       required
     />
@@ -368,7 +391,8 @@ export default function UrlSearchInput(props: Props) {
       ref={inputRef}
       onBlur={handleBlur}
       onKeyDown={handleInputKeyDown}
-      rightSection={loader || null}
+      rightSection={rightSection || null}
+      rightSectionWidth={rightSectionWidth}
       variant="unstyled"
       size="md"
       required
