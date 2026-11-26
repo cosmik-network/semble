@@ -369,12 +369,20 @@ describe('Annotation read use cases', () => {
       expect(result.isOk()).toBe(true);
       const connections = result.unwrap().connections;
       expect(connections).toHaveLength(1);
-      expect(connections[0]!.annotationCardId).toBe(cardId);
-      expect(connections[0]!.other.type).toBe('URL');
-      expect(connections[0]!.other.url).toBe('https://example.com/other');
-      expect(connections[0]!.other.metadata.url).toBe(
-        'https://example.com/other',
-      );
+      // The matching annotation card is normalized to the source endpoint
+      const source = connections[0]!.source;
+      expect(source.type).toBe('CARD');
+      if (source.type !== 'CARD') {
+        throw new Error('expected CARD source');
+      }
+      expect(source.card.id).toBe(cardId);
+      const target = connections[0]!.target;
+      expect(target.type).toBe('URL');
+      if (target.type !== 'URL') {
+        throw new Error('expected URL target');
+      }
+      expect(target.url).toBe('https://example.com/other');
+      expect(target.metadata.url).toBe('https://example.com/other');
       expect(connections[0]!.connection.curator.handle).toBe('curator1');
 
       // Entity-level connection count shows up on the annotation card views

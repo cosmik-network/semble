@@ -43,7 +43,7 @@ export const connectionsContract = c.router(
       responses: { 200: GetConnectionsForAnnotationResponseSchema },
       summary: 'Get connections for an annotation',
       description:
-        'Returns connections where any annotation card matching a passage is an endpoint. Matching is on the URL and the normalized exact text of the TextQuoteSelector.',
+        'Returns connections where any annotation card matching a passage is an endpoint, normalized so the matching annotation card is always the source endpoint. Matching is on the URL and the normalized exact text of the TextQuoteSelector.',
     },
     createConnection: {
       method: 'POST',

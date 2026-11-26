@@ -4,8 +4,10 @@ import {
   PaginationSchema,
   ConnectionSortingSchema,
 } from '../../entities/common';
-import { ConnectionTypeSchema } from '../../entities/connection';
-import { AnnotationConnectionViewSchema } from '../../entities/connection';
+import {
+  ConnectionTypeSchema,
+  ConnectionWithEndpointsAndCuratorSchema,
+} from '../../entities/connection';
 
 export const GetConnectionsForAnnotationParamsSchema =
   PaginatedConnectionSortedParamsSchema.extend({
@@ -17,8 +19,11 @@ export type GetConnectionsForAnnotationParams = z.infer<
   typeof GetConnectionsForAnnotationParamsSchema
 >;
 
+// Same shape as GetConnectionsForUrlResponse: full source/target endpoint
+// views with the curator. The matching annotation card is always the source
+// endpoint; the opposite endpoint is the target.
 export const GetConnectionsForAnnotationResponseSchema = z.object({
-  connections: z.array(AnnotationConnectionViewSchema),
+  connections: z.array(ConnectionWithEndpointsAndCuratorSchema),
   pagination: PaginationSchema,
   sorting: ConnectionSortingSchema,
 });

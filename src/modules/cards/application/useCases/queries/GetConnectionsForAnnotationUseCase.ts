@@ -12,14 +12,14 @@ import { normalizeQuotedText } from '../../../domain/value-objects/selectors/nor
 import { IProfileService } from '../../../domain/services/IProfileService';
 import { IMetadataService } from '../../../domain/services/IMetadataService';
 import { toUrlMetadataDTO } from '../../../domain/value-objects/urlMetadataMapping';
-import {
-  UrlMetadata,
-  PaginationDTO,
-  AnnotationConnectionView,
-} from '@semble/types';
+import { UrlMetadata, PaginationDTO } from '@semble/types';
 import { ProfileEnricher } from '../../services/ProfileEnricher';
 import { ConnectionTypeEnum } from '../../../domain/value-objects/ConnectionType';
 import { ValidationError } from './GetAnnotationsForUrlUseCase';
+import {
+  ConnectionView,
+  ConnectionEndpointItemDTO,
+} from './GetConnectionsForUrlUseCase';
 
 export interface GetConnectionsForAnnotationQuery {
   url: string;
@@ -34,7 +34,7 @@ export interface GetConnectionsForAnnotationQuery {
 }
 
 export interface GetConnectionsForAnnotationResult {
-  connections: AnnotationConnectionView[];
+  connections: ConnectionView[];
   pagination: PaginationDTO;
   sorting: {
     sortBy: ConnectionSortField;
@@ -102,48 +102,58 @@ export class GetConnectionsForAnnotationUseCase implements UseCase<
         .map((item) => this.splitEndpoints(item, matchingCardIds))
         .filter((split): split is NonNullable<typeof split> => split !== null);
 
-      // CARD-typed other endpoints resolve to their card's URL before the
-      // batch library-info fetch
-      const otherCardIds = splits
-        .filter((split) => split.other.type === 'CARD')
-        .map((split) => split.other.value);
-      const cardUrlMap =
-        await this.cardQueryRepo.getCardUrlsByIds(otherCardIds);
-
+      // Both the matching annotation endpoints and CARD-typed other
+      // endpoints resolve to full card views — one batch covers both
+      const allCardIds = Array.from(
+        new Set([
+          ...splits.map((split) => split.annotationCardId),
+          ...splits
+            .filter((split) => split.other.type === 'CARD')
+            .map((split) => split.other.value),
+        ]),
+      );
       const uniqueUrls = Array.from(
         new Set(
           splits
-            .map((split) =>
-              split.other.type === 'URL'
-                ? split.other.value
-                : cardUrlMap.get(split.other.value),
-            )
-            .filter((url): url is string => url !== undefined),
+            .filter((split) => split.other.type === 'URL')
+            .map((split) => split.other.value),
         ),
       );
 
-      // Curator profiles and URL library info are independent — fetch in
-      // parallel. The library-info batch carries sample-card metadata; URLs
-      // it has none for get a fast external fetch, the same fallback the
-      // profile connection tab uses.
+      // Curator profiles, card views, card author profiles, and URL library
+      // info are independent — fetch in parallel
+      const cardViewsMap =
+        await this.cardQueryRepo.getBatchAnnotationCardViews(allCardIds);
+      const uniqueCardAuthorIds = Array.from(
+        new Set(Array.from(cardViewsMap.values()).map((view) => view.authorId)),
+      );
       const uniqueCuratorIds = Array.from(
         new Set(splits.map((split) => split.item.connection.curatorId)),
       );
       const profileEnricher = new ProfileEnricher(this.profileService);
-      const [profileMapResult, urlLibraryInfoMap] = await Promise.all([
-        profileEnricher.buildProfileMap(uniqueCuratorIds, query.callingUserId, {
-          skipFailures: true, // Skip profiles that fail to resolve
-          mapToUser: false,
-        }),
-        this.cardQueryRepo.getBatchUrlLibraryInfo(
-          uniqueUrls,
-          query.callingUserId,
-        ),
-      ]);
+      const [curatorMapResult, cardAuthorMapResult, urlLibraryInfoMap] =
+        await Promise.all([
+          profileEnricher.buildProfileMap(
+            uniqueCuratorIds,
+            query.callingUserId,
+            {
+              skipFailures: true, // Skip profiles that fail to resolve
+              mapToUser: false,
+            },
+          ),
+          profileEnricher.buildProfileMap(uniqueCardAuthorIds, undefined, {
+            skipFailures: true, // Skip cards with failed author profiles
+            mapToUser: false,
+          }),
+          this.cardQueryRepo.getBatchUrlLibraryInfo(
+            uniqueUrls,
+            query.callingUserId,
+          ),
+        ]);
 
-      // Metadata map for the other endpoints' URLs: sample-card metadata
-      // where the library-info batch has it, fast external fetch where it
-      // doesn't, minimal {url} when both come up empty
+      // Metadata map for the URL endpoints: sample-card metadata where the
+      // library-info batch has it, fast external fetch where it doesn't,
+      // minimal {url} when both come up empty
       const metadataMap = new Map<string, UrlMetadata>();
       const urlsNeedingFetch: string[] = [];
       for (const url of uniqueUrls) {
@@ -195,39 +205,81 @@ export class GetConnectionsForAnnotationUseCase implements UseCase<
         }
       }
 
-      if (profileMapResult.isErr()) {
+      if (curatorMapResult.isErr()) {
         return err(
           new Error(
-            `Failed to fetch curator profiles: ${profileMapResult.error.message}`,
+            `Failed to fetch curator profiles: ${curatorMapResult.error.message}`,
+          ),
+        );
+      }
+      if (cardAuthorMapResult.isErr()) {
+        return err(
+          new Error(
+            `Failed to fetch card author profiles: ${cardAuthorMapResult.error.message}`,
           ),
         );
       }
 
-      const profileMap = profileMapResult.value;
+      const curatorMap = curatorMapResult.value;
+      const cardAuthorMap = cardAuthorMapResult.value;
 
-      // Map items with enriched data; skip connections with missing curator
-      // profiles or unresolvable CARD endpoints
-      const enrichedConnections: AnnotationConnectionView[] = [];
+      // Resolve an endpoint to its view; null when a card's view or author
+      // can't be resolved (the connection is then skipped)
+      const resolveCardEndpoint = (
+        cardId: string,
+      ): ConnectionEndpointItemDTO | null => {
+        const card = cardViewsMap.get(cardId);
+        const author = card && cardAuthorMap.get(card.authorId);
+        if (!card || !author) {
+          return null;
+        }
+        const { authorId: _authorId, ...cardData } = card;
+        return {
+          type: 'CARD',
+          card: {
+            ...cardData,
+            author,
+          },
+        };
+      };
+
+      const resolveUrlEndpoint = (url: string): ConnectionEndpointItemDTO => {
+        const urlInfo = urlLibraryInfoMap.get(url);
+        return {
+          type: 'URL',
+          url,
+          // Sample-card metadata, an external fetch, or just the URL — in
+          // that order, per the metadata map built above
+          metadata: metadataMap.get(url) ?? { url },
+          urlLibraryCount: urlInfo?.urlLibraryCount ?? 0,
+          urlInLibrary: urlInfo?.urlInLibrary,
+          urlConnectionCount: urlInfo?.urlConnectionCount,
+          urlIsConnected: urlInfo?.urlIsConnected,
+        };
+      };
+
+      // Map items with enriched data, normalized so the matching annotation
+      // card is the source and the opposite endpoint is the target; skip
+      // connections with missing curator profiles or unresolvable cards
+      const enrichedConnections: ConnectionView[] = [];
       for (const split of splits) {
-        const curator = profileMap.get(split.item.connection.curatorId);
+        const curator = curatorMap.get(split.item.connection.curatorId);
         if (!curator) {
           continue;
         }
 
-        const otherUrl =
-          split.other.type === 'URL'
-            ? split.other.value
-            : cardUrlMap.get(split.other.value);
-        if (!otherUrl) {
-          continue; // Referenced card no longer exists
+        const source = resolveCardEndpoint(split.annotationCardId);
+        if (!source) {
+          continue;
         }
 
-        const urlInfo = urlLibraryInfoMap.get(otherUrl);
-        // Sample-card metadata, an external fetch, or just the URL — in
-        // that order, per the metadata map built above
-        const metadata: UrlMetadata = metadataMap.get(otherUrl) ?? {
-          url: otherUrl,
-        };
+        const target =
+          split.other.type === 'CARD'
+            ? resolveCardEndpoint(split.other.value)
+            : resolveUrlEndpoint(split.other.value);
+        if (!target) {
+          continue;
+        }
 
         enrichedConnections.push({
           connection: {
@@ -238,17 +290,8 @@ export class GetConnectionsForAnnotationUseCase implements UseCase<
             updatedAt: split.item.connection.updatedAt.toISOString(),
             curator,
           },
-          annotationCardId: split.annotationCardId,
-          other: {
-            type: split.other.type,
-            cardId: split.other.type === 'CARD' ? split.other.value : undefined,
-            url: otherUrl,
-            metadata,
-            urlLibraryCount: urlInfo?.urlLibraryCount ?? 0,
-            urlInLibrary: urlInfo?.urlInLibrary,
-            urlConnectionCount: urlInfo?.urlConnectionCount,
-            urlIsConnected: urlInfo?.urlIsConnected,
-          },
+          source,
+          target,
         });
       }
 
