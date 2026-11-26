@@ -410,7 +410,24 @@ export default function UrlSearchInput(props: Props) {
       onOptionSubmit={handleOptionSubmit}
       classNames={{ option: classes.option }}
     >
-      <Combobox.Target>{inputElement}</Combobox.Target>
+      {isPlainLayout ? (
+        <Combobox.Target>{inputElement}</Combobox.Target>
+      ) : (
+        // The dropdown lines up with the card the input sits in, while the
+        // input still drives it
+        <Combobox.DropdownTarget>
+          <Card padding="xs" radius="lg" withBorder>
+            <Stack gap={0}>
+              <Combobox.EventsTarget>{inputElement}</Combobox.EventsTarget>
+              <VisuallyHidden>
+                <Input.Label htmlFor={props.id} required>
+                  {props.label}
+                </Input.Label>
+              </VisuallyHidden>
+            </Stack>
+          </Card>
+        </Combobox.DropdownTarget>
+      )}
 
       <Combobox.Dropdown
         p={0}
@@ -502,27 +519,10 @@ export default function UrlSearchInput(props: Props) {
     </Combobox>
   );
 
-  const searchBlock = (
+  return (
     <Fragment>
       {comboboxBlock}
       <VisuallyHidden role="status">{statusMessage()}</VisuallyHidden>
     </Fragment>
-  );
-
-  if (isPlainLayout) {
-    return searchBlock;
-  }
-
-  return (
-    <Card padding="xs" radius="lg" withBorder>
-      <Stack gap={0}>
-        {searchBlock}
-        <VisuallyHidden>
-          <Input.Label htmlFor={props.id} required>
-            {props.label}
-          </Input.Label>
-        </VisuallyHidden>
-      </Stack>
-    </Card>
   );
 }
