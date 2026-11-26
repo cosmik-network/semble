@@ -57,10 +57,10 @@ const DROPDOWN_MIDDLEWARES: ComboboxProps['middlewares'] = {
     padding: VIEWPORT_MARGIN,
     apply: ({ availableHeight, elements }) => {
       // The filters, the list's padding and the dropdown's border
-      const controls = elements.floating.querySelector<HTMLElement>(
-        `.${classes.controls}`,
+      const filters = elements.floating.querySelector<HTMLElement>(
+        `.${classes.filters}`,
       );
-      const chrome = (controls?.offsetHeight ?? 0) + 10;
+      const chrome = (filters?.offsetHeight ?? 0) + 10;
       const listMax = Math.max(availableHeight - chrome, MIN_LIST_HEIGHT);
       elements.floating.style.setProperty(
         '--url-search-list-max',
@@ -435,32 +435,6 @@ export default function UrlSearchInput(props: Props) {
         // would blur the input and close it
         onMouseDown={(event) => event.preventDefault()}
       >
-        <div
-          ref={setControls}
-          className={classes.controls}
-          // Back to the input after a pointer click; arrow keys on the radios
-          // also fire clicks, with no detail, and keep focus where it is
-          onClick={(event) => {
-            if (event.detail > 0) inputRef.current?.focus();
-          }}
-          onBlur={handleBlur}
-          onKeyDown={handleControlsKeyDown}
-        >
-          <SegmentedControl
-            value={kind}
-            onChange={(value) => setKind(value as SearchKind)}
-            data={SEARCH_KINDS}
-            aria-label="Search for"
-            size="xs"
-          />
-          <SegmentedControl
-            value={scope}
-            onChange={(value) => setScope(value as SearchScope)}
-            data={SEARCH_SCOPES}
-            aria-label="Search in"
-            size="xs"
-          />
-        </div>
         <Combobox.Options className={classes.options}>
           <ScrollArea.Autosize
             type="scroll"
@@ -515,6 +489,33 @@ export default function UrlSearchInput(props: Props) {
             )}
           </ScrollArea.Autosize>
         </Combobox.Options>
+        {/* Below the results, so they start right under the input */}
+        <div
+          ref={setControls}
+          className={classes.filters}
+          // Back to the input after a pointer click; arrow keys on the radios
+          // also fire clicks, with no detail, and keep focus where it is
+          onClick={(event) => {
+            if (event.detail > 0) inputRef.current?.focus();
+          }}
+          onBlur={handleBlur}
+          onKeyDown={handleControlsKeyDown}
+        >
+          <SegmentedControl
+            value={kind}
+            onChange={(value) => setKind(value as SearchKind)}
+            data={SEARCH_KINDS}
+            aria-label="Search for"
+            size="xs"
+          />
+          <SegmentedControl
+            value={scope}
+            onChange={(value) => setScope(value as SearchScope)}
+            data={SEARCH_SCOPES}
+            aria-label="Search in"
+            size="xs"
+          />
+        </div>
       </Combobox.Dropdown>
     </Combobox>
   );
