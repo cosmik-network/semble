@@ -1,4 +1,5 @@
-import { Card, Group, Image, Stack, Text } from '@mantine/core';
+import { Card, Group, Image, Stack, Text, ThemeIcon } from '@mantine/core';
+import { BiLink } from 'react-icons/bi';
 import { useState } from 'react';
 import { getDomain } from '@/lib/utils/link';
 
@@ -16,7 +17,8 @@ export default function UrlOptionRow(props: Props) {
 
   return (
     <Group gap={'xs'} align="center" wrap="nowrap">
-      {showImage && (
+      {/* Rows without a thumbnail keep their text in line with the rest */}
+      {showImage ? (
         <Card
           p={0}
           radius="md"
@@ -34,6 +36,10 @@ export default function UrlOptionRow(props: Props) {
             onError={() => setFailedSrc(props.imageUrl ?? null)}
           />
         </Card>
+      ) : (
+        <ThemeIcon variant="light" color="gray" size={35} radius="md">
+          <BiLink size={18} />
+        </ThemeIcon>
       )}
       <Stack gap={0} flex={1} miw={0}>
         <Text fw={500} c={'bright'} lineClamp={1} size="sm">
