@@ -1,6 +1,7 @@
 'use client';
 
 import {
+  Button,
   Card,
   Combobox,
   type ComboboxProps,
@@ -18,7 +19,7 @@ import {
   VisuallyHidden,
 } from '@mantine/core';
 import { useDebouncedValue } from '@mantine/hooks';
-import { Fragment, useEffect, useRef, useState } from 'react';
+import { Fragment, useCallback, useEffect, useRef, useState } from 'react';
 import { BiLink } from 'react-icons/bi';
 import { getCollectionPageUrl } from '@/lib/utils/link';
 import { getRecordKey } from '@/lib/utils/atproto';
@@ -45,6 +46,8 @@ const NOUNS: Record<SearchKind, [string, string]> = {
 };
 
 const VIEWPORT_MARGIN = 8;
+// How close to the end of the list the next page starts loading
+const LOAD_MORE_DISTANCE = 120;
 // About two rows, so a cramped list still shows something to scroll
 const MIN_LIST_HEIGHT = 96;
 
@@ -160,7 +163,11 @@ export default function UrlSearchInput(props: Props) {
   const [query] = useDebouncedValue(inputValue.trim(), 200);
   const inputRef = useRef<HTMLInputElement>(null);
   const controlsRef = useRef<HTMLDivElement>(null);
-  const { setViewport, maskImage, updateFade } = useScrollFade();
+  const {
+    setViewport: setScrollFadeViewport,
+    maskImage,
+    updateFade,
+  } = useScrollFade();
   const [kind, setKind] = useState<SearchKind>('cards');
   const [scope, setScope] = useState<SearchScope>('mine');
 
@@ -173,6 +180,7 @@ export default function UrlSearchInput(props: Props) {
     isOpen && kind === 'collections',
   );
   const active = kind === 'cards' ? links : collections;
+  const viewportRef = useRef<HTMLDivElement | null>(null);
   const messages = SEARCH_MESSAGES[scope];
 
   const linkResults = kind === 'cards' ? (links.data ?? []) : [];
@@ -202,6 +210,46 @@ export default function UrlSearchInput(props: Props) {
       ? typedLink
       : null;
 
+  const loadMoreNearEnd = () => {
+    const el = viewportRef.current;
+    // A failed page waits for Retry rather than looping
+    if (
+      !el ||
+      !active.hasNextPage ||
+      active.isFetching ||
+      active.isFetchNextPageError
+    )
+      return;
+    const remaining = el.scrollHeight - el.scrollTop - el.clientHeight;
+    if (remaining < LOAD_MORE_DISTANCE) active.fetchNextPage();
+  };
+
+  const setViewport = useCallback(
+    (el: HTMLDivElement) => {
+      viewportRef.current = el;
+      const cleanup = setScrollFadeViewport(el);
+      return () => {
+        cleanup();
+        viewportRef.current = null;
+      };
+    },
+    [setScrollFadeViewport],
+  );
+
+  // A page that doesn't fill the list can't be scrolled to load the next
+  useEffect(() => {
+    if (isOpen) loadMoreNearEnd();
+  });
+
+  // Appended pages keep the selection, so only the first result counts
+  const resultsHead = [
+    kind,
+    scope,
+    query,
+    linkResults[0]?.url,
+    collectionResults[0]?.url,
+  ].join(' ');
+
   // New results start unselected so arrow down begins at the top; with a
   // link typed, the first option is selected so Enter takes it
   useEffect(() => {
@@ -209,7 +257,7 @@ export default function UrlSearchInput(props: Props) {
     else combobox.resetSelectedOption();
     // The store is a new object each render; its methods read refs
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [resultKeys, typedLink]);
+  }, [resultsHead, typedLink]);
 
   const handleClear = () => {
     setConfirmedUrl(null);
@@ -328,10 +376,15 @@ export default function UrlSearchInput(props: Props) {
   const statusMessage = () => {
     if (!isOpen || !query) return '';
     const count = linkResults.length + collectionResults.length;
+    const failedMore = active.isFetchNextPageError
+      ? ". Couldn't load more"
+      : '';
     const found =
-      active.isError || active.isPending || count === 0
+      (active.isError && !active.isFetchNextPageError) ||
+      active.isPending ||
+      count === 0
         ? emptyMessage()
-        : `${count} ${NOUNS[kind][count === 1 ? 0 : 1]}`;
+        : `${count} ${NOUNS[kind][count === 1 ? 0 : 1]}${failedMore}`;
     return linkToAdd ? `${found}. Add this link is selected` : found;
   };
 
@@ -343,9 +396,11 @@ export default function UrlSearchInput(props: Props) {
   };
 
   const hasInput = inputValue.length > 0;
-  const rightSection = (active.isFetching || hasInput) && (
+  // The list shows its own spinner for a further page
+  const isSearching = active.isFetching && !active.isFetchingNextPage;
+  const rightSection = (isSearching || hasInput) && (
     <Group gap={4} wrap="nowrap">
-      {active.isFetching && <Loader size="xs" />}
+      {isSearching && <Loader size="xs" />}
       {hasInput && (
         <Input.ClearButton
           aria-label="Clear search"
@@ -357,7 +412,7 @@ export default function UrlSearchInput(props: Props) {
     </Group>
   );
   // Room for the spinner beside the clear button
-  const rightSectionWidth = active.isFetching && hasInput ? 56 : undefined;
+  const rightSectionWidth = isSearching && hasInput ? 56 : undefined;
 
   const isPlainLayout = !!props.inputProps;
 
@@ -445,7 +500,10 @@ export default function UrlSearchInput(props: Props) {
             offsetScrollbars="present"
             overscrollBehavior="contain"
             viewportRef={setViewport}
-            onScrollPositionChange={updateFade}
+            onScrollPositionChange={() => {
+              updateFade();
+              loadMoreNearEnd();
+            }}
             classNames={{ viewport: classes.list }}
             styles={{
               viewport: maskImage
@@ -484,6 +542,26 @@ export default function UrlSearchInput(props: Props) {
                 <CollectionOptionRow collection={result.collection} />
               </Combobox.Option>
             ))}
+            {active.isFetchNextPageError && (
+              <Group justify="center" gap={4} py="xs">
+                <Text size="xs" c="dimmed">
+                  Couldn&rsquo;t load more
+                </Text>
+                <Button
+                  variant="subtle"
+                  color="gray"
+                  size="compact-xs"
+                  onClick={() => active.fetchNextPage()}
+                >
+                  Retry
+                </Button>
+              </Group>
+            )}
+            {active.isFetchingNextPage && (
+              <Group justify="center" py="xs">
+                <Loader size="xs" color="gray" />
+              </Group>
+            )}
             {!linkToAdd && !resultKeys && (
               <Combobox.Empty>{emptyMessage()}</Combobox.Empty>
             )}

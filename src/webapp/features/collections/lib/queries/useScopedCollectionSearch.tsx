@@ -5,7 +5,8 @@ import useSearchCollections from './useSearchCollections';
 
 const RESULTS = 8;
 
-// The viewer's own collections, or those matching the query, theirs or anyone's
+// The viewer's own collections, or those matching the query, theirs or anyone's,
+// as many pages as have been loaded
 export default function useScopedCollectionSearch(
   scope: SearchScope,
   query: string,
@@ -26,13 +27,21 @@ export default function useScopedCollectionSearch(
     keepPreviousData: true,
   });
   const search = scope === 'everyone' ? everyone : query ? mine : recent;
-  const collections =
-    search.data?.pages.flatMap((page) => page.collections ?? []) ?? [];
+  const seen = new Set<string>();
+  const collections = (
+    search.data?.pages.flatMap((page) => page.collections ?? []) ?? []
+  ).filter(
+    (collection) => !seen.has(collection.id) && !!seen.add(collection.id),
+  );
   const isIdle = scope === 'everyone' && !query;
   return {
-    collections: isIdle ? [] : collections.slice(0, RESULTS),
+    collections: isIdle ? [] : collections,
     isPending: !isIdle && search.isPending,
     isFetching: search.isFetching,
     isError: search.isError,
+    hasNextPage: !isIdle && search.hasNextPage,
+    isFetchingNextPage: search.isFetchingNextPage,
+    isFetchNextPageError: search.isFetchNextPageError,
+    fetchNextPage: search.fetchNextPage,
   };
 }
