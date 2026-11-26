@@ -403,7 +403,7 @@ export default function UrlSearchInput(props: Props) {
   const comboboxBlock = (
     <Combobox
       shadow="sm"
-      radius="md"
+      radius="lg"
       store={combobox}
       middlewares={DROPDOWN_MIDDLEWARES}
       position="bottom-start"
