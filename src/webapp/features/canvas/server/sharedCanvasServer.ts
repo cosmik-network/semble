@@ -91,9 +91,9 @@ export const sharedCanvasServer: CanvasServer = {
     throw new Error("A shared canvas can't be edited");
   },
   async searchLibrary() {
-    return [];
+    return { links: [], hasMore: false };
   },
   async searchEveryone() {
-    return [];
+    return { links: [], hasMore: false };
   },
 };

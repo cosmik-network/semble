@@ -1,6 +1,7 @@
 'use client';
 
 import {
+  Button,
   Card,
   Combobox,
   type ComboboxProps,
@@ -18,14 +19,16 @@ import {
   VisuallyHidden,
 } from '@mantine/core';
 import { useDebouncedValue } from '@mantine/hooks';
-import { Fragment, useEffect, useRef, useState } from 'react';
-import { BiLink } from 'react-icons/bi';
+import { Fragment, useCallback, useEffect, useRef, useState } from 'react';
+import { BiLink, BiPlus } from 'react-icons/bi';
+import type { Collection } from '@semble/types';
 import { getCollectionPageUrl } from '@/lib/utils/link';
 import { getRecordKey } from '@/lib/utils/atproto';
 import { useScrollFade } from '@/hooks/useScrollFade';
 import { linkKey } from '@/features/canvas/model/linkCards';
 import UrlOptionRow from '@/features/cards/components/urlOptionRow/UrlOptionRow';
 import useScopedLinkSearch from '@/features/cards/lib/queries/useScopedLinkSearch';
+import CreateCollectionDrawer from '@/features/collections/components/createCollectionDrawer/CreateCollectionDrawer';
 import CollectionOptionRow from '@/features/collections/components/collectionOptionRow/CollectionOptionRow';
 import useScopedCollectionSearch from '@/features/collections/lib/queries/useScopedCollectionSearch';
 import {
@@ -45,6 +48,11 @@ const NOUNS: Record<SearchKind, [string, string]> = {
 };
 
 const VIEWPORT_MARGIN = 8;
+// The create row's option value; no URL can look like it
+const CREATE_COLLECTION = 'create-collection';
+
+// How close to the end of the list the next page starts loading
+const LOAD_MORE_DISTANCE = 120;
 // About two rows, so a cramped list still shows something to scroll
 const MIN_LIST_HEIGHT = 96;
 
@@ -160,11 +168,19 @@ export default function UrlSearchInput(props: Props) {
   const [query] = useDebouncedValue(inputValue.trim(), 200);
   const inputRef = useRef<HTMLInputElement>(null);
   const controlsRef = useRef<HTMLDivElement>(null);
-  const { setViewport, maskImage, updateFade } = useScrollFade();
+  const {
+    setViewport: setScrollFadeViewport,
+    maskImage,
+    updateFade,
+  } = useScrollFade();
   const [kind, setKind] = useState<SearchKind>('cards');
   const [scope, setScope] = useState<SearchScope>('mine');
 
   const typedLink = toLink(inputValue);
+  // The name a new collection starts with, while its drawer is open
+  const [newCollectionName, setNewCollectionName] = useState<string | null>(
+    null,
+  );
   const isOpen = combobox.dropdownOpened;
   const links = useScopedLinkSearch(scope, query, isOpen && kind === 'cards');
   const collections = useScopedCollectionSearch(
@@ -173,6 +189,7 @@ export default function UrlSearchInput(props: Props) {
     isOpen && kind === 'collections',
   );
   const active = kind === 'cards' ? links : collections;
+  const viewportRef = useRef<HTMLDivElement | null>(null);
   const messages = SEARCH_MESSAGES[scope];
 
   const linkResults = kind === 'cards' ? (links.data ?? []) : [];
@@ -202,6 +219,46 @@ export default function UrlSearchInput(props: Props) {
       ? typedLink
       : null;
 
+  const loadMoreNearEnd = () => {
+    const el = viewportRef.current;
+    // A failed page waits for Retry rather than looping
+    if (
+      !el ||
+      !active.hasNextPage ||
+      active.isFetching ||
+      active.isFetchNextPageError
+    )
+      return;
+    const remaining = el.scrollHeight - el.scrollTop - el.clientHeight;
+    if (remaining < LOAD_MORE_DISTANCE) active.fetchNextPage();
+  };
+
+  const setViewport = useCallback(
+    (el: HTMLDivElement) => {
+      viewportRef.current = el;
+      const cleanup = setScrollFadeViewport(el);
+      return () => {
+        cleanup();
+        viewportRef.current = null;
+      };
+    },
+    [setScrollFadeViewport],
+  );
+
+  // A page that doesn't fill the list can't be scrolled to load the next
+  useEffect(() => {
+    if (isOpen) loadMoreNearEnd();
+  });
+
+  // Appended pages keep the selection, so only the first result counts
+  const resultsHead = [
+    kind,
+    scope,
+    query,
+    linkResults[0]?.url,
+    collectionResults[0]?.url,
+  ].join(' ');
+
   // New results start unselected so arrow down begins at the top; with a
   // link typed, the first option is selected so Enter takes it
   useEffect(() => {
@@ -209,7 +266,7 @@ export default function UrlSearchInput(props: Props) {
     else combobox.resetSelectedOption();
     // The store is a new object each render; its methods read refs
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [resultKeys, typedLink]);
+  }, [resultsHead, typedLink]);
 
   const handleClear = () => {
     setConfirmedUrl(null);
@@ -218,10 +275,32 @@ export default function UrlSearchInput(props: Props) {
     props.onUrlClear?.();
   };
 
+  const selectUrl = (url: string, method: ConnectionLinkInputMethod) => {
+    props.onUrlSelect(url, method);
+    setInputValue(url);
+    if (isValidUrl(url)) setConfirmedUrl(url);
+  };
+
+  const handleCollectionCreated = (collection: Collection) => {
+    const url = collectionPageUrl(collection);
+    if (url) selectUrl(url, 'created_collection');
+  };
+
+  // Stays mounted once the new collection is picked, so it closes smoothly
+  const createCollectionDrawer = (
+    <CreateCollectionDrawer
+      isOpen={newCollectionName !== null}
+      onClose={() => setNewCollectionName(null)}
+      initialName={newCollectionName ?? undefined}
+      onCreate={handleCollectionCreated}
+    />
+  );
+
   if (confirmedUrl) {
     return (
       <Fragment>
         <SourceCardPreview sourceUrl={confirmedUrl} onRemove={handleClear} />
+        {createCollectionDrawer}
         <VisuallyHidden>
           <Input.Label htmlFor={props.id} required>
             {props.label}
@@ -231,14 +310,24 @@ export default function UrlSearchInput(props: Props) {
     );
   }
 
+  // New collections are the viewer's own, so only offered with their own
+  const canCreate = !linkToAdd && kind === 'collections' && scope === 'mine';
+  const newName = inputValue.trim();
+
   const emptyMessage = () => {
     if (active.isError) return messages.failed;
     if (active.isPending) return 'Searching…';
-    if (query) return messages.noMatch[kind];
+    // The create row stands in for no matches
+    if (query) return canCreate ? null : messages.noMatch[kind];
     return messages.prompt;
   };
 
   const handleOptionSubmit = (url: string) => {
+    if (url === CREATE_COLLECTION) {
+      setNewCollectionName(inputValue.trim());
+      combobox.closeDropdown();
+      return;
+    }
     // From the row picked, since the query can lag the rows on screen
     const link = linkResults.find((result) => result.url === url);
     const method: ConnectionLinkInputMethod =
@@ -328,10 +417,15 @@ export default function UrlSearchInput(props: Props) {
   const statusMessage = () => {
     if (!isOpen || !query) return '';
     const count = linkResults.length + collectionResults.length;
+    const failedMore = active.isFetchNextPageError
+      ? ". Couldn't load more"
+      : '';
     const found =
-      active.isError || active.isPending || count === 0
-        ? emptyMessage()
-        : `${count} ${NOUNS[kind][count === 1 ? 0 : 1]}`;
+      (active.isError && !active.isFetchNextPageError) ||
+      active.isPending ||
+      count === 0
+        ? (emptyMessage() ?? messages.noMatch[kind])
+        : `${count} ${NOUNS[kind][count === 1 ? 0 : 1]}${failedMore}`;
     return linkToAdd ? `${found}. Add this link is selected` : found;
   };
 
@@ -343,9 +437,11 @@ export default function UrlSearchInput(props: Props) {
   };
 
   const hasInput = inputValue.length > 0;
-  const rightSection = (active.isFetching || hasInput) && (
+  // The list shows its own spinner for a further page
+  const isSearching = active.isFetching && !active.isFetchingNextPage;
+  const rightSection = (isSearching || hasInput) && (
     <Group gap={4} wrap="nowrap">
-      {active.isFetching && <Loader size="xs" />}
+      {isSearching && <Loader size="xs" />}
       {hasInput && (
         <Input.ClearButton
           aria-label="Clear search"
@@ -357,7 +453,7 @@ export default function UrlSearchInput(props: Props) {
     </Group>
   );
   // Room for the spinner beside the clear button
-  const rightSectionWidth = active.isFetching && hasInput ? 56 : undefined;
+  const rightSectionWidth = isSearching && hasInput ? 56 : undefined;
 
   const isPlainLayout = !!props.inputProps;
 
@@ -445,7 +541,10 @@ export default function UrlSearchInput(props: Props) {
             offsetScrollbars="present"
             overscrollBehavior="contain"
             viewportRef={setViewport}
-            onScrollPositionChange={updateFade}
+            onScrollPositionChange={() => {
+              updateFade();
+              loadMoreNearEnd();
+            }}
             classNames={{ viewport: classes.list }}
             styles={{
               viewport: maskImage
@@ -470,6 +569,20 @@ export default function UrlSearchInput(props: Props) {
                 </Group>
               </Combobox.Option>
             )}
+            {canCreate && (
+              <Combobox.Option value={CREATE_COLLECTION}>
+                <Group gap="xs" wrap="nowrap">
+                  <ThemeIcon variant="light" color="gray" size={35} radius="md">
+                    <BiPlus size={18} />
+                  </ThemeIcon>
+                  <Text fw={500} c="bright" size="sm" lineClamp={1}>
+                    {newName
+                      ? `Create new collection "${newName}"`
+                      : 'Create new collection'}
+                  </Text>
+                </Group>
+              </Combobox.Option>
+            )}
             {linkResults.map((link) => (
               <Combobox.Option key={link.url} value={link.url}>
                 <UrlOptionRow
@@ -484,7 +597,27 @@ export default function UrlSearchInput(props: Props) {
                 <CollectionOptionRow collection={result.collection} />
               </Combobox.Option>
             ))}
-            {!linkToAdd && !resultKeys && (
+            {active.isFetchNextPageError && (
+              <Group justify="center" gap={4} py="xs">
+                <Text size="xs" c="dimmed">
+                  Couldn&rsquo;t load more
+                </Text>
+                <Button
+                  variant="subtle"
+                  color="gray"
+                  size="compact-xs"
+                  onClick={() => active.fetchNextPage()}
+                >
+                  Retry
+                </Button>
+              </Group>
+            )}
+            {active.isFetchingNextPage && (
+              <Group justify="center" py="xs">
+                <Loader size="xs" color="gray" />
+              </Group>
+            )}
+            {!linkToAdd && !resultKeys && emptyMessage() && (
               <Combobox.Empty>{emptyMessage()}</Combobox.Empty>
             )}
           </ScrollArea.Autosize>
@@ -524,6 +657,7 @@ export default function UrlSearchInput(props: Props) {
     <Fragment>
       {comboboxBlock}
       <VisuallyHidden role="status">{statusMessage()}</VisuallyHidden>
+      {createCollectionDrawer}
     </Fragment>
   );
 }

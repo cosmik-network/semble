@@ -16,8 +16,8 @@ export function stressCanvasServer(viewerDid: string): CanvasServer {
         }),
       );
     },
-    searchLibrary: async () => [],
-    searchEveryone: async () => [],
+    searchLibrary: async () => ({ links: [], hasMore: false }),
+    searchEveryone: async () => ({ links: [], hasMore: false }),
     async getCollection() {
       throw new Error('The stress board has no collections');
     },

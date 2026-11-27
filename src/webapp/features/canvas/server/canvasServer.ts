@@ -1,4 +1,4 @@
-import { queryOptions } from '@tanstack/react-query';
+import { infiniteQueryOptions, queryOptions } from '@tanstack/react-query';
 import type { AppBskyFeedDefs } from '@atproto/api';
 import type { ConnectionType, UrlMetadata, User } from '@semble/types';
 import { canvasKeys } from '../lib/canvasKeys';
@@ -86,13 +86,21 @@ export interface ConnectionChange {
   note?: string | null;
 }
 
+export interface LinkSearchPage {
+  links: UrlMetadata[];
+  hasMore: boolean;
+}
+
+const NO_LINKS: LinkSearchPage = { links: [], hasMore: false };
+
 export interface CanvasServer {
   // Links it couldn't load are left out
   getLinks(urls: string[]): Promise<Map<string, LinkInfo>>;
-  // The viewer's most recent links, or those matching the query
-  searchLibrary(query: string): Promise<UrlMetadata[]>;
+  // The viewer's most recent links, or those matching the query. Pages count
+  // from 1.
+  searchLibrary(query: string, page: number): Promise<LinkSearchPage>;
   // Links anyone on Semble has saved that match the query
-  searchEveryone(query: string): Promise<UrlMetadata[]>;
+  searchEveryone(query: string, page: number): Promise<LinkSearchPage>;
   // Pages count from 1. Null once the collection is deleted.
   getCollection(
     collectionId: string,
@@ -192,16 +200,19 @@ export function linkSearchQuery(
   scope: SearchScope,
   query: string,
 ) {
-  return queryOptions({
+  return infiniteQueryOptions({
     queryKey:
       scope === 'mine'
         ? canvasKeys.librarySearch(query)
         : canvasKeys.sembleSearch(query),
-    queryFn: async () => {
-      if (scope === 'mine') return server.searchLibrary(query);
+    initialPageParam: 1,
+    queryFn: async ({ pageParam }) => {
+      if (scope === 'mine') return server.searchLibrary(query, pageParam);
       // Everyone has no recent links to list
-      return query ? server.searchEveryone(query) : [];
+      return query ? server.searchEveryone(query, pageParam) : NO_LINKS;
     },
+    getNextPageParam: (lastPage, _pages, lastPageParam) =>
+      lastPage.hasMore ? lastPageParam + 1 : undefined,
     meta: { searchScope: scope },
     // Only while typing, so one scope's results never show under the other
     placeholderData: (previous, previousQuery) =>

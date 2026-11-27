@@ -247,18 +247,26 @@ export const apiCanvasServer: CanvasServer = {
   async deleteConnection(connectionId) {
     await deleteConnection({ connectionId });
   },
-  async searchLibrary(query) {
-    const { cards } = await getMyUrlCards({
+  async searchLibrary(query, page) {
+    const { cards, pagination } = await getMyUrlCards({
+      page,
       limit: SEARCH_RESULTS,
       searchText: query || undefined,
     });
-    return cards.map((card) => card.cardContent);
+    return {
+      links: cards.map((card) => card.cardContent),
+      hasMore: pagination.hasMore,
+    };
   },
-  async searchEveryone(query) {
-    const { urls } = await searchUrls({
+  async searchEveryone(query, page) {
+    const { urls, pagination } = await searchUrls({
       searchQuery: query,
+      page,
       limit: SEARCH_RESULTS,
     });
-    return urls.map((link) => ({ ...link.metadata, url: link.url }));
+    return {
+      links: urls.map((link) => ({ ...link.metadata, url: link.url })),
+      hasMore: pagination.hasMore,
+    };
   },
 };

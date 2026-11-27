@@ -45,6 +45,8 @@ export type ConnectionLinkInputMethod =
   | 'recent_card'
   | 'search_card'
   | 'search_collection'
+  // A collection made from the search with "Create new collection"
+  | 'created_collection'
   // Typed or pasted, then confirmed with "Add this link" or by submitting
   | 'pasted';
 
