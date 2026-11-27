@@ -20,13 +20,15 @@ import {
 } from '@mantine/core';
 import { useDebouncedValue } from '@mantine/hooks';
 import { Fragment, useCallback, useEffect, useRef, useState } from 'react';
-import { BiLink } from 'react-icons/bi';
+import { BiLink, BiPlus } from 'react-icons/bi';
+import type { Collection } from '@semble/types';
 import { getCollectionPageUrl } from '@/lib/utils/link';
 import { getRecordKey } from '@/lib/utils/atproto';
 import { useScrollFade } from '@/hooks/useScrollFade';
 import { linkKey } from '@/features/canvas/model/linkCards';
 import UrlOptionRow from '@/features/cards/components/urlOptionRow/UrlOptionRow';
 import useScopedLinkSearch from '@/features/cards/lib/queries/useScopedLinkSearch';
+import CreateCollectionDrawer from '@/features/collections/components/createCollectionDrawer/CreateCollectionDrawer';
 import CollectionOptionRow from '@/features/collections/components/collectionOptionRow/CollectionOptionRow';
 import useScopedCollectionSearch from '@/features/collections/lib/queries/useScopedCollectionSearch';
 import {
@@ -46,6 +48,9 @@ const NOUNS: Record<SearchKind, [string, string]> = {
 };
 
 const VIEWPORT_MARGIN = 8;
+// The create row's option value; no URL can look like it
+const CREATE_COLLECTION = 'create-collection';
+
 // How close to the end of the list the next page starts loading
 const LOAD_MORE_DISTANCE = 120;
 // About two rows, so a cramped list still shows something to scroll
@@ -172,6 +177,10 @@ export default function UrlSearchInput(props: Props) {
   const [scope, setScope] = useState<SearchScope>('mine');
 
   const typedLink = toLink(inputValue);
+  // The name a new collection starts with, while its drawer is open
+  const [newCollectionName, setNewCollectionName] = useState<string | null>(
+    null,
+  );
   const isOpen = combobox.dropdownOpened;
   const links = useScopedLinkSearch(scope, query, isOpen && kind === 'cards');
   const collections = useScopedCollectionSearch(
@@ -266,10 +275,32 @@ export default function UrlSearchInput(props: Props) {
     props.onUrlClear?.();
   };
 
+  const selectUrl = (url: string, method: ConnectionLinkInputMethod) => {
+    props.onUrlSelect(url, method);
+    setInputValue(url);
+    if (isValidUrl(url)) setConfirmedUrl(url);
+  };
+
+  const handleCollectionCreated = (collection: Collection) => {
+    const url = collectionPageUrl(collection);
+    if (url) selectUrl(url, 'created_collection');
+  };
+
+  // Stays mounted once the new collection is picked, so it closes smoothly
+  const createCollectionDrawer = (
+    <CreateCollectionDrawer
+      isOpen={newCollectionName !== null}
+      onClose={() => setNewCollectionName(null)}
+      initialName={newCollectionName ?? undefined}
+      onCreate={handleCollectionCreated}
+    />
+  );
+
   if (confirmedUrl) {
     return (
       <Fragment>
         <SourceCardPreview sourceUrl={confirmedUrl} onRemove={handleClear} />
+        {createCollectionDrawer}
         <VisuallyHidden>
           <Input.Label htmlFor={props.id} required>
             {props.label}
@@ -279,14 +310,24 @@ export default function UrlSearchInput(props: Props) {
     );
   }
 
+  // New collections are the viewer's own, so only offered with their own
+  const canCreate = !linkToAdd && kind === 'collections' && scope === 'mine';
+  const newName = inputValue.trim();
+
   const emptyMessage = () => {
     if (active.isError) return messages.failed;
     if (active.isPending) return 'Searching…';
-    if (query) return messages.noMatch[kind];
+    // The create row stands in for no matches
+    if (query) return canCreate ? null : messages.noMatch[kind];
     return messages.prompt;
   };
 
   const handleOptionSubmit = (url: string) => {
+    if (url === CREATE_COLLECTION) {
+      setNewCollectionName(inputValue.trim());
+      combobox.closeDropdown();
+      return;
+    }
     // From the row picked, since the query can lag the rows on screen
     const link = linkResults.find((result) => result.url === url);
     const method: ConnectionLinkInputMethod =
@@ -383,7 +424,7 @@ export default function UrlSearchInput(props: Props) {
       (active.isError && !active.isFetchNextPageError) ||
       active.isPending ||
       count === 0
-        ? emptyMessage()
+        ? (emptyMessage() ?? messages.noMatch[kind])
         : `${count} ${NOUNS[kind][count === 1 ? 0 : 1]}${failedMore}`;
     return linkToAdd ? `${found}. Add this link is selected` : found;
   };
@@ -528,6 +569,20 @@ export default function UrlSearchInput(props: Props) {
                 </Group>
               </Combobox.Option>
             )}
+            {canCreate && (
+              <Combobox.Option value={CREATE_COLLECTION}>
+                <Group gap="xs" wrap="nowrap">
+                  <ThemeIcon variant="light" color="gray" size={35} radius="md">
+                    <BiPlus size={18} />
+                  </ThemeIcon>
+                  <Text fw={500} c="bright" size="sm" lineClamp={1}>
+                    {newName
+                      ? `Create new collection "${newName}"`
+                      : 'Create new collection'}
+                  </Text>
+                </Group>
+              </Combobox.Option>
+            )}
             {linkResults.map((link) => (
               <Combobox.Option key={link.url} value={link.url}>
                 <UrlOptionRow
@@ -562,7 +617,7 @@ export default function UrlSearchInput(props: Props) {
                 <Loader size="xs" color="gray" />
               </Group>
             )}
-            {!linkToAdd && !resultKeys && (
+            {!linkToAdd && !resultKeys && emptyMessage() && (
               <Combobox.Empty>{emptyMessage()}</Combobox.Empty>
             )}
           </ScrollArea.Autosize>
@@ -602,6 +657,7 @@ export default function UrlSearchInput(props: Props) {
     <Fragment>
       {comboboxBlock}
       <VisuallyHidden role="status">{statusMessage()}</VisuallyHidden>
+      {createCollectionDrawer}
     </Fragment>
   );
 }
