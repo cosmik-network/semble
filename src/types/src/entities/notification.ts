@@ -48,7 +48,12 @@ export const NotificationTypeSchema = z.enum([
   'USER_MENTIONED_YOU',
 ]);
 
-export const MentionSourceSchema = z.enum(['NOTE', 'CONNECTION', 'COLLECTION']);
+export const MentionSourceSchema = z.enum([
+  'NOTE',
+  'CONNECTION',
+  'COLLECTION',
+  'ANNOTATION',
+]);
 export type MentionSource = z.infer<typeof MentionSourceSchema>;
 
 export const BaseNotificationItemSchema = z.object({

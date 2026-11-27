@@ -23,6 +23,7 @@ import { SubscriptionBundleHandler } from '../../../modules/notifications/applic
 import { UserFollowedTargetEventHandler } from '../../../modules/notifications/application/eventHandlers/UserFollowedTargetEventHandler';
 import { UserUnfollowedTargetEventHandler } from '../../../modules/notifications/application/eventHandlers/UserUnfollowedTargetEventHandler';
 import { AnnotationCreatedNotificationHandler } from '../../../modules/notifications/application/eventHandlers/AnnotationCreatedNotificationHandler';
+import { AnnotationCardUpdatedEventHandler } from '../../../modules/notifications/application/eventHandlers/AnnotationCardUpdatedEventHandler';
 import { DistributedLockServiceFactory } from '../locking/DistributedLockServiceFactory';
 import { EventNames } from '../events/EventConfig';
 import { IProcess } from '../../domain/IProcess';
@@ -187,6 +188,14 @@ export class InMemoryEventWorkerProcess implements IProcess {
         repositories.followsRepository,
         services.notificationService,
         DistributedLockServiceFactory.create(),
+        mentionRecipientResolver,
+      );
+
+    const annotationCardUpdatedNotificationHandler =
+      new AnnotationCardUpdatedEventHandler(
+        repositories.cardRepository,
+        mentionRecipientResolver,
+        services.notificationService,
       );
 
     const notificationCardLibraryRemovalCleanupHandler =
@@ -298,6 +307,11 @@ export class InMemoryEventWorkerProcess implements IProcess {
     await subscriber.subscribe(
       EventNames.CARD_ADDED_TO_LIBRARY,
       annotationCreatedNotificationHandler,
+    );
+
+    await subscriber.subscribe(
+      EventNames.ANNOTATION_CARD_UPDATED,
+      annotationCardUpdatedNotificationHandler,
     );
     await subscriber.subscribe(
       EventNames.CARD_ADDED_TO_COLLECTION,

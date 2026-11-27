@@ -29,7 +29,7 @@ export interface AnnotationBatchNotificationMetadata {
   annotationIds: string[];
 }
 
-export type MentionSource = 'NOTE' | 'CONNECTION' | 'COLLECTION';
+export type MentionSource = 'NOTE' | 'CONNECTION' | 'COLLECTION' | 'ANNOTATION';
 
 // Exactly one of cardId/connectionId/collectionId is set, per mentionSource.
 export interface MentionNotificationMetadata {
@@ -510,7 +510,8 @@ export class Notification extends AggregateRoot<NotificationProps> {
     source:
       | { mentionSource: 'NOTE'; cardId: CardId }
       | { mentionSource: 'CONNECTION'; connectionId: ConnectionId }
-      | { mentionSource: 'COLLECTION'; collectionId: CollectionId },
+      | { mentionSource: 'COLLECTION'; collectionId: CollectionId }
+      | { mentionSource: 'ANNOTATION'; cardId: CardId },
   ): Result<Notification> {
     const typeResult = NotificationType.userMentionedYou();
     if (typeResult.isErr()) {
@@ -520,7 +521,7 @@ export class Notification extends AggregateRoot<NotificationProps> {
     const metadata: MentionNotificationMetadata = {
       mentionSource: source.mentionSource,
       cardId:
-        source.mentionSource === 'NOTE'
+        source.mentionSource === 'NOTE' || source.mentionSource === 'ANNOTATION'
           ? source.cardId.getStringValue()
           : undefined,
       connectionId:

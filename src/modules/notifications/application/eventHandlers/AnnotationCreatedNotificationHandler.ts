@@ -9,6 +9,7 @@ import { SubscriptionScopeEnum } from '../../../user/domain/value-objects/Subscr
 import { NotificationService } from '../../domain/services/NotificationService';
 import { CuratorId } from '../../../cards/domain/value-objects/CuratorId';
 import { IDistributedLockService } from '../../../../shared/infrastructure/locking/IDistributedLockService';
+import { MentionRecipientResolver } from '../services/MentionRecipientResolver';
 
 /**
  * Batched annotation notifications, fired when an annotation card is added
@@ -39,6 +40,7 @@ export class AnnotationCreatedNotificationHandler implements IEventHandler<CardA
     private followsRepository: IFollowsRepository,
     private notificationService: NotificationService,
     private distributedLockService: IDistributedLockService,
+    private mentionRecipientResolver: MentionRecipientResolver,
     batchWindowMs?: number,
   ) {
     this.batchWindowMs =
@@ -54,11 +56,38 @@ export class AnnotationCreatedNotificationHandler implements IEventHandler<CardA
 
       const card = cardResult.value;
       if (!card.isAnnotationCard) return ok(undefined);
+      if (!card.url) return ok(undefined);
+      const url = card.url.value;
+
+      // Mentions in the annotation note — only the author's save reconciles,
+      // so the notification actor is always the note's author. Runs before
+      // the viaCardId skip: the author's note mentions users regardless of
+      // how the card entered the library.
+      if (event.curatorId.equals(card.curatorId)) {
+        const noteText = card.content.annotationContent?.note;
+        if (noteText) {
+          const recipients =
+            await this.mentionRecipientResolver.resolveMentionedUsers(noteText);
+          if (recipients.length > 0) {
+            const reconcileResult =
+              await this.notificationService.reconcileMentionNotifications(
+                event.curatorId,
+                { mentionSource: 'ANNOTATION', cardId: card.cardId },
+                recipients,
+              );
+            if (reconcileResult.isErr()) {
+              console.error(
+                'Failed to reconcile annotation mention notifications:',
+                reconcileResult.error.message,
+              );
+            }
+          }
+        }
+      }
+
       // Saving an annotation discovered via another card — USER_ADDED_YOUR_CARD
       // covers it and takes precedence
       if (card.viaCardId) return ok(undefined);
-      if (!card.url) return ok(undefined);
-      const url = card.url.value;
 
       // Specific recipients: the URL is in their library
       const librariesResult = await this.cardQueryRepository.getLibrariesForUrl(

@@ -10,6 +10,7 @@ export const EventNames = {
   CONNECTION_CREATED: 'ConnectionCreatedEvent',
   CONNECTION_REMOVED: 'ConnectionRemovedEvent',
   NOTE_CARD_UPDATED: 'NoteCardUpdatedEvent',
+  ANNOTATION_CARD_UPDATED: 'AnnotationCardUpdatedEvent',
   CONNECTION_UPDATED: 'ConnectionUpdatedEvent',
   COLLECTION_UPDATED: 'CollectionUpdatedEvent',
 } as const;

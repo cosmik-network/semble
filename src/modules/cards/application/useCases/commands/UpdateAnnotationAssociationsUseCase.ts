@@ -12,6 +12,7 @@ import { CardContent } from '../../../domain/value-objects/CardContent';
 import { CardLibraryService } from '../../../domain/services/CardLibraryService';
 import { PublishedRecordId } from '../../../domain/value-objects/PublishedRecordId';
 import { AuthenticationError } from '../../../../../shared/core/AuthenticationError';
+import { AnnotationCardUpdatedEvent } from '../../../domain/events/AnnotationCardUpdatedEvent';
 
 export enum OperationContext {
   USER_INITIATED = 'user_initiated',
@@ -188,6 +189,15 @@ export class UpdateAnnotationAssociationsUseCase extends BaseUseCase<
         }
 
         card = updateResult.value;
+
+        // Notify subscribers (e.g. mention notifications) about the edit
+        const eventResult = AnnotationCardUpdatedEvent.create(
+          cardId,
+          curatorId,
+        );
+        if (eventResult.isOk()) {
+          await this.eventPublisher.publishEvents([eventResult.value]);
+        }
       }
 
       const addedToCollections: string[] = [];

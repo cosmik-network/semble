@@ -110,6 +110,25 @@ describe('NotificationService.reconcileMentionNotifications', () => {
     const stored = await mentionsFor({ cardId: cardId.getStringValue() });
     expect(stored).toHaveLength(1);
   });
+
+  it('supports ANNOTATION mentions keyed on the annotation card id', async () => {
+    const annotationCardId = CardId.create(new UniqueEntityID()).unwrap();
+    const result = await service.reconcileMentionNotifications(
+      actor,
+      { mentionSource: 'ANNOTATION', cardId: annotationCardId },
+      [alice],
+    );
+
+    expect(result.isOk()).toBe(true);
+    const stored = await mentionsFor({
+      cardId: annotationCardId.getStringValue(),
+    });
+    expect(stored).toHaveLength(1);
+    expect((stored[0]!.metadata as any).mentionSource).toBe('ANNOTATION');
+    expect((stored[0]!.metadata as any).cardId).toBe(
+      annotationCardId.getStringValue(),
+    );
+  });
 });
 
 describe('MentionRecipientResolver', () => {

@@ -33,6 +33,7 @@ function makeHandler(props: {
   urlLibraries: string[];
   subscribers?: string[];
   notificationService?: any;
+  mentionedUsers?: any[];
 }) {
   const notificationService =
     props.notificationService ??
@@ -62,6 +63,10 @@ function makeHandler(props: {
     ),
   } as any;
 
+  const mentionRecipientResolver = {
+    resolveMentionedUsers: jest.fn(async () => props.mentionedUsers ?? []),
+  } as any;
+
   const handler = new AnnotationCreatedNotificationHandler(
     { findById: jest.fn(async () => ok(props.card)) } as any,
     {
@@ -72,10 +77,11 @@ function makeHandler(props: {
     followsRepository,
     notificationService,
     { withLock: (_key: string, _ttl: number, fn: () => any) => fn() } as any,
+    mentionRecipientResolver,
     20 * 60 * 1000,
   );
 
-  return { handler, notificationService };
+  return { handler, notificationService, mentionRecipientResolver };
 }
 
 const ANNOTATION_CARD = {
@@ -148,5 +154,67 @@ describe('AnnotationCreatedNotificationHandler', () => {
         notificationService.createOrAppendUserAnnotatedYourUrlNotification,
       ).not.toHaveBeenCalled();
     }
+  });
+
+  it('reconciles mention notifications for the authors note mentions', async () => {
+    const mentioned = CuratorId.create('did:plc:mentioned').unwrap();
+    const notificationService = {
+      createOrAppendUserAnnotatedYourUrlNotification: jest.fn(async () =>
+        ok({ notificationId: { getStringValue: () => 'n1' } } as any),
+      ),
+      reconcileMentionNotifications: jest.fn(async () => ok(undefined)),
+    } as any;
+
+    const { handler } = makeHandler({
+      card: {
+        ...ANNOTATION_CARD,
+        curatorId: CuratorId.create(ACTOR).unwrap(),
+        cardId: CardId.createFromString(CARD_ID).unwrap(),
+        content: { annotationContent: { note: 'cc @mentioned.example.com' } },
+      },
+      urlLibraries: [],
+      subscribers: [],
+      mentionedUsers: [mentioned],
+      notificationService,
+    });
+
+    await handler.handle(makeEvent());
+
+    expect(
+      notificationService.reconcileMentionNotifications,
+    ).toHaveBeenCalledWith(
+      expect.anything(),
+      { mentionSource: 'ANNOTATION', cardId: expect.anything() },
+      [mentioned],
+    );
+  });
+
+  it('does not reconcile mentions when a non-author saves the annotation', async () => {
+    const notificationService = {
+      createOrAppendUserAnnotatedYourUrlNotification: jest.fn(async () =>
+        ok({ notificationId: { getStringValue: () => 'n1' } } as any),
+      ),
+      reconcileMentionNotifications: jest.fn(async () => ok(undefined)),
+    } as any;
+
+    const { handler, mentionRecipientResolver } = makeHandler({
+      card: {
+        ...ANNOTATION_CARD,
+        curatorId: CuratorId.create('did:plc:author').unwrap(),
+        content: { annotationContent: { note: 'cc @mentioned.example.com' } },
+      },
+      urlLibraries: [],
+      subscribers: [],
+      notificationService,
+    });
+
+    await handler.handle(makeEvent());
+
+    expect(
+      mentionRecipientResolver.resolveMentionedUsers,
+    ).not.toHaveBeenCalled();
+    expect(
+      notificationService.reconcileMentionNotifications,
+    ).not.toHaveBeenCalled();
   });
 });

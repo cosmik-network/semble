@@ -29,6 +29,7 @@ import { ConnectionUpdatedEventHandler } from 'src/modules/notifications/applica
 import { CollectionMentionEventHandler } from 'src/modules/notifications/application/eventHandlers/CollectionMentionEventHandler';
 import { BundleRecipientResolver } from 'src/modules/notifications/application/services/BundleRecipientResolver';
 import { AnnotationCreatedNotificationHandler } from 'src/modules/notifications/application/eventHandlers/AnnotationCreatedNotificationHandler';
+import { AnnotationCardUpdatedEventHandler } from 'src/modules/notifications/application/eventHandlers/AnnotationCardUpdatedEventHandler';
 import { DistributedLockServiceFactory } from '../locking/DistributedLockServiceFactory';
 
 export class NotificationWorkerProcess extends BaseWorkerProcess {
@@ -203,10 +204,21 @@ export class NotificationWorkerProcess extends BaseWorkerProcess {
       repositories.followsRepository,
       services.notificationService,
       DistributedLockServiceFactory.create(),
+      mentionRecipientResolver,
     );
     await subscriber.subscribe(
       EventNames.CARD_ADDED_TO_LIBRARY,
       annotationCreatedHandler,
+    );
+
+    const annotationCardUpdatedHandler = new AnnotationCardUpdatedEventHandler(
+      repositories.cardRepository,
+      mentionRecipientResolver,
+      services.notificationService,
+    );
+    await subscriber.subscribe(
+      EventNames.ANNOTATION_CARD_UPDATED,
+      annotationCardUpdatedHandler,
     );
 
     // Removal events bypass the saga; cleanup is policy-specific.

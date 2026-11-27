@@ -801,12 +801,13 @@ export class NotificationService implements DomainService {
     source:
       | { mentionSource: 'NOTE'; cardId: CardId }
       | { mentionSource: 'CONNECTION'; connectionId: ConnectionId }
-      | { mentionSource: 'COLLECTION'; collectionId: CollectionId },
+      | { mentionSource: 'COLLECTION'; collectionId: CollectionId }
+      | { mentionSource: 'ANNOTATION'; cardId: CardId },
     recipientUserIds: CuratorId[],
   ): Promise<Result<void, NotificationServiceError>> {
     try {
       const itemKey =
-        source.mentionSource === 'NOTE'
+        source.mentionSource === 'NOTE' || source.mentionSource === 'ANNOTATION'
           ? { cardId: source.cardId.getStringValue() }
           : source.mentionSource === 'CONNECTION'
             ? { connectionId: source.connectionId.getStringValue() }
