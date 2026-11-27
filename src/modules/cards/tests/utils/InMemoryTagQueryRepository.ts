@@ -44,10 +44,13 @@ export class InMemoryTagQueryRepository implements ITagQueryRepository {
 
     const notes = this.cardRepository
       .getAllCards()
-      .filter((card) => card.isNoteCard)
+      .filter((card) => card.isNoteCard || card.isAnnotationCard)
       .filter((card) => !userDid || card.curatorId.value === userDid)
       .map((card) => ({
-        text: card.content.noteContent?.text ?? '',
+        text:
+          card.content.noteContent?.text ??
+          card.content.annotationContent?.note ??
+          '',
         createdAt: card.createdAt,
       }));
 
@@ -87,14 +90,29 @@ export class InMemoryTagQueryRepository implements ITagQueryRepository {
     const normalized = normalizeTag(tag);
     const matches = this.cardRepository
       .getAllCards()
-      .filter((card) => card.isNoteCard && card.parentCardId)
+      .filter(
+        (card) =>
+          (card.isNoteCard && card.parentCardId) || card.isAnnotationCard,
+      )
       .filter(
         (card) => !options.userDid || card.curatorId.value === options.userDid,
       )
-      .filter((card) => containsTag(card.content.noteContent?.text, normalized))
+      .filter((card) =>
+        containsTag(
+          card.isAnnotationCard
+            ? card.content.annotationContent?.note
+            : card.content.noteContent?.text,
+          normalized,
+        ),
+      )
       .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime())
       .map((card) => ({
-        parentCardId: card.parentCardId!.getStringValue(),
+        kind: card.isAnnotationCard
+          ? ('annotation' as const)
+          : ('note' as const),
+        cardId: card.isAnnotationCard
+          ? card.cardId.getStringValue()
+          : card.parentCardId!.getStringValue(),
         noteCreatedAt: card.createdAt,
       }));
     return paginate(matches, options);

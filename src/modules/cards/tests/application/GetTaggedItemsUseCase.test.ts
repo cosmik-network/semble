@@ -1,6 +1,7 @@
 import { GetTaggedItemsUseCase } from '../../application/useCases/queries/GetTaggedItemsUseCase';
 import { ITagQueryRepository } from '../../domain/ITagQueryRepository';
 import {
+  AnnotationCardView,
   ICardQueryRepository,
   UrlCardView,
 } from '../../domain/ICardQueryRepository';
@@ -48,6 +49,20 @@ function makeCardView(id: string): UrlCardView {
   };
 }
 
+function makeAnnotationView(id: string): AnnotationCardView {
+  return {
+    id,
+    type: CardTypeEnum.ANNOTATION,
+    url: `https://example.com/doc#${id}`,
+    libraryCount: 1,
+    selectors: [{ type: 'TextQuoteSelector', exact: 'highlighted text' }],
+    note: `#history annotation on ${id}`,
+    createdAt: new Date('2023-03-15'),
+    updatedAt: new Date('2023-03-16'),
+    authorId: authorDid,
+  };
+}
+
 function makeTagRepo(
   overrides: Partial<ITagQueryRepository>,
 ): ITagQueryRepository {
@@ -68,11 +83,20 @@ function makeTagRepo(
   };
 }
 
-function makeCardQueryRepo(views: UrlCardView[]): ICardQueryRepository {
+function makeCardQueryRepo(
+  views: UrlCardView[],
+  annotationViews: AnnotationCardView[] = [],
+): ICardQueryRepository {
   return {
     getBatchUrlCardViews: async (cardIds: string[]) =>
       new Map(
         views
+          .filter((v) => cardIds.includes(v.id))
+          .map((v) => [v.id, v] as const),
+      ),
+    getBatchAnnotationCardViews: async (cardIds: string[]) =>
+      new Map(
+        annotationViews
           .filter((v) => cardIds.includes(v.id))
           .map((v) => [v.id, v] as const),
       ),
@@ -97,8 +121,16 @@ describe('GetTaggedItemsUseCase', () => {
     const tagRepo = makeTagRepo({
       getTaggedCards: async () => ({
         items: [
-          { parentCardId: 'card-2', noteCreatedAt: new Date('2023-02-01') },
-          { parentCardId: 'card-1', noteCreatedAt: new Date('2023-01-01') },
+          {
+            kind: 'note' as const,
+            cardId: 'card-2',
+            noteCreatedAt: new Date('2023-02-01'),
+          },
+          {
+            kind: 'note' as const,
+            cardId: 'card-1',
+            noteCreatedAt: new Date('2023-01-01'),
+          },
         ],
         totalCount: 2,
         hasMore: false,
@@ -117,7 +149,9 @@ describe('GetTaggedItemsUseCase', () => {
     expect(value.itemType).toBe('card');
     expect(value.cards!.map((c) => c.id)).toEqual(['card-2', 'card-1']);
     expect(value.cards![0]!.author.handle).toBe(`${authorDid}.handle`);
-    expect(value.cards![0]!.note?.text).toContain('#history');
+    expect(
+      (value.cards![0] as unknown as { note?: { text: string } }).note?.text,
+    ).toContain('#history');
     expect(value.pagination.totalCount).toBe(2);
   });
 
@@ -148,8 +182,16 @@ describe('GetTaggedItemsUseCase', () => {
         windows.push({ page: options.page, limit: options.limit });
         return {
           items: [
-            { parentCardId: 'card-2', noteCreatedAt: new Date('2023-04-01') },
-            { parentCardId: 'card-1', noteCreatedAt: new Date('2023-01-01') },
+            {
+              kind: 'note' as const,
+              cardId: 'card-2',
+              noteCreatedAt: new Date('2023-04-01'),
+            },
+            {
+              kind: 'note' as const,
+              cardId: 'card-1',
+              noteCreatedAt: new Date('2023-01-01'),
+            },
           ],
           totalCount: 2,
           hasMore: false,
@@ -221,8 +263,16 @@ describe('GetTaggedItemsUseCase', () => {
     const tagRepo = makeTagRepo({
       getTaggedCards: async (_tag, options) => ({
         items: [
-          { parentCardId: 'card-2', noteCreatedAt: new Date('2023-04-01') },
-          { parentCardId: 'card-1', noteCreatedAt: new Date('2023-01-01') },
+          {
+            kind: 'note' as const,
+            cardId: 'card-2',
+            noteCreatedAt: new Date('2023-04-01'),
+          },
+          {
+            kind: 'note' as const,
+            cardId: 'card-1',
+            noteCreatedAt: new Date('2023-01-01'),
+          },
         ].slice(0, options.limit),
         totalCount: 2,
         hasMore: false,
@@ -346,6 +396,88 @@ describe('GetTaggedItemsUseCase', () => {
     expect(value.itemType).toBe('collection');
     expect(value.collections![0]!.name).toBe('History things');
     expect(value.collections![0]!.author.handle).toBe(`${authorDid}.handle`);
+  });
+
+  it('returns tagged annotation cards alongside note-backed cards', async () => {
+    const tagRepo = makeTagRepo({
+      getTaggedCards: async () => ({
+        items: [
+          {
+            kind: 'annotation' as const,
+            cardId: 'annot-1',
+            noteCreatedAt: new Date('2023-02-15'),
+          },
+          {
+            kind: 'note' as const,
+            cardId: 'card-1',
+            noteCreatedAt: new Date('2023-01-01'),
+          },
+        ],
+        totalCount: 2,
+        hasMore: false,
+      }),
+    });
+    const useCase = new GetTaggedItemsUseCase(
+      tagRepo,
+      makeCardQueryRepo(
+        [makeCardView('card-1')],
+        [makeAnnotationView('annot-1')],
+      ),
+      profileService,
+      identityResolver,
+    );
+
+    const result = await useCase.execute({ tag: 'history', itemType: 'card' });
+
+    const value = result.unwrap();
+    expect(value.itemType).toBe('card');
+    expect(value.cards!.map((c) => c.id)).toEqual(['annot-1', 'card-1']);
+    const annotation = value.cards![0]!;
+    expect(annotation.type).toBe('ANNOTATION');
+    expect(annotation.author.handle).toBe(`${authorDid}.handle`);
+    expect(annotation.note).toContain('#history');
+    expect(value.pagination.totalCount).toBe(2);
+  });
+
+  it('blends tagged annotations into the card stream newest-first', async () => {
+    const tagRepo = makeTagRepo({
+      getTaggedCards: async () => ({
+        items: [
+          {
+            kind: 'note' as const,
+            cardId: 'card-1',
+            noteCreatedAt: new Date('2023-04-01'),
+          },
+          {
+            kind: 'annotation' as const,
+            cardId: 'annot-1',
+            noteCreatedAt: new Date('2023-02-15'),
+          },
+        ],
+        totalCount: 2,
+        hasMore: false,
+      }),
+    });
+    const useCase = new GetTaggedItemsUseCase(
+      tagRepo,
+      makeCardQueryRepo(
+        [makeCardView('card-1')],
+        [makeAnnotationView('annot-1')],
+      ),
+      profileService,
+      identityResolver,
+    );
+
+    const result = await useCase.execute({ tag: 'history', limit: 10 });
+
+    const value = result.unwrap();
+    expect(
+      value.items!.map((item) => (item.type === 'card' ? item.card.id : null)),
+    ).toEqual(['card-1', 'annot-1']);
+    expect(value.items![1]!.type).toBe('card');
+    expect((value.items![1] as { card: { type: string } }).card.type).toBe(
+      'ANNOTATION',
+    );
   });
 
   it('passes the resolved user DID to the repository', async () => {

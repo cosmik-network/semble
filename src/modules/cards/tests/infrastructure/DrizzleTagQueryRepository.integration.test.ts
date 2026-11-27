@@ -80,6 +80,26 @@ describe('DrizzleTagQueryRepository', () => {
     return { parentCard, noteCard };
   }
 
+  async function createAnnotationCard(
+    curatorDid: string,
+    urlString: string,
+    note: string | undefined,
+    createdAt: Date,
+  ): Promise<Card> {
+    const card = new CardBuilder()
+      .withCuratorId(curatorDid)
+      .withAnnotationCard(
+        URL.create(urlString).unwrap(),
+        [{ exact: 'highlighted passage' }],
+        note,
+      )
+      .withCreatedAt(createdAt)
+      .withUpdatedAt(createdAt)
+      .buildOrThrow();
+    await cardRepository.save(card);
+    return card;
+  }
+
   async function insertConnection(
     curatorDid: string,
     note: string | null,
@@ -133,9 +153,8 @@ describe('DrizzleTagQueryRepository', () => {
       });
 
       expect(result.totalCount).toBe(1);
-      expect(result.items[0]!.parentCardId).toBe(
-        parentCard.cardId.getStringValue(),
-      );
+      expect(result.items[0]!.cardId).toBe(parentCard.cardId.getStringValue());
+      expect(result.items[0]!.kind).toBe('note');
     });
 
     it('does not match a longer tag with the same prefix', async () => {
@@ -199,10 +218,80 @@ describe('DrizzleTagQueryRepository', () => {
         userDid: curator1,
       });
       expect(filtered.totalCount).toBe(2);
-      expect(filtered.items.map((i) => i.parentCardId)).toEqual([
+      expect(filtered.items.map((i) => i.cardId)).toEqual([
         c1new.cardId.getStringValue(),
         c1old.cardId.getStringValue(),
       ]);
+    });
+
+    it('returns tagged annotation cards as themselves, newest first, with totalCount spanning kinds', async () => {
+      const { parentCard } = await createNoteOnUrlCard(
+        curator1,
+        'https://example.com/note',
+        'note about #history',
+        new Date('2023-01-01'),
+      );
+      const annotOld = await createAnnotationCard(
+        curator1,
+        'https://example.com/doc',
+        'annotation about #history',
+        new Date('2023-02-01'),
+      );
+      const annotNew = await createAnnotationCard(
+        curator2,
+        'https://example.com/doc',
+        'also #history here',
+        new Date('2023-03-01'),
+      );
+      await createAnnotationCard(
+        curator1,
+        'https://example.com/doc',
+        undefined,
+        new Date('2023-04-01'),
+      );
+
+      const all = await repo.getTaggedCards('history', {
+        page: 1,
+        limit: 10,
+      });
+      expect(all.totalCount).toBe(3);
+      expect(all.items.map((i) => i.cardId)).toEqual([
+        annotNew.cardId.getStringValue(),
+        annotOld.cardId.getStringValue(),
+        parentCard.cardId.getStringValue(),
+      ]);
+      expect(all.items.map((i) => i.kind)).toEqual([
+        'annotation',
+        'annotation',
+        'note',
+      ]);
+
+      const filtered = await repo.getTaggedCards('history', {
+        page: 1,
+        limit: 10,
+        userDid: curator1,
+      });
+      expect(filtered.totalCount).toBe(2);
+      expect(filtered.items.map((i) => i.cardId)).toEqual([
+        annotOld.cardId.getStringValue(),
+        parentCard.cardId.getStringValue(),
+      ]);
+    });
+
+    it('does not match a longer tag with the same prefix in annotation notes', async () => {
+      await createAnnotationCard(
+        curator1,
+        'https://example.com/doc',
+        'about #historyfoo only',
+        new Date('2023-01-01'),
+      );
+
+      const result = await repo.getTaggedCards('history', {
+        page: 1,
+        limit: 10,
+      });
+
+      expect(result.totalCount).toBe(0);
     });
   });
 
@@ -253,12 +342,24 @@ describe('DrizzleTagQueryRepository', () => {
   });
 
   describe('getRecentTexts', () => {
-    it('returns texts from notes, connection notes, and collection descriptions for a user', async () => {
+    it('returns texts from notes, annotation notes, connection notes, and collection descriptions for a user', async () => {
       await createNoteOnUrlCard(
         curator1,
         'https://example.com/a',
         'note with #alpha',
         new Date('2023-01-01'),
+      );
+      await createAnnotationCard(
+        curator1,
+        'https://example.com/doc',
+        'annotation with #epsilon',
+        new Date('2023-01-05'),
+      );
+      await createAnnotationCard(
+        curator1,
+        'https://example.com/doc2',
+        undefined,
+        new Date('2023-01-06'),
       );
       await insertConnection(
         curator1,
@@ -283,6 +384,7 @@ describe('DrizzleTagQueryRepository', () => {
 
       const joined = texts.map((t) => t.text).join(' ');
       expect(joined).toContain('#alpha');
+      expect(joined).toContain('#epsilon');
       expect(joined).toContain('#beta');
       expect(joined).toContain('#gamma');
       expect(joined).not.toContain('#delta');

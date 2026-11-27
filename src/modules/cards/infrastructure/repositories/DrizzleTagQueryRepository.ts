@@ -1,5 +1,15 @@
 import { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
-import { and, count, desc, eq, isNotNull, sql, SQL } from 'drizzle-orm';
+import {
+  and,
+  count,
+  desc,
+  eq,
+  inArray,
+  isNotNull,
+  or,
+  sql,
+  SQL,
+} from 'drizzle-orm';
 import { sqlTagBoundaryPattern } from '@semble/types';
 import {
   ITagQueryRepository,
@@ -16,7 +26,9 @@ import { connections } from './schema/connection.sql';
 import { collections } from './schema/collection.sql';
 import { publishedRecords } from './schema/publishedRecord.sql';
 
-const noteText = sql<string>`${cards.contentData}->>'text'`;
+// NOTE cards keep their note at content_data->>'text'; ANNOTATION cards at
+// content_data->>'note' (selectors live in annotation_selectors).
+const cardNoteText = sql<string>`CASE WHEN ${cards.type} = 'ANNOTATION' THEN ${cards.contentData}->>'note' ELSE ${cards.contentData}->>'text' END`;
 
 export class DrizzleTagQueryRepository implements ITagQueryRepository {
   constructor(private db: PostgresJsDatabase) {}
@@ -27,7 +39,7 @@ export class DrizzleTagQueryRepository implements ITagQueryRepository {
   }): Promise<RecentTextDTO[]> {
     const { userDid, limitPerSource } = options;
 
-    const noteConditions: SQL[] = [eq(cards.type, 'NOTE')];
+    const noteConditions: SQL[] = [inArray(cards.type, ['NOTE', 'ANNOTATION'])];
     const connectionConditions: SQL[] = [isNotNull(connections.note)];
     const collectionConditions: SQL[] = [isNotNull(collections.description)];
     if (userDid) {
@@ -38,7 +50,7 @@ export class DrizzleTagQueryRepository implements ITagQueryRepository {
 
     const [notes, connectionNotes, descriptions] = await Promise.all([
       this.db
-        .select({ text: noteText, createdAt: cards.createdAt })
+        .select({ text: cardNoteText, createdAt: cards.createdAt })
         .from(cards)
         .where(and(...noteConditions))
         .orderBy(desc(cards.createdAt))
@@ -74,9 +86,12 @@ export class DrizzleTagQueryRepository implements ITagQueryRepository {
     const pattern = sqlTagBoundaryPattern(tag);
 
     const conditions: SQL[] = [
-      eq(cards.type, 'NOTE'),
-      isNotNull(cards.parentCardId),
-      sql`${noteText} ~* ${pattern}`,
+      inArray(cards.type, ['NOTE', 'ANNOTATION']),
+      or(
+        and(eq(cards.type, 'NOTE'), isNotNull(cards.parentCardId)),
+        eq(cards.type, 'ANNOTATION'),
+      )!,
+      sql`${cardNoteText} ~* ${pattern}`,
     ];
     if (userDid) {
       conditions.push(eq(cards.authorId, userDid));
@@ -86,7 +101,8 @@ export class DrizzleTagQueryRepository implements ITagQueryRepository {
     const [rows, countResult] = await Promise.all([
       this.db
         .select({
-          parentCardId: cards.parentCardId,
+          kind: cards.type,
+          cardId: sql<string>`CASE WHEN ${cards.type} = 'ANNOTATION' THEN ${cards.id} ELSE ${cards.parentCardId} END`,
           noteCreatedAt: cards.createdAt,
         })
         .from(cards)
@@ -101,7 +117,8 @@ export class DrizzleTagQueryRepository implements ITagQueryRepository {
 
     return {
       items: rows.map((row) => ({
-        parentCardId: row.parentCardId as string,
+        kind: row.kind === 'ANNOTATION' ? 'annotation' : 'note',
+        cardId: row.cardId,
         noteCreatedAt: row.noteCreatedAt,
       })),
       totalCount,

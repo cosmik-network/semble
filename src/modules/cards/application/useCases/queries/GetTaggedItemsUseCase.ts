@@ -13,6 +13,7 @@ import {
 } from '../../../domain/ITagQueryRepository';
 import {
   ICardQueryRepository,
+  AnnotationCardView,
   UrlCardView,
 } from '../../../domain/ICardQueryRepository';
 import { ConnectionForUserDTO } from '../../../domain/IConnectionQueryRepository';
@@ -34,6 +35,10 @@ export interface GetTaggedItemsQuery {
 }
 
 export type TaggedCardDTO = Omit<UrlCardView, 'authorId'> & { author: User };
+
+export type TaggedAnnotationDTO = Omit<AnnotationCardView, 'authorId'> & {
+  author: User;
+};
 
 export interface TaggedConnectionDTO {
   connection: {
@@ -70,7 +75,7 @@ export interface TaggedCollectionDTO {
 }
 
 export type TaggedItemDTO =
-  | { type: 'card'; card: TaggedCardDTO }
+  | { type: 'card'; card: TaggedCardDTO | TaggedAnnotationDTO }
   | { type: 'connection'; connection: TaggedConnectionDTO }
   | { type: 'collection'; collection: TaggedCollectionDTO };
 
@@ -80,7 +85,7 @@ export interface GetTaggedItemsResult {
   itemType?: TaggedItemType;
   /** Blended reverse-chron list; present when no itemType filter was given. */
   items?: TaggedItemDTO[];
-  cards?: TaggedCardDTO[];
+  cards?: (TaggedCardDTO | TaggedAnnotationDTO)[];
   connections?: TaggedConnectionDTO[];
   collections?: TaggedCollectionDTO[];
   pagination: PaginationDTO;
@@ -168,8 +173,10 @@ export class GetTaggedItemsUseCase implements UseCase<
           return err(cardMapResult.error);
         }
         const cards = result.items
-          .map((item) => cardMapResult.value.get(item.parentCardId))
-          .filter((card): card is TaggedCardDTO => !!card);
+          .map((item) => cardMapResult.value.get(item.cardId))
+          .filter(
+            (card): card is TaggedCardDTO | TaggedAnnotationDTO => !!card,
+          );
 
         return ok({
           tag,
@@ -264,7 +271,7 @@ export class GetTaggedItemsUseCase implements UseCase<
     const refs: Ref[] = [
       ...cardsResult.items.map((item) => ({
         type: 'card' as const,
-        key: item.parentCardId,
+        key: item.cardId,
         createdAt: item.noteCreatedAt,
       })),
       ...connectionsResult.items.map((item) => ({
@@ -296,7 +303,7 @@ export class GetTaggedItemsUseCase implements UseCase<
 
     const [cardMapResult, connMapResult, collMapResult] = await Promise.all([
       this.hydrateCards(
-        cardsResult.items.filter((item) => wanted.card.has(item.parentCardId)),
+        cardsResult.items.filter((item) => wanted.card.has(item.cardId)),
         callingUserId,
         enricher,
       ),
@@ -349,10 +356,41 @@ export class GetTaggedItemsUseCase implements UseCase<
     items: TaggedCardResultDTO[],
     callingUserId: string | undefined,
     enricher: ProfileEnricher,
-  ): Promise<Result<Map<string, TaggedCardDTO>>> {
+  ): Promise<Result<Map<string, TaggedCardDTO | TaggedAnnotationDTO>>> {
     if (items.length === 0) return ok(new Map());
 
-    const cardIds = Array.from(new Set(items.map((item) => item.parentCardId)));
+    const entries = await Promise.all([
+      this.hydrateNoteCards(
+        items.filter((item) => item.kind === 'note'),
+        callingUserId,
+        enricher,
+      ),
+      this.hydrateAnnotationCards(
+        items.filter((item) => item.kind === 'annotation'),
+        callingUserId,
+        enricher,
+      ),
+    ]);
+
+    const maps: Map<string, TaggedCardDTO | TaggedAnnotationDTO>[] = [];
+    for (const result of entries) {
+      if (result.isErr()) return err(result.error);
+      maps.push(result.value);
+    }
+
+    // Note parent card ids and annotation card ids are distinct UUIDs —
+    // one map keyed by cardId has no collisions.
+    return ok(new Map(maps.flatMap((map) => Array.from(map))));
+  }
+
+  private async hydrateNoteCards(
+    items: TaggedCardResultDTO[],
+    callingUserId: string | undefined,
+    enricher: ProfileEnricher,
+  ): Promise<Result<Map<string, TaggedCardDTO>>> {
+    const cardIds = Array.from(new Set(items.map((item) => item.cardId)));
+    if (cardIds.length === 0) return ok(new Map());
+
     const viewMap = await this.cardQueryRepo.getBatchUrlCardViews(
       cardIds,
       callingUserId,
@@ -372,6 +410,34 @@ export class GetTaggedItemsUseCase implements UseCase<
     }
 
     const enriched = enrichResult.value as unknown as TaggedCardDTO[];
+    return ok(new Map(enriched.map((card) => [card.id, card])));
+  }
+
+  private async hydrateAnnotationCards(
+    items: TaggedCardResultDTO[],
+    callingUserId: string | undefined,
+    enricher: ProfileEnricher,
+  ): Promise<Result<Map<string, TaggedAnnotationDTO>>> {
+    const cardIds = Array.from(new Set(items.map((item) => item.cardId)));
+    if (cardIds.length === 0) return ok(new Map());
+
+    const viewMap =
+      await this.cardQueryRepo.getBatchAnnotationCardViews(cardIds);
+    const views = cardIds
+      .map((id) => viewMap.get(id))
+      .filter((view): view is AnnotationCardView => !!view);
+
+    const enrichResult = await enricher.enrichWithAuthors(
+      views,
+      (view) => view.authorId,
+      callingUserId,
+      { mapToUser: false },
+    );
+    if (enrichResult.isErr()) {
+      return err(enrichResult.error);
+    }
+
+    const enriched = enrichResult.value as unknown as TaggedAnnotationDTO[];
     return ok(new Map(enriched.map((card) => [card.id, card])));
   }
 

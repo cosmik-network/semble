@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import { PaginationSchema } from '../../entities/common';
-import { UrlCardSchema } from '../../entities/card';
+import { CardItemSchema } from '../../entities/card';
 import { ConnectionWithSourceAndTargetSchema } from '../../entities/connection';
 import { CollectionSchema } from '../../entities/collection';
 
@@ -20,9 +20,10 @@ export const GetTaggedItemsParamsSchema = z.object({
 });
 export type GetTaggedItemsParams = z.infer<typeof GetTaggedItemsParamsSchema>;
 
-// One entry in the blended reverse-chron list.
+// One entry in the blended reverse-chron list. Tagged cards are URL cards
+// (via a tagged NOTE) or annotation cards (via a tagged annotation note).
 export const TaggedItemSchema = z.discriminatedUnion('type', [
-  z.object({ type: z.literal('card'), card: UrlCardSchema }),
+  z.object({ type: z.literal('card'), card: CardItemSchema }),
   z.object({
     type: z.literal('connection'),
     connection: ConnectionWithSourceAndTargetSchema,
@@ -38,7 +39,7 @@ export const GetTaggedItemsResponseSchema = z.object({
   tag: z.string(),
   itemType: TaggedItemTypeSchema.optional(),
   items: z.array(TaggedItemSchema).optional(),
-  cards: z.array(UrlCardSchema).optional(),
+  cards: z.array(CardItemSchema).optional(),
   connections: z.array(ConnectionWithSourceAndTargetSchema).optional(),
   collections: z.array(CollectionSchema).optional(),
   pagination: PaginationSchema,
