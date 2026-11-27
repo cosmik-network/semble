@@ -364,6 +364,7 @@ export class InMemoryNotificationRepository implements INotificationRepository {
             cardId: view.id,
             authorId: view.authorId,
             url: view.url,
+            cid: view.cid,
             uri: view.uri,
             libraryCount: view.libraryCount,
             selectors: view.selectors,

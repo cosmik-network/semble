@@ -14,6 +14,7 @@ import {
 } from '../../../domain/value-objects/urlMetadataMapping';
 import { err, ok, Result } from '../../../../../shared/core/Result';
 import { v4 as uuid } from 'uuid';
+import { computeAnnotationCID } from '@semble/types';
 import { Selector } from '../../../domain/value-objects/selectors/Selector';
 import {
   UrlCardQueryResultDTO,
@@ -105,6 +106,7 @@ export interface CardPersistenceData {
     ordinal: number;
     exact: string;
     exactNormalized: string;
+    annotationCid: string;
     prefix?: string;
     suffix?: string;
   }>;
@@ -373,6 +375,12 @@ export class CardMapper {
             ordinal,
             exact: textQuote.exact,
             exactNormalized: textQuote.normalizedExact,
+            // The passage's stable content ID — same derivation the vector
+            // DB id and the /annotation/{cid} route use
+            annotationCid: computeAnnotationCID(
+              card.url!.value,
+              textQuote.normalizedExact,
+            ),
             prefix: textQuote.prefix,
             suffix: textQuote.suffix,
           };
@@ -502,21 +510,25 @@ export class CardMapper {
     createdAt: Date;
     updatedAt: Date;
   }): AnnotationCardView {
+    const sortedSelectors = [...raw.selectors].sort(
+      (a, b) => a.ordinal - b.ordinal,
+    );
     return {
       id: raw.id,
       type: CardTypeEnum.ANNOTATION,
       url: raw.url,
+      // The passage identity is the primary (lowest-ordinal) selector —
+      // same key the list views group passages by
+      cid: computeAnnotationCID(raw.url, sortedSelectors[0]?.exact ?? ''),
       uri: raw.uri,
       libraryCount: raw.libraryCount,
       connectionCount: raw.connectionCount,
-      selectors: [...raw.selectors]
-        .sort((a, b) => a.ordinal - b.ordinal)
-        .map((s) => ({
-          type: s.selectorType,
-          exact: s.exact,
-          prefix: s.prefix ?? undefined,
-          suffix: s.suffix ?? undefined,
-        })),
+      selectors: sortedSelectors.map((s) => ({
+        type: s.selectorType,
+        exact: s.exact,
+        prefix: s.prefix ?? undefined,
+        suffix: s.suffix ?? undefined,
+      })),
       note: raw.contentData?.note || undefined,
       createdAt: raw.createdAt,
       updatedAt: raw.updatedAt,

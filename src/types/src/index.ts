@@ -12,3 +12,4 @@ export * from './api';
 export * from './routes';
 export * from './internal';
 export * from './richtext/tokens';
+export * from './utils/annotationCid';

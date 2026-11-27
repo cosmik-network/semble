@@ -241,6 +241,7 @@ export async function createTestSchema(db: PostgresJsDatabase) {
       ordinal INTEGER NOT NULL,
       exact TEXT NOT NULL,
       exact_normalized TEXT NOT NULL,
+      annotation_cid TEXT NOT NULL,
       prefix TEXT,
       suffix TEXT,
       created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
@@ -517,5 +518,9 @@ export async function createTestSchema(db: PostgresJsDatabase) {
   await db.execute(sql`
     CREATE UNIQUE INDEX IF NOT EXISTS annotation_selectors_card_ordinal_uniq
     ON annotation_selectors(card_id, ordinal);
+  `);
+  await db.execute(sql`
+    CREATE INDEX IF NOT EXISTS idx_annotation_selectors_cid
+    ON annotation_selectors(annotation_cid);
   `);
 }

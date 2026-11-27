@@ -8,6 +8,11 @@ export interface ConnectionQueryOptions {
   connectionTypes?: ConnectionTypeEnum[]; // Optional filter - undefined/empty = all types
 }
 
+// What anchors a connection to a URL in getConnectionsForUrl: the URL itself
+// as an endpoint, or an ANNOTATION card anchored on that URL as an endpoint.
+// Undefined = both anchors.
+export type ConnectionAnchorType = 'URL' | 'ANNOTATION';
+
 export interface PaginatedConnectionQueryResult<T> {
   items: T[];
   totalCount: number;
@@ -74,18 +79,21 @@ export interface ConnectionForAnnotationRawDTO {
 export interface IConnectionQueryRepository {
   /**
    * Get connections for a URL with optional direction filtering
-   * Returns connections with typed endpoints - only URL endpoints match the
-   * queried URL (a passage's own connections are served by
-   * getConnectionsForCards / connectionsForAnnotation). CARD endpoints can
-   * appear in results as the other side of a matching connection.
+   * Returns connections with typed endpoints - a connection matches when the
+   * counted endpoint is the queried URL itself, or an ANNOTATION card anchored
+   * on that URL. CARD endpoints can appear in results as the other side of a
+   * matching connection.
    * @param url - The URL to get connections for
    * @param direction - 'forward' (source), 'backward' (target), or 'both' (either)
    * @param options - Pagination, sorting, and filtering options
+   * @param anchorType - 'URL' to match only direct URL endpoints, 'ANNOTATION'
+   *   to match only annotation-card endpoints on the URL; undefined = both
    */
   getConnectionsForUrl(
     url: string,
     direction: 'forward' | 'backward' | 'both',
     options: ConnectionQueryOptions,
+    anchorType?: ConnectionAnchorType,
   ): Promise<PaginatedConnectionQueryResult<ConnectionForUserRawDTO>>;
 
   /**

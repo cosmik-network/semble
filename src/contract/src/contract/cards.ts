@@ -201,7 +201,7 @@ export const cardsContract = c.router(
       responses: { 200: GetAnnotationResponseSchema },
       summary: 'Get an annotation by passage',
       description:
-        'Returns the annotation view for a passage — matched on the URL and the normalized exact text of the TextQuoteSelector. Counts are entity-level: across every annotation card matching the passage. Omitted when no card matches.',
+        'Returns the annotation view for a passage, looked up either by its stable content ID (cid) or by the URL and the normalized exact text of the TextQuoteSelector. Counts are entity-level: across every annotation card matching the passage. Omitted when no card matches.',
     },
     notesForAnnotation: {
       method: 'GET',

@@ -503,6 +503,7 @@ describe('GetUrlCardViewUseCase', () => {
         getNotesForAnnotation: jest.fn(),
         getLibrariesForAnnotation: jest.fn(),
         getCardUrlsByIds: jest.fn().mockResolvedValue(new Map()),
+        getAnnotationPassageByCid: jest.fn().mockResolvedValue(null),
       };
 
       const errorUseCase = new GetUrlCardViewUseCase(

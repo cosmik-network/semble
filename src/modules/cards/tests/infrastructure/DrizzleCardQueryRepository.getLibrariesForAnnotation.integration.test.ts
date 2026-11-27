@@ -1,3 +1,4 @@
+import { computeAnnotationCID } from '@semble/types';
 import {
   PostgreSqlContainer,
   StartedPostgreSqlContainer,
@@ -74,6 +75,10 @@ describe('DrizzleCardQueryRepository - getLibrariesForAnnotation', () => {
       ordinal: 0,
       exact: props.exact,
       exactNormalized: normalizeQuotedText(props.exact),
+      annotationCid: computeAnnotationCID(
+        props.url,
+        normalizeQuotedText(props.exact),
+      ),
     });
     await db
       .insert(libraryMemberships)

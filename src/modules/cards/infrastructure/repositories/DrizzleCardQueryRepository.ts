@@ -127,6 +127,14 @@ export class DrizzleCardQueryRepository implements ICardQueryRepository {
     );
   }
 
+  async getAnnotationPassageByCid(cid: string): Promise<{
+    url: string;
+    exactNormalized: string;
+    exact: string;
+  } | null> {
+    return this.annotationCardQueryService.getAnnotationPassageByCid(cid);
+  }
+
   async getAnnotationCardsByPassages(
     passages: { url: string; exactNormalized: string }[],
   ): Promise<Map<string, AnnotationCardView[]>> {

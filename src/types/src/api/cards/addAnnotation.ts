@@ -14,6 +14,8 @@ export type AddAnnotationToLibraryRequest = z.infer<
 
 export const AddAnnotationToLibraryResponseSchema = z.object({
   annotationCardId: z.string(),
+  // The passage's stable content ID — the /annotation/{cid} route key
+  annotationCid: z.string(),
 });
 export type AddAnnotationToLibraryResponse = z.infer<
   typeof AddAnnotationToLibraryResponseSchema

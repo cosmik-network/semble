@@ -1,3 +1,4 @@
+import { computeAnnotationCID } from '@semble/types';
 import { GetTaggedItemsUseCase } from '../../application/useCases/queries/GetTaggedItemsUseCase';
 import { ITagQueryRepository } from '../../domain/ITagQueryRepository';
 import {
@@ -54,6 +55,10 @@ function makeAnnotationView(id: string): AnnotationCardView {
     id,
     type: CardTypeEnum.ANNOTATION,
     url: `https://example.com/doc#${id}`,
+    cid: computeAnnotationCID(
+      `https://example.com/doc#${id}`,
+      'highlighted text',
+    ),
     libraryCount: 1,
     selectors: [{ type: 'TextQuoteSelector', exact: 'highlighted text' }],
     note: `#history annotation on ${id}`,

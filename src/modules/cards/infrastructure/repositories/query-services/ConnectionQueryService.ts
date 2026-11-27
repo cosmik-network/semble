@@ -18,10 +18,12 @@ import {
   ConnectionForAnnotationRawDTO,
   ConnectionSortField,
   SortOrder,
+  ConnectionAnchorType,
 } from '../../../domain/IConnectionQueryRepository';
 import { ConnectionTypeEnum } from '../../../domain/value-objects/ConnectionType';
 import { connections } from '../schema/connection.sql';
 import { publishedRecords } from '../schema/publishedRecord.sql';
+import { cards } from '../schema/card.sql';
 
 export class ConnectionQueryService {
   constructor(private db: PostgresJsDatabase) {}
@@ -30,18 +32,43 @@ export class ConnectionQueryService {
     url: string,
     direction: 'forward' | 'backward' | 'both',
     options: ConnectionQueryOptions,
+    anchorType?: ConnectionAnchorType,
   ): Promise<PaginatedConnectionQueryResult<ConnectionForUserRawDTO>> {
     const { page, limit, sortBy, sortOrder, connectionTypes } = options;
     const offset = (page - 1) * limit;
 
-    // Only URL endpoints match the queried URL directly. CARD endpoints can
-    // appear in results (as the other side of a matching connection), but a
-    // passage's own connections are served by connectionsForAnnotation, not
-    // by anchoring the card's URL here.
-    const endpointMatches = (
+    // A connection matches the queried URL when the counted endpoint is the
+    // URL itself, or an ANNOTATION card anchored on that URL. anchorType
+    // restricts matching to one anchor kind.
+    const endpointMatchesUrl = (
       endpointType: SQLWrapper,
       endpointValue: SQLWrapper,
     ): SQL => sql`(${endpointType} = 'URL' AND ${endpointValue} = ${url})`;
+    const endpointMatchesAnnotation = (
+      endpointType: SQLWrapper,
+      endpointValue: SQLWrapper,
+    ): SQL =>
+      sql`(
+        ${endpointType} = 'CARD'
+        AND EXISTS (
+          SELECT 1 FROM ${cards}
+          WHERE ${cards.id}::text = ${endpointValue}
+            AND ${cards.type} = 'ANNOTATION'
+            AND ${cards.url} = ${url}
+        )
+      )`;
+    const endpointMatches = (
+      endpointType: SQLWrapper,
+      endpointValue: SQLWrapper,
+    ): SQL =>
+      anchorType === 'URL'
+        ? endpointMatchesUrl(endpointType, endpointValue)
+        : anchorType === 'ANNOTATION'
+          ? endpointMatchesAnnotation(endpointType, endpointValue)
+          : sql`(
+              ${endpointMatchesUrl(endpointType, endpointValue)}
+              OR ${endpointMatchesAnnotation(endpointType, endpointValue)}
+            )`;
 
     // Build WHERE conditions based on direction
     let whereConditions: SQL[] = [];

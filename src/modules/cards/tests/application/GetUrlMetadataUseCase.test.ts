@@ -109,7 +109,7 @@ describe('GetUrlMetadataUseCase stats', () => {
     expect(response.urlIsConnected).toBe(true);
   });
 
-  it('does not count a passage own connections on its anchor URL', async () => {
+  it('counts a passage own connections on its anchor URL', async () => {
     const annotationCard = await saveAnnotationCard(PAGE_URL, 'the passage');
     await saveUrlCard(OTHER_URL);
 
@@ -123,8 +123,8 @@ describe('GetUrlMetadataUseCase stats', () => {
     }).unwrap();
     await connectionRepository.save(connection);
 
-    // The passage anchors to PAGE_URL, but PAGE_URL is not an endpoint of the
-    // connection — its own connections are counted on the annotation
+    // The passage anchors to PAGE_URL, so the connection surfaces on
+    // PAGE_URL's page even though PAGE_URL itself is not an endpoint
     const result = await useCase.execute({
       url: PAGE_URL,
       includeStats: true,
@@ -133,8 +133,10 @@ describe('GetUrlMetadataUseCase stats', () => {
 
     expect(result.isOk()).toBe(true);
     const response = result.unwrap();
-    expect(response.stats?.connections.all.total).toBe(0);
-    expect(response.urlIsConnected).toBe(false);
+    expect(response.stats?.connections.all.total).toBe(1);
+    expect(response.stats?.connections.outgoing.total).toBe(1);
+    expect(response.stats?.connections.incoming.total).toBe(0);
+    expect(response.urlIsConnected).toBe(true);
   });
 
   it('counts URL and annotation cards in profile card stats', async () => {

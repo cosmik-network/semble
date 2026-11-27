@@ -120,9 +120,11 @@ export function emptyUrlConnectionCounts(): UrlConnectionCounts {
   };
 }
 
-// Connection counts by direction and type, in a single query. Only the
-// counted endpoint must be a URL — the other side may be a CARD endpoint
-// (an annotation card), matching what a URL's connections page lists
+// Connection counts by direction and type, in a single query. A connection
+// counts toward a URL when the counted endpoint is the URL itself or an
+// ANNOTATION card anchored on that URL — matching what a URL's connections
+// page lists. A connection anchored on both sides to the same URL (e.g. the
+// URL itself to one of its annotations) counts once in each direction.
 export async function fetchUrlConnectionCounts(
   db: PostgresJsDatabase,
   urls: string[],
@@ -130,7 +132,15 @@ export async function fetchUrlConnectionCounts(
   const result = new Map<string, UrlConnectionCounts>();
   if (urls.length === 0) return result;
 
-  const forward = db
+  const annotationCards = db
+    .select({ id: cards.id, url: cards.url })
+    .from(cards)
+    .where(
+      and(eq(cards.type, CardTypeEnum.ANNOTATION), inArray(cards.url, urls)),
+    )
+    .as('annotation_cards');
+
+  const forwardDirect = db
     .select({
       direction: sql<string>`'forward'`.as('direction'),
       url: connections.sourceValue,
@@ -146,7 +156,22 @@ export async function fetchUrlConnectionCounts(
     )
     .groupBy(connections.sourceValue, connections.connectionType);
 
-  const backward = db
+  const forwardAnchored = db
+    .select({
+      direction: sql<string>`'forward'`.as('direction'),
+      url: annotationCards.url,
+      connectionType: connections.connectionType,
+      count: count(),
+    })
+    .from(connections)
+    .innerJoin(
+      annotationCards,
+      eq(connections.sourceValue, sql`${annotationCards.id}::text`),
+    )
+    .where(eq(connections.sourceType, 'CARD'))
+    .groupBy(annotationCards.url, connections.connectionType);
+
+  const backwardDirect = db
     .select({
       direction: sql<string>`'backward'`.as('direction'),
       url: connections.targetValue,
@@ -162,7 +187,25 @@ export async function fetchUrlConnectionCounts(
     )
     .groupBy(connections.targetValue, connections.connectionType);
 
-  const rows = await forward.unionAll(backward);
+  const backwardAnchored = db
+    .select({
+      direction: sql<string>`'backward'`.as('direction'),
+      url: annotationCards.url,
+      connectionType: connections.connectionType,
+      count: count(),
+    })
+    .from(connections)
+    .innerJoin(
+      annotationCards,
+      eq(connections.targetValue, sql`${annotationCards.id}::text`),
+    )
+    .where(eq(connections.targetType, 'CARD'))
+    .groupBy(annotationCards.url, connections.connectionType);
+
+  const rows = await forwardDirect
+    .unionAll(forwardAnchored)
+    .unionAll(backwardDirect)
+    .unionAll(backwardAnchored);
 
   for (const row of rows) {
     let counts = result.get(row.url);
@@ -204,41 +247,82 @@ export async function fetchUrlsSavedByUser(
   return new Set(rows.map((row) => row.url as string));
 }
 
-// Of the given URLs, the subset the user has a connection with — the other
-// side of the connection may be a URL or an annotation card. CARD endpoint
-// values are card ids, which never collide with the requested URLs.
+// Of the given URLs, the subset the user has a connection with — the counted
+// endpoint may be the URL itself or an ANNOTATION card anchored on it. CARD
+// endpoint values are card ids, which never collide with the requested URLs.
 export async function fetchUrlsConnectedByUser(
   db: PostgresJsDatabase,
   userId: string,
   urls: string[],
 ): Promise<Set<string>> {
   if (urls.length === 0) return new Set();
+
+  // Annotation cards anchored on the requested URLs, to expand CARD endpoints
+  const anchoredCards = await db
+    .select({ id: cards.id, url: cards.url })
+    .from(cards)
+    .where(
+      and(eq(cards.type, CardTypeEnum.ANNOTATION), inArray(cards.url, urls)),
+    );
+  const anchoredCardUrls = new Map(
+    anchoredCards.map((card) => [card.id, card.url as string]),
+  );
+
+  const endpointConditions = [
+    and(
+      eq(connections.sourceType, 'URL'),
+      inArray(connections.sourceValue, urls),
+    ),
+    and(
+      eq(connections.targetType, 'URL'),
+      inArray(connections.targetValue, urls),
+    ),
+  ];
+  if (anchoredCardUrls.size > 0) {
+    const cardIds = [...anchoredCardUrls.keys()];
+    endpointConditions.push(
+      and(
+        eq(connections.sourceType, 'CARD'),
+        inArray(connections.sourceValue, cardIds),
+      ),
+      and(
+        eq(connections.targetType, 'CARD'),
+        inArray(connections.targetValue, cardIds),
+      ),
+    );
+  }
+
   const rows = await db
     .select({
+      sourceType: connections.sourceType,
       sourceValue: connections.sourceValue,
+      targetType: connections.targetType,
       targetValue: connections.targetValue,
     })
     .from(connections)
-    .where(
-      and(
-        eq(connections.curatorId, userId),
-        or(
-          and(
-            eq(connections.sourceType, 'URL'),
-            inArray(connections.sourceValue, urls),
-          ),
-          and(
-            eq(connections.targetType, 'URL'),
-            inArray(connections.targetValue, urls),
-          ),
-        ),
-      ),
-    );
+    .where(and(eq(connections.curatorId, userId), or(...endpointConditions)));
+
   const requested = new Set(urls);
   const connected = new Set<string>();
   for (const row of rows) {
-    if (requested.has(row.sourceValue)) connected.add(row.sourceValue);
-    if (requested.has(row.targetValue)) connected.add(row.targetValue);
+    if (row.sourceType === 'URL' && requested.has(row.sourceValue as string)) {
+      connected.add(row.sourceValue as string);
+    }
+    if (
+      row.sourceType === 'CARD' &&
+      anchoredCardUrls.has(row.sourceValue as string)
+    ) {
+      connected.add(anchoredCardUrls.get(row.sourceValue as string)!);
+    }
+    if (row.targetType === 'URL' && requested.has(row.targetValue as string)) {
+      connected.add(row.targetValue as string);
+    }
+    if (
+      row.targetType === 'CARD' &&
+      anchoredCardUrls.has(row.targetValue as string)
+    ) {
+      connected.add(anchoredCardUrls.get(row.targetValue as string)!);
+    }
   }
   return connected;
 }

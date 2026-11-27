@@ -28,6 +28,7 @@ import { CardTypeEnum } from '../../domain/value-objects/CardType';
 import { UrlType } from '../../domain/value-objects/UrlType';
 import { SelectorTypeEnum } from '../../domain/value-objects/selectors/SelectorType';
 import { annotationPassageKey } from '../../domain/value-objects/selectors/normalizeQuotedText';
+import { computeAnnotationCID } from '@semble/types';
 import { InMemoryCardRepository } from './InMemoryCardRepository';
 import { InMemoryCollectionRepository } from './InMemoryCollectionRepository';
 import { IConnectionRepository } from '../../domain/IConnectionRepository';
@@ -35,6 +36,7 @@ import { Card } from '../../domain/Card';
 import { CollectionId } from '../../domain/value-objects/CollectionId';
 import { CuratorId } from '../../domain/value-objects/CuratorId';
 import { UrlOrCardId } from '../../domain/value-objects/UrlOrCardId';
+import { Connection } from '../../domain/Connection';
 import { URL } from '../../domain/value-objects/URL';
 
 // The in-memory fake only produces URL cards; UrlCardQueryResultDTO is now a
@@ -291,8 +293,9 @@ export class InMemoryCardQueryRepository implements ICardQueryRepository {
     );
   }
 
-  // Only the counted endpoint must be the URL — the other side may be a CARD
-  // endpoint, matching the Drizzle implementation
+  // A connection counts toward a URL when the counted endpoint is the URL
+  // itself or an ANNOTATION card anchored on that URL, matching the Drizzle
+  // implementation
   private async getUrlConnectionCounts(
     url: string,
   ): Promise<UrlConnectionCounts> {
@@ -314,14 +317,29 @@ export class InMemoryCardQueryRepository implements ICardQueryRepository {
     if (urlOrCardIdResult.isErr()) {
       return counts;
     }
-    const urlOrCardId = urlOrCardIdResult.value;
 
-    const [sourceResult, targetResult] = await Promise.all([
-      this.connectionRepository.findBySource(urlOrCardId),
-      this.connectionRepository.findByTarget(urlOrCardId),
-    ]);
-    const forward = sourceResult.isOk() ? sourceResult.value : [];
-    const backward = targetResult.isOk() ? targetResult.value : [];
+    // Endpoints that anchor connections to this URL: the URL itself plus
+    // its annotation cards
+    const endpoints = [urlOrCardIdResult.value];
+    for (const card of this.cardRepository.getAllCards()) {
+      if (card.isAnnotationCard && card.url?.value === url) {
+        const endpointResult = UrlOrCardId.createFromCard(card.cardId);
+        if (endpointResult.isOk()) {
+          endpoints.push(endpointResult.value);
+        }
+      }
+    }
+
+    const forward: Connection[] = [];
+    const backward: Connection[] = [];
+    for (const endpoint of endpoints) {
+      const [sourceResult, targetResult] = await Promise.all([
+        this.connectionRepository.findBySource(endpoint),
+        this.connectionRepository.findByTarget(endpoint),
+      ]);
+      if (sourceResult.isOk()) forward.push(...sourceResult.value);
+      if (targetResult.isOk()) backward.push(...targetResult.value);
+    }
 
     counts.forwardTotal = forward.length;
     counts.backwardTotal = backward.length;
@@ -375,13 +393,29 @@ export class InMemoryCardQueryRepository implements ICardQueryRepository {
 
       const connections = connectionsResult.value;
 
-      // Check if any connection involves this URL (as source or target).
-      // The other side may be a URL or a CARD endpoint, matching the
+      // Check if any connection is anchored on this URL (as source or
+      // target): the URL itself or an annotation card of it, matching the
       // Drizzle implementation
+      const annotationCardIds = new Set(
+        this.cardRepository
+          .getAllCards()
+          .filter((card) => card.isAnnotationCard && card.url?.value === url)
+          .map((card) => card.cardId.getStringValue()),
+      );
+      const endpointAnchoredOnUrl = (endpoint: {
+        isUrl: boolean;
+        url?: { value: string } | null;
+        isCard: boolean;
+        cardId: { getStringValue(): string } | null;
+      }): boolean =>
+        (endpoint.isUrl && endpoint.url?.value === url) ||
+        (endpoint.isCard &&
+          annotationCardIds.has(endpoint.cardId?.getStringValue() ?? ''));
+
       return connections.some(
         (conn) =>
-          (conn.source.isUrl && conn.source.url?.value === url) ||
-          (conn.target.isUrl && conn.target.url?.value === url),
+          endpointAnchoredOnUrl(conn.source) ||
+          endpointAnchoredOnUrl(conn.target),
       );
     } catch (error) {
       return false;
@@ -821,6 +855,9 @@ export class InMemoryCardQueryRepository implements ICardQueryRepository {
       id: card.cardId.getStringValue(),
       type: CardTypeEnum.ANNOTATION,
       url,
+      // The passage's stable content ID — same derivation as the persisted
+      // annotation_selectors.annotation_cid column
+      cid: computeAnnotationCID(url, normalizedExact ?? ''),
       libraryCount,
       connectionCount,
       selectors: (annotationContent?.selectors ?? []).map((selector) => ({
@@ -993,6 +1030,7 @@ export class InMemoryCardQueryRepository implements ICardQueryRepository {
         return {
           id: cardView.id,
           url: cardView.url,
+          cid: cardView.cid,
           selectors: cardView.selectors,
           libraryCount: cardView.libraryCount,
           connectionCount: cardView.connectionCount,
@@ -1089,6 +1127,33 @@ export class InMemoryCardQueryRepository implements ICardQueryRepository {
     return this.getMatchingAnnotationCards(url, exactNormalized).map((card) =>
       card.cardId.getStringValue(),
     );
+  }
+
+  async getAnnotationPassageByCid(cid: string): Promise<{
+    url: string;
+    exactNormalized: string;
+    exact: string;
+  } | null> {
+    // Mirrors the Drizzle implementation: any selector row whose passage
+    // hashes to the CID resolves it back to the passage
+    for (const card of this.cardRepository.getAllCards()) {
+      if (!card.isAnnotationCard || !card.url) continue;
+      for (const selector of card.content.annotationContent?.selectors ?? []) {
+        const textQuote = selector.textQuoteSelector;
+        if (!textQuote) continue;
+        if (
+          computeAnnotationCID(card.url.value, textQuote.normalizedExact) ===
+          cid
+        ) {
+          return {
+            url: card.url.value,
+            exactNormalized: textQuote.normalizedExact,
+            exact: textQuote.exact,
+          };
+        }
+      }
+    }
+    return null;
   }
 
   async getNotesForAnnotation(

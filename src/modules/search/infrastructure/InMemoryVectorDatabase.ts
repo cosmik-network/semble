@@ -9,7 +9,7 @@ import {
   UrlSearchResult,
 } from '../domain/IVectorDatabase';
 import { UrlMetadataProps } from '../../cards/domain/value-objects/UrlMetadata';
-import { annotationVectorId } from '../domain/value-objects/AnnotationVectorId';
+import { computeAnnotationCID } from '@semble/types';
 import { CardTypeEnum } from '../../cards/domain/value-objects/CardType';
 import { UrlType } from '../../cards/domain/value-objects/UrlType';
 
@@ -117,7 +117,7 @@ export class InMemoryVectorDatabase implements IVectorDatabase {
 
   async indexAnnotation(params: IndexAnnotationParams): Promise<Result<void>> {
     try {
-      const id = annotationVectorId(params.url, params.exactNormalized);
+      const id = computeAnnotationCID(params.url, params.exactNormalized);
       this.annotations.set(id, {
         url: params.url,
         exactNormalized: params.exactNormalized,
@@ -214,7 +214,7 @@ export class InMemoryVectorDatabase implements IVectorDatabase {
     exactNormalized: string,
   ): Promise<Result<void>> {
     try {
-      this.annotations.delete(annotationVectorId(url, exactNormalized));
+      this.annotations.delete(computeAnnotationCID(url, exactNormalized));
       return ok(undefined);
     } catch (error) {
       return err(

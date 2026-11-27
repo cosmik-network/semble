@@ -14,6 +14,9 @@ export const GetConnectionsForUrlParamsSchema =
     url: z.string(),
     direction: z.enum(['forward', 'backward', 'both']).optional(),
     connectionTypes: z.array(ConnectionTypeSchema).optional(),
+    // Which endpoint kind anchors a connection to the URL: the URL itself
+    // ('URL') or an annotation card on it ('ANNOTATION'). Omitted = both.
+    anchorType: z.enum(['URL', 'ANNOTATION']).optional(),
   });
 export type GetConnectionsForUrlParams = z.infer<
   typeof GetConnectionsForUrlParamsSchema

@@ -5,6 +5,7 @@ import {
   PaginatedConnectionQueryResult,
   ConnectionForUserRawDTO,
   ConnectionForAnnotationRawDTO,
+  ConnectionAnchorType,
 } from '../../domain/IConnectionQueryRepository';
 import { ConnectionQueryService } from './query-services/ConnectionQueryService';
 import { ConnectionTypeEnum } from '../../domain/value-objects/ConnectionType';
@@ -20,11 +21,13 @@ export class DrizzleConnectionQueryRepository implements IConnectionQueryReposit
     url: string,
     direction: 'forward' | 'backward' | 'both',
     options: ConnectionQueryOptions,
+    anchorType?: ConnectionAnchorType,
   ): Promise<PaginatedConnectionQueryResult<ConnectionForUserRawDTO>> {
     return this.connectionQueryService.getConnectionsForUrlWithDirection(
       url,
       direction,
       options,
+      anchorType,
     );
   }
 

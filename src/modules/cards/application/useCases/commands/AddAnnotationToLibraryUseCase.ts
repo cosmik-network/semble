@@ -15,6 +15,7 @@ import { CardCollectionService } from '../../../domain/services/CardCollectionSe
 import { PublishedRecordId } from '../../../domain/value-objects/PublishedRecordId';
 import { AuthenticationError } from '../../../../../shared/core/AuthenticationError';
 import { SelectorTypeEnum } from '../../../domain/value-objects/selectors/SelectorType';
+import { computeAnnotationCID } from '@semble/types';
 
 export interface AnnotationSelectorDTO {
   type: SelectorTypeEnum.TEXT_QUOTE;
@@ -36,6 +37,8 @@ export interface AddAnnotationToLibraryDTO {
 
 export interface AddAnnotationToLibraryResponseDTO {
   annotationCardId: string;
+  /** The passage's stable content ID — the /annotation/{cid} route key */
+  annotationCid: string;
 }
 
 export class AnnotationValidationError extends UseCaseError {
@@ -225,8 +228,18 @@ export class AddAnnotationToLibraryUseCase extends BaseUseCase<
         );
       }
 
+      // The passage's CID — the primary selector's passage identity, so the
+      // client can link to /annotation/{cid} immediately after saving
+      const primarySelector =
+        savedAnnotationCard.content.annotationContent?.selectors[0]
+          ?.textQuoteSelector;
+
       return ok({
         annotationCardId: savedAnnotationCard.cardId.getStringValue(),
+        annotationCid: computeAnnotationCID(
+          url.value,
+          primarySelector?.normalizedExact ?? '',
+        ),
       });
     } catch (error) {
       return err(AppError.UnexpectedError.create(error));

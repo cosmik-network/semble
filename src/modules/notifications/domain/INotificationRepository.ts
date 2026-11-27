@@ -34,6 +34,8 @@ export interface EnrichedNotificationResult {
   // 'URL' or 'ANNOTATION' — annotation cards carry selectors/note instead of
   // link metadata
   cardKind?: 'URL' | 'ANNOTATION';
+  // The passage's stable content ID for annotation cards
+  cardCid?: string;
   // Text quote selectors for annotation cards (ordered by ordinal)
   cardSelectors?: Array<{
     type: string;
@@ -130,6 +132,8 @@ export interface EnrichedNotificationResult {
     cardId: string;
     authorId: string;
     url: string;
+    /** The passage's stable content ID */
+    cid: string;
     uri?: string;
     libraryCount: number;
     selectors: Array<{

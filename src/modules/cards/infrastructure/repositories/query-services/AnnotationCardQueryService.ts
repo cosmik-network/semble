@@ -139,6 +139,9 @@ export class AnnotationCardQueryService {
         return {
           id: cardView.id,
           url: cardView.url,
+          // The representative card's primary selector is the passage key,
+          // so its view CID is the passage CID
+          cid: cardView.cid,
           selectors: cardView.selectors,
           libraryCount: cardView.libraryCount,
           connectionCount: cardView.connectionCount,
@@ -480,6 +483,43 @@ export class AnnotationCardQueryService {
       return rows.map((row) => row.id);
     } catch (error) {
       console.error('Error in getMatchingAnnotationCardIds:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Resolve a passage's annotation CID back to its parts. The CID is a hash,
+   * so resolution reads the denormalized annotation_cid column on
+   * annotation_selectors.
+   */
+  async getAnnotationPassageByCid(cid: string): Promise<{
+    url: string;
+    exactNormalized: string;
+    exact: string;
+  } | null> {
+    try {
+      const rows = await this.db
+        .select({
+          url: cards.url,
+          exactNormalized: annotationSelectors.exactNormalized,
+          exact: annotationSelectors.exact,
+        })
+        .from(annotationSelectors)
+        .innerJoin(cards, eq(annotationSelectors.cardId, cards.id))
+        .where(eq(annotationSelectors.annotationCid, cid))
+        .limit(1);
+
+      const row = rows[0];
+      if (!row?.url) {
+        return null;
+      }
+      return {
+        url: row.url,
+        exactNormalized: row.exactNormalized,
+        exact: row.exact,
+      };
+    } catch (error) {
+      console.error('Error in getAnnotationPassageByCid:', error);
       throw error;
     }
   }

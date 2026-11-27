@@ -4,6 +4,7 @@ import {
   IConnectionQueryRepository,
   ConnectionSortField,
   SortOrder,
+  ConnectionAnchorType,
 } from '../../../domain/IConnectionQueryRepository';
 import {
   ICardQueryRepository,
@@ -26,6 +27,7 @@ export interface GetConnectionsForUrlQuery {
   sortBy?: ConnectionSortField;
   sortOrder?: SortOrder;
   connectionTypes?: ConnectionTypeEnum[];
+  anchorType?: ConnectionAnchorType;
 }
 
 // An annotation card endpoint — the card view plus its author, the same
@@ -121,6 +123,7 @@ export class GetConnectionsForUrlUseCase implements UseCase<
           sortOrder,
           connectionTypes,
         },
+        query.anchorType,
       );
 
       // Split endpoints by type — URL endpoints need link metadata and

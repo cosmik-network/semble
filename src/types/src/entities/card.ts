@@ -67,6 +67,8 @@ export const AnnotationCardSchema = z.object({
   id: z.string(),
   type: z.literal('ANNOTATION'),
   url: z.string(),
+  // The passage's stable content ID — the /annotation/{cid} route key
+  cid: z.string(),
   uri: z.string().optional(),
   // Entity-level: distinct users with any annotation card matching this
   // passage (url + normalized exact text)
@@ -100,6 +102,8 @@ export const AnnotationViewSchema = z.object({
   // an identity for keys and links, not a claim about the passage's owner
   id: z.string(),
   url: z.string(),
+  // The passage's stable content ID — the /annotation/{cid} route key
+  cid: z.string(),
   selectors: z.array(TextQuoteSelectorSchema),
   // Entity-level: distinct users with any annotation card matching this
   // passage (url + normalized exact text)

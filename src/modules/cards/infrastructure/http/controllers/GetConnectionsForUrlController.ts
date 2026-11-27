@@ -5,6 +5,7 @@ import { AuthenticatedRequest } from '../../../../../shared/infrastructure/http/
 import {
   ConnectionSortField,
   SortOrder,
+  ConnectionAnchorType,
 } from '../../../domain/IConnectionQueryRepository';
 import { ConnectionTypeEnum } from '../../../domain/value-objects/ConnectionType';
 
@@ -53,6 +54,18 @@ export class GetConnectionsForUrlController extends Controller {
         | ConnectionTypeEnum[]
         | undefined;
 
+      // Parse anchor type filter — which endpoint kind anchors a connection
+      // to the URL: the URL itself or an annotation card on it
+      const anchorType = req.query.anchorType as
+        | ConnectionAnchorType
+        | undefined;
+      if (anchorType && !['URL', 'ANNOTATION'].includes(anchorType)) {
+        return this.badRequest(
+          res,
+          'Invalid anchorType. Must be "URL" or "ANNOTATION"',
+        );
+      }
+
       const result = await this.getConnectionsForUrlUseCase.execute({
         url,
         direction,
@@ -62,6 +75,7 @@ export class GetConnectionsForUrlController extends Controller {
         sortBy,
         sortOrder,
         connectionTypes,
+        anchorType,
       });
 
       if (result.isErr()) {

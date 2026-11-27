@@ -6,36 +6,63 @@ import {
   ConnectionForAnnotationRawDTO,
   ConnectionSortField,
   SortOrder,
+  ConnectionAnchorType,
 } from '../../domain/IConnectionQueryRepository';
 import { InMemoryConnectionRepository } from './InMemoryConnectionRepository';
+import { InMemoryCardRepository } from './InMemoryCardRepository';
 import { UrlOrCardIdType } from '../../domain/value-objects/UrlOrCardId';
 import { ConnectionTypeEnum } from '../../domain/value-objects/ConnectionType';
 
 export class InMemoryConnectionQueryRepository implements IConnectionQueryRepository {
-  constructor(private connectionRepository: InMemoryConnectionRepository) {}
+  constructor(
+    private connectionRepository: InMemoryConnectionRepository,
+    // Needed to resolve CARD endpoints to their annotation cards' URLs
+    private cardRepository?: InMemoryCardRepository,
+  ) {}
 
   async getConnectionsForUrl(
     url: string,
     direction: 'forward' | 'backward' | 'both',
     options: ConnectionQueryOptions,
+    anchorType?: ConnectionAnchorType,
   ): Promise<PaginatedConnectionQueryResult<ConnectionForUserRawDTO>> {
     const { page, limit, sortBy, sortOrder, connectionTypes } = options;
 
     // Get all connections from the repository
     const allConnections = this.connectionRepository.getAllConnections();
 
-    // Only URL endpoints match the queried URL directly; CARD endpoints can
-    // appear in results as the other side of a matching connection
+    // A connection matches when the counted endpoint is the URL itself or an
+    // ANNOTATION card anchored on that URL; anchorType restricts to one kind
+    const annotationCardIds = new Set(
+      (this.cardRepository?.getAllCards() ?? [])
+        .filter((card) => card.isAnnotationCard && card.url?.value === url)
+        .map((card) => card.cardId.getStringValue()),
+    );
+
     const endpointMatchesUrl = (endpoint: {
       type: UrlOrCardIdType;
       stringValue: string;
     }): boolean =>
-      endpoint.type === UrlOrCardIdType.URL && endpoint.stringValue === url;
+      anchorType !== 'ANNOTATION' &&
+      endpoint.type === UrlOrCardIdType.URL &&
+      endpoint.stringValue === url;
+    const endpointMatchesAnnotation = (endpoint: {
+      type: UrlOrCardIdType;
+      stringValue: string;
+    }): boolean =>
+      anchorType !== 'URL' &&
+      endpoint.type === UrlOrCardIdType.CARD &&
+      annotationCardIds.has(endpoint.stringValue);
+    const endpointMatches = (endpoint: {
+      type: UrlOrCardIdType;
+      stringValue: string;
+    }): boolean =>
+      endpointMatchesUrl(endpoint) || endpointMatchesAnnotation(endpoint);
 
     // Filter connections based on direction
     let filteredConnections = allConnections.filter((connection) => {
-      const isSourceMatch = endpointMatchesUrl(connection.source);
-      const isTargetMatch = endpointMatchesUrl(connection.target);
+      const isSourceMatch = endpointMatches(connection.source);
+      const isTargetMatch = endpointMatches(connection.target);
 
       if (direction === 'forward') {
         return isSourceMatch;

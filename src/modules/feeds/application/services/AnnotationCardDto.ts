@@ -24,6 +24,7 @@ export function toAnnotationCardDTO(view: AnnotationCardView, author: any) {
     id: view.id,
     type: 'ANNOTATION' as const,
     url: view.url,
+    cid: view.cid,
     uri: view.uri,
     libraryCount: view.libraryCount,
     connectionCount: view.connectionCount,

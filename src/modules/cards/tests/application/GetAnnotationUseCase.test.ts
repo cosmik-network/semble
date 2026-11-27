@@ -8,6 +8,7 @@ import { FakeProfileService } from '../utils/FakeProfileService';
 import { CuratorId } from '../../domain/value-objects/CuratorId';
 import { CardBuilder } from '../utils/builders/CardBuilder';
 import { URL } from '../../domain/value-objects/URL';
+import { computeAnnotationCID } from '@semble/types';
 
 describe('GetAnnotationUseCase', () => {
   const TEST_URL = 'https://example.com/annotated-article';
@@ -159,5 +160,53 @@ describe('GetAnnotationUseCase', () => {
       exact: '   ',
     });
     expect(badExact.isErr()).toBe(true);
+  });
+
+  it('resolves the passage by its annotation CID', async () => {
+    await createAnnotationCard(curatorId, { note: 'notable' });
+    const cid = computeAnnotationCID(TEST_URL, PASSAGE);
+
+    const result = await useCase.execute({ cid });
+
+    expect(result.isOk()).toBe(true);
+    const value = result.unwrap();
+    expect(value.cid).toBe(cid);
+    // The matched passage's raw exact text is echoed for display
+    expect(value.exact).toBe(PASSAGE);
+    expect(value.annotation).toBeDefined();
+    expect(value.annotation?.note).toBe('notable');
+    expect(value.annotation?.cid).toBe(cid);
+  });
+
+  it('derives the same CID from whitespace-variant input as from the cid', async () => {
+    await createAnnotationCard(curatorId);
+
+    const byParts = await useCase.execute({
+      url: TEST_URL,
+      exact: `the  quoted   passage`,
+    });
+    const byCid = await useCase.execute({
+      cid: computeAnnotationCID(TEST_URL, PASSAGE),
+    });
+
+    expect(byParts.unwrap().cid).toBe(byCid.unwrap().cid);
+    expect(byParts.unwrap().annotation?.id).toBe(byCid.unwrap().annotation?.id);
+  });
+
+  it('returns an empty result for an unknown CID', async () => {
+    await createAnnotationCard(curatorId);
+
+    const result = await useCase.execute({
+      cid: computeAnnotationCID(TEST_URL, 'never saved anywhere'),
+    });
+
+    expect(result.isOk()).toBe(true);
+    expect(result.unwrap().annotation).toBeUndefined();
+    expect(result.unwrap().exact).toBeUndefined();
+  });
+
+  it('rejects a malformed CID', async () => {
+    const result = await useCase.execute({ cid: 'not-a-cid!' });
+    expect(result.isErr()).toBe(true);
   });
 });

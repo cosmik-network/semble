@@ -16,6 +16,7 @@ export function toAnnotationSearchResultDTO(
     cardType: 'ANNOTATION',
     type: 'ANNOTATION',
     url: view.url,
+    cid: view.cid,
     uri: view.uri,
     libraryCount: view.libraryCount,
     connectionCount: view.connectionCount,

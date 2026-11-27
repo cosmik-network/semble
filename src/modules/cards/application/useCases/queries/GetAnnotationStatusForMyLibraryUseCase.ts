@@ -161,6 +161,7 @@ export class GetAnnotationStatusForMyLibraryUseCase extends BaseUseCase<
             id: cardView.id,
             type: 'ANNOTATION',
             url: cardView.url,
+            cid: cardView.cid,
             uri: cardView.uri,
             libraryCount: cardView.libraryCount,
             connectionCount: cardView.connectionCount,

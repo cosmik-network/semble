@@ -210,6 +210,56 @@ describe('DrizzleCardQueryRepository - getBatchUrlStats', () => {
     );
   });
 
+  it('counts annotation-anchored connections on the annotation URL', async () => {
+    const parentA = await insertUrlCard(alice, urlA);
+    const annA = randomUUID();
+    await db.insert(cards).values({
+      id: annA,
+      authorId: alice,
+      type: CardTypeEnum.ANNOTATION,
+      contentData: { note: 'passage' },
+      url: urlA,
+    });
+    // NOTE cards on the URL do not anchor connections
+    const noteA = randomUUID();
+    await db.insert(cards).values({
+      id: noteA,
+      authorId: alice,
+      type: CardTypeEnum.NOTE,
+      contentData: { text: 'n' },
+      url: urlA,
+      parentCardId: parentA,
+    });
+
+    const url = (value: string) => ({ type: 'URL', value });
+    // annotation of urlA → urlB: forward for urlA, backward for urlB
+    await insertConnection(
+      alice,
+      { type: 'CARD', value: annA },
+      url(urlB),
+      ConnectionTypeEnum.RELATED,
+    );
+    // urlC → annotation of urlA: backward for urlA
+    await insertConnection(bob, url(urlC), { type: 'CARD', value: annA });
+    // note-card endpoints never anchor: this contributes to urlC's counts
+    // (its URL endpoint) but must not count toward urlA's
+    await insertConnection(bob, { type: 'CARD', value: noteA }, url(urlC));
+
+    const result = await queryRepository.getBatchUrlStats([urlA, urlB], alice);
+
+    const a = result.get(urlA)!.connections;
+    expect(a.forwardTotal).toBe(1);
+    expect(a.backwardTotal).toBe(1);
+    expect(a.forwardByType).toEqual(new Map([[ConnectionTypeEnum.RELATED, 1]]));
+
+    const b = result.get(urlB)!.connections;
+    expect(b.forwardTotal).toBe(0);
+    expect(b.backwardTotal).toBe(1);
+
+    // Alice's annotation-anchored connection marks urlA as connected
+    expect(result.get(urlA)).toMatchObject({ urlIsConnected: true });
+  });
+
   it('sets caller flags only when a calling user is given', async () => {
     await insertUrlCard(alice, urlA);
     await insertConnection(

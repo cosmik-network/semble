@@ -134,6 +134,7 @@ export class RepositoryFactory {
       );
       const connectionQueryRepository = new InMemoryConnectionQueryRepository(
         connectionRepository,
+        cardRepository,
       );
       const tagQueryRepository = new InMemoryTagQueryRepository(
         cardRepository,

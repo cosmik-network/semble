@@ -26,11 +26,12 @@ export const connectionsContract = c.router(
         url: z.string(),
         direction: z.enum(['forward', 'backward', 'both']).optional(),
         connectionTypes: z.array(ConnectionTypeSchema).optional(),
+        anchorType: z.enum(['URL', 'ANNOTATION']).optional(),
       }),
       responses: { 200: GetConnectionsForUrlResponseSchema },
       summary: 'Get connections for a URL',
       description:
-        'Returns connections where the given URL is the source or target, optionally filtered by direction and type.',
+        'Returns connections where the given URL is the source or target, or where an annotation card anchored on the URL is an endpoint. Optionally filtered by direction, type, and anchorType (URL = direct URL endpoints only, ANNOTATION = annotation-card endpoints only).',
     },
     connectionsForAnnotation: {
       method: 'GET',

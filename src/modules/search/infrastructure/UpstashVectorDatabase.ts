@@ -15,7 +15,7 @@ import {
 } from '../../cards/domain/value-objects/UrlMetadata';
 import { Chunk } from '../domain/value-objects/Chunk';
 import { IEmbeddingService } from '../domain/services/IEmbeddingService';
-import { annotationVectorId } from '../domain/value-objects/AnnotationVectorId';
+import { computeAnnotationCID } from '@semble/types';
 import { CardTypeEnum } from '../../cards/domain/value-objects/CardType';
 import { UrlType } from '../../cards/domain/value-objects/UrlType';
 
@@ -93,7 +93,10 @@ export class UpstashVectorDatabase implements IVectorDatabase {
 
   async indexAnnotation(params: IndexAnnotationParams): Promise<Result<void>> {
     try {
-      const id = annotationVectorId(params.url, params.exactNormalized);
+      // The passage's stable content ID — same identity the
+      // annotation_selectors.annotation_cid column and the /annotation/{cid}
+      // route use
+      const id = computeAnnotationCID(params.url, params.exactNormalized);
       // Metadata is a pointer back to Postgres, not a copy of card state —
       // everything else (author, note, counts) is resolved from the
       // (url, exactNormalized) pair at query time.
@@ -286,7 +289,7 @@ export class UpstashVectorDatabase implements IVectorDatabase {
   ): Promise<Result<void>> {
     try {
       await this.annotationsIndex.delete(
-        annotationVectorId(url, exactNormalized),
+        computeAnnotationCID(url, exactNormalized),
       );
       return ok(undefined);
     } catch (error) {

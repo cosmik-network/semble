@@ -120,6 +120,7 @@ export class GetLibrariesForAnnotationUseCase implements UseCase<
             id: item.card.id,
             type: 'ANNOTATION',
             url: item.card.url,
+            cid: item.card.cid,
             uri: item.card.uri,
             libraryCount: item.card.libraryCount,
             selectors: item.card.selectors.map((selector) => ({

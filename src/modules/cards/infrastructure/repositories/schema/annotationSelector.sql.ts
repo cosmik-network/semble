@@ -5,6 +5,7 @@ import {
   integer,
   uuid,
   uniqueIndex,
+  index,
 } from 'drizzle-orm/pg-core';
 import { cards } from './card.sql';
 
@@ -16,6 +17,11 @@ import { cards } from './card.sql';
  * exact_normalized is computed by normalizeQuotedText (domain) at write time
  * and is the comparison key for "same passage" matching — raw exact is never
  * compared directly and nothing but matching reads the normalized column.
+ *
+ * annotation_cid is the passage's stable content ID — base36 of truncated
+ * sha256 over (canonical url, exact_normalized), the same derivation the
+ * vector DB and the /annotation/{cid} route use. Denormalized per selector
+ * row so a CID lookup can reverse the hash back to the passage.
  */
 export const annotationSelectors = pgTable(
   'annotation_selectors',
@@ -28,6 +34,7 @@ export const annotationSelectors = pgTable(
     ordinal: integer('ordinal').notNull(),
     exact: text('exact').notNull(),
     exactNormalized: text('exact_normalized').notNull(),
+    annotationCid: text('annotation_cid').notNull(),
     prefix: text('prefix'),
     suffix: text('suffix'),
     createdAt: timestamp('created_at').notNull().defaultNow(),
@@ -40,6 +47,11 @@ export const annotationSelectors = pgTable(
       cardOrdinalUniq: uniqueIndex('annotation_selectors_card_ordinal_uniq').on(
         table.cardId,
         table.ordinal,
+      ),
+      // CID → passage resolution (the /annotation/{cid} page and the
+      // getAnnotation API)
+      annotationCidIdx: index('idx_annotation_selectors_cid').on(
+        table.annotationCid,
       ),
     };
   },

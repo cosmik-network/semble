@@ -1,3 +1,4 @@
+import { computeAnnotationCID } from '@semble/types';
 import { GetGlobalFeedUseCase } from '../../application/useCases/queries/GetGlobalFeedUseCase';
 import { InMemoryFeedRepository } from '../infrastructure/InMemoryFeedRepository';
 import { FeedActivity } from '../../domain/FeedActivity';
@@ -33,6 +34,7 @@ function makeAnnotationView(
     id: cardId,
     type: 'ANNOTATION' as any,
     url: URL,
+    cid: computeAnnotationCID(URL, PASSAGE),
     libraryCount: 2,
     selectors: [{ type: 'TextQuoteSelector', exact: PASSAGE }],
     note: 'a note',

@@ -26,6 +26,7 @@ import { connections } from '../../../cards/infrastructure/repositories/schema/c
 import { annotationSelectors } from '../../../cards/infrastructure/repositories/schema/annotationSelector.sql';
 import { CardTypeEnum } from '../../../cards/domain/value-objects/CardType';
 import { fetchUrlEngagement } from '../../../cards/infrastructure/repositories/query-services/urlStatsQueries';
+import { computeAnnotationCID } from '@semble/types';
 
 export class DrizzleNotificationRepository implements INotificationRepository {
   constructor(private db: PostgresJsDatabase) {}
@@ -949,6 +950,11 @@ export class DrizzleNotificationRepository implements INotificationRepository {
               cardId: card.id,
               authorId: card.authorId,
               url: card.url || '',
+              // The passage's stable content ID, from the primary selector
+              cid: computeAnnotationCID(
+                card.url || '',
+                selectorsByCard.get(card.id)?.[0]?.exact ?? '',
+              ),
               uri: card.publishedRecordUri || undefined,
               libraryCount: card.libraryCount,
               selectors: selectorsByCard.get(card.id) || [],
@@ -1011,6 +1017,13 @@ export class DrizzleNotificationRepository implements INotificationRepository {
             cardUrl: card.url || '',
             cardUri: card.publishedRecordUri || undefined,
             cardKind: isAnnotation ? 'ANNOTATION' : 'URL',
+            // The passage's stable content ID, from the primary selector
+            cardCid: isAnnotation
+              ? computeAnnotationCID(
+                  card.url || '',
+                  selectorsByCard.get(card.id)?.[0]?.exact ?? '',
+                )
+              : undefined,
             cardSelectors: isAnnotation
               ? selectorsByCard.get(card.id) || []
               : undefined,

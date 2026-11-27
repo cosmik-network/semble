@@ -10,19 +10,26 @@ export class GetAnnotationController extends Controller {
 
   async executeImpl(req: AuthenticatedRequest, res: Response): Promise<any> {
     try {
-      const { url, exact } = req.query;
+      const { cid, url, exact } = req.query;
       const callingUserId = req.did;
 
-      if (!url || typeof url !== 'string') {
-        return this.badRequest(res, 'URL query parameter is required');
+      if (typeof cid !== 'string' && (!url || typeof url !== 'string')) {
+        return this.badRequest(
+          res,
+          'Provide either cid, or both url and exact query parameters',
+        );
       }
-      if (!exact || typeof exact !== 'string') {
-        return this.badRequest(res, 'exact query parameter is required');
+      if (!cid && (!exact || typeof exact !== 'string')) {
+        return this.badRequest(
+          res,
+          'Provide either cid, or both url and exact query parameters',
+        );
       }
 
       const result = await this.getAnnotationUseCase.execute({
-        url,
-        exact,
+        ...(typeof cid === 'string' ? { cid } : {}),
+        ...(typeof url === 'string' ? { url } : {}),
+        ...(typeof exact === 'string' ? { exact } : {}),
         callingUserId,
       });
 

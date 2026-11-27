@@ -109,6 +109,8 @@ export interface AnnotationCardView {
   id: string;
   type: CardTypeEnum.ANNOTATION;
   url: string;
+  /** The passage's stable content ID — the /annotation/{cid} route key */
+  cid: string;
   uri?: string;
   /**
    * Entity-level library count: distinct users with any annotation card
@@ -141,6 +143,8 @@ export interface AnnotationView {
    * an identity for keys and links, not a claim about the passage's owner */
   id: string;
   url: string;
+  /** The passage's stable content ID — the /annotation/{cid} route key */
+  cid: string;
   selectors: {
     type: string;
     exact: string;
@@ -269,8 +273,8 @@ export interface NoteCardForUrlDTO {
 export interface UrlLibraryInfo {
   urlLibraryCount: number; // distinct users with this URL
   urlInLibrary?: boolean; // whether calling user has it
-  urlConnectionCount?: number; // total connections involving this URL
-  urlIsConnected?: boolean; // whether calling user has any connection with this URL
+  urlConnectionCount?: number; // total connections anchored on this URL (directly or via an annotation of it)
+  urlIsConnected?: boolean; // whether calling user has any connection anchored on this URL
   metadata: {
     url: string;
     title?: string;
@@ -295,16 +299,16 @@ export interface UserActivityStats {
 }
 
 /**
- * Connection counts for a URL. Only the counted endpoint must be the URL —
- * the other side may be a URL or a CARD endpoint (an annotation card),
- * matching what the URL's connections page lists. A passage's own
- * connections are counted on the annotation card, not on its anchor URL
- * here. A self-loop counts once in each direction. Connections with no
+ * Connection counts for a URL. A connection counts toward a URL when the
+ * counted endpoint is the URL itself or an ANNOTATION card anchored on that
+ * URL, matching what the URL's connections page lists. The other side of a
+ * matching connection may be any endpoint. A connection anchored on both
+ * sides to the same URL counts once in each direction. Connections with no
  * type count toward the totals but not the by-type maps.
  */
 export interface UrlConnectionCounts {
-  forwardTotal: number; // connections where the URL is the source
-  backwardTotal: number; // connections where the URL is the target
+  forwardTotal: number; // connections where the URL (or an annotation of it) is the source
+  backwardTotal: number; // connections where the URL (or an annotation of it) is the target
   forwardByType: Map<ConnectionTypeEnum, number>;
   backwardByType: Map<ConnectionTypeEnum, number>;
 }
@@ -387,6 +391,18 @@ export interface ICardQueryRepository {
     url: string,
     exactNormalized: string,
   ): Promise<string[]>;
+
+  /**
+   * Resolve a passage's annotation CID back to its parts — the stored
+   * canonical url, the normalized exact (comparison key for the passage
+   * queries) and the raw exact (for display). Null when no selector row
+   * carries the CID.
+   */
+  getAnnotationPassageByCid(cid: string): Promise<{
+    url: string;
+    exactNormalized: string;
+    exact: string;
+  } | null>;
 
   /**
    * Annotation cards grouped by passage, for resolving vector-search hits
