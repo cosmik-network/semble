@@ -732,18 +732,18 @@ export const tools: McpTool[] = [
   // -------------------------------------------------------------------------
   {
     name: 'connect_cards',
-    title: 'Connect Two URLs/Cards',
+    title: 'Connect Two URLs',
     description:
-      'Use when the user asks to relate, link, or connect two pieces of content with a typed relationship (e.g. one supports/opposes/explains another). Source and target can each be a URL or a card ID. See the semble://connection-types resource for relationship semantics.',
+      'Use when the user asks to relate, link, or connect two pieces of content with a typed relationship (e.g. one supports/opposes/explains another). Currently connections can only be made between two URLs — both source and target must be URLs; card IDs are not supported. If the user refers to a card, use its URL instead. See the semble://connection-types resource for relationship semantics.',
     inputSchema: z.object({
       sourceType: z
-        .enum(['URL', 'CARD'])
-        .describe('Whether sourceValue is a URL or a card ID'),
-      sourceValue: z.string().describe('The source URL or card ID'),
+        .enum(['URL'])
+        .describe('Must be "URL" — only URL-to-URL connections are supported'),
+      sourceValue: z.string().describe('The source URL'),
       targetType: z
-        .enum(['URL', 'CARD'])
-        .describe('Whether targetValue is a URL or a card ID'),
-      targetValue: z.string().describe('The target URL or card ID'),
+        .enum(['URL'])
+        .describe('Must be "URL" — only URL-to-URL connections are supported'),
+      targetValue: z.string().describe('The target URL'),
       connectionType: connectionType.optional(),
       note: z
         .string()

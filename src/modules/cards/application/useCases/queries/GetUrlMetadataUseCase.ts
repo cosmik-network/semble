@@ -4,6 +4,7 @@ import { ICardQueryRepository } from '../../../domain/ICardQueryRepository';
 import { UseCase } from 'src/shared/core/UseCase';
 import { err, ok, Result } from 'src/shared/core/Result';
 import { UrlMetadata } from 'src/modules/cards/domain/value-objects/UrlMetadata';
+import { UrlType } from 'src/modules/cards/domain/value-objects/UrlType';
 import {
   toUrlMetadataDTO,
   UrlMetadataDTO,
@@ -68,7 +69,10 @@ export class GetUrlMetadataUseCase implements UseCase<
 
       let metadataResult = fetchedMetadata;
       if (metadataResult.isErr()) {
-        metadataResult = UrlMetadata.create({ url: url.value });
+        metadataResult = UrlMetadata.create({
+          url: url.value,
+          type: UrlType.LINK,
+        });
         if (metadataResult.isErr()) {
           return err(
             new Error(

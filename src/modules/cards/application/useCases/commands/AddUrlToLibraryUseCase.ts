@@ -15,6 +15,7 @@ import { CuratorId } from '../../../domain/value-objects/CuratorId';
 import { IMetadataService } from '../../../domain/services/IMetadataService';
 import { CardTypeEnum } from '../../../domain/value-objects/CardType';
 import { URL } from '../../../domain/value-objects/URL';
+import { UrlType } from '../../../domain/value-objects/UrlType';
 import { CardLibraryService } from '../../../domain/services/CardLibraryService';
 import { CardCollectionService } from '../../../domain/services/CardCollectionService';
 import { CardContent } from '../../../domain/value-objects/CardContent';
@@ -114,7 +115,10 @@ export class AddUrlToLibraryUseCase extends BaseUseCase<
         if (metadataResult.isOk()) {
           metadata = metadataResult.value;
         } else {
-          metadata = UrlMetadata.create({ url: url.value }).unwrap();
+          metadata = UrlMetadata.create({
+            url: url.value,
+            type: UrlType.LINK,
+          }).unwrap();
         }
 
         // If metadata fetching fails, we continue without metadata
